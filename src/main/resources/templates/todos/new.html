@@ -84,25 +84,34 @@
 
                                     <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('dueDateVariable')}" th:errors="*{dueDateVariable}">
                                     </p>
-
                                 </div>
-
                             </div>
-
-                            <script type="x-template" id="editor-template">
-                                <div>
-
-                                    <input type="hidden" id="x" name="notes"/>
-                                        <!-- <form:hidden path="content"/> -->
-                                    <trix-editor input="x" class="trix-editor-message"></trix-editor>
-                                </div>
-                            </script>
 
                             <div class="sm:col-span-6">
                                 <label for="notes" class="block text-sm font-medium leading-5 text-gray-700" wfd-id="81">
                                     Notes
                                 </label>
-                                <editor></editor>
+                                
+                                 <!-- Alpine.js Trix Editor Integration -->
+                            <div 
+                                x-data="{
+                                    notes: '',
+                                    init() {
+                                        const input = this.$refs.input;
+                                        const editor = this.$refs.trix;
+                                        editor.addEventListener('trix-change', () => {
+                                            this.notes = editor.editor.getDocument().toString();
+                                            input.value = this.notes;
+                                        });
+                                    }
+                                }" 
+                                x-init="init"
+                                class="sm:col-span-6 w-full mt-1"
+                            >
+                                <input type="hidden" id="x" name="notes" x-ref="input" x-model="notes"/>
+                                <trix-editor input="x" x-ref="trix" class="trix-editor-message w-full" style="min-height: 200px;"></trix-editor>
+                            </div>
+
                             </div>
 
                         </div>

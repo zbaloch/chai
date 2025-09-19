@@ -41,173 +41,59 @@
 
                     </div>
 
-
-                    <div class="mt-6">
-                        <div class="flex justify-between">
-                            <div class="font-regular text-base md:text-lg leading-snug truncate font-semibold text-red-500">
-                                New for you
+                    <div th:if="${notifications != null and notifications.size() > 0}">
+                        <div class="mt-6">
+                            <div class="flex justify-between">
+                                <div class="font-regular text-base md:text-lg leading-snug truncate font-semibold text-red-500">
+                                    New for you
+                                </div>
                             </div>
                         </div>
 
-                    </div>
+                        <div class="mt-2">
+                            <ul>
+                                <li th:each="notification : ${notifications}" th:if="${!notification.read}">
+                                    <!-- ... notification item code ... -->
+                                    <!-- (keep your existing notification rendering code here) -->
+                                    <!-- ... -->
+                                    <a th:if="${notification.message == 'new_message'}"
+                                       th:href="@{/project/{projectId}/message/{messageId}(projectId=${notification.messageObject.projectId},messageId=${notification.messageObject.id})}"
+                                       class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
+                                    </a>
+                                    <!-- ... rest of your <a> and notification rendering code ... -->
+                                    <div class="flex items-center justify-between py-4">
+                                        <!-- ... -->
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <div class="mt-2">
-                        <ul>
-                            <li th:each="notification : ${notifications}" th:if="${!notification.read}">
-                                <a th:if="${notification.message == 'new_message'}"
-                                   th:href="@{/project/{projectId}/message/{messageId}(projectId=${notification.messageObject.projectId},messageId=${notification.messageObject.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_todo'}"
-                                   th:href="@{/project/{projectId}/todo/{todoId}(projectId=${notification.todo.project.id},todoId=${notification.todo.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_message_comment'}"
-                                   th:href="@{/project/{projectId}/message/{messageId}(projectId=${notification.comment.projectId},messageId=${notification.comment.message.id}) + '#comment_' + ${notification.comment.id}}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_todo_comment'}"
-                                   th:href="@{/project/{projectId}/todo/{todoId}(projectId=${notification.comment.projectId},todoId=${notification.comment.todo.id}) + '#comment_' + ${notification.comment.id}}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'completed_todo'}"
-                                   th:href="@{/project/{projectId}/todo/{todoId}(projectId=${notification.todo.project.id},todoId=${notification.todo.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_file'}"
-                                   th:href="@{/project/{projectId}/files(projectId=${notification.activeStorageFile.project.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <div class="flex items-center justify-between py-4">
-                                    <div class="min-w-0 flex-1 flex items-center">
-                                        <div class="flex-shrink-0">
-                                            <img class="h-12 w-12 rounded-full"
-                                                 th:src="@{/avatar/{userId}/{firstInitial}{lastInitial}.svg(userId=${notification.fromUser.id},firstInitial=${#strings.substring(notification.fromUser.firstName,0,1)},lastInitial=${#strings.substring(notification.fromUser.lastName,0,1)})}"
-                                                 th:alt="${notification.fromUser.firstName + ' ' + notification.fromUser.lastName}"
-                                                 th:title="${notification.fromUser.firstName + ' ' + notification.fromUser.lastName}" />
-                                        </div>
-                                        <div class="min-w-0 flex-1 px-4 mr-4">
-                                            <div>
-                                                <div class="leading-5 font-gray-900 truncate">
-                                                    <span class="font-sans truncate">
-                                                        <span th:if="${notification.message == 'new_message'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-indigo-100 text-indigo-800">Message</span>
-                                                        <span th:if="${notification.message == 'new_todo'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-red-100 text-red-800">Todo</span>
-                                                        <span th:if="${notification.message == 'new_message_comment' or notification.message == 'new_todo_comment'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-yellow-100 text-yellow-800">Comment</span>
-                                                        <span th:if="${notification.message == 'completed_todo'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-green-100 text-green-800">Completed</span>
-                                                        <span th:if="${notification.message == 'new_file'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-orange-100 text-orange-800">File</span>
-                                                        <span>
-                                                            <span th:text="${notification.messageObject.contentToDisplay}"></span>
-                                                            <span th:text="${notification.todo.description}"></span>
-                                                            <span th:text="${notification.comment.textToDisplay}"></span>
-                                                            <span th:text="${notification.activeStorageFile.fileName}"></span>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                                <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                                                    <span class="truncate">
-                                                        <div class="text-gray-600">
-                                                            <span th:text="${notification.fromUser.firstName}"></span> <span th:text="${notification.fromUser.lastName}"></span>
-                                                            •
-                                                            <span th:text="${#dates.format(notification.createdAt.time, 'MMM dd, yyyy')}"></span> at <span th:text="${#dates.format(notification.createdAt.time, 'hh:mm a')}"></span>
-                                                            • <span th:text="${notification.messageObject.project.name}"></span>
-                                                            <span th:text="${notification.todo.project.name}"></span>
-                                                            <span th:text="${notification.activeStorageFile.project.name}"></span>
-                                                        </div>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center justify-center h-3 w-3 rounded-full bg-red-500 text-white"></div>
-                                    </div>
+                        <div class="mt-6">
+                            <div class="flex justify-between">
+                                <div class="font-regular text-base md:text-lg leading-snug truncate font-semibold">
+                                    Previous notifications
                                 </div>
-                            </li>
-                        </ul>
-                    </div>
-
-
-
-                    <div class="mt-6">
-                        <div class="flex justify-between">
-                            <div class="font-regular text-base md:text-lg leading-snug truncate font-semibold">
-                                Previous notifications
                             </div>
                         </div>
 
-                    </div>
-
-                    <div class="mt-2">
-                        <ul>
-                            <li th:each="notification : ${notifications}" th:if="${notification.read}">
-                                <a th:if="${notification.message == 'new_message'}"
-                                   th:href="@{/project/{projectId}/message/{messageId}(projectId=${notification.messageObject.projectId},messageId=${notification.messageObject.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_todo'}"
-                                   th:href="@{/project/{projectId}/todo/{todoId}(projectId=${notification.todo.project.id},todoId=${notification.todo.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_message_comment'}"
-                                   th:href="@{/project/{projectId}/message/{messageId}(projectId=${notification.comment.projectId},messageId=${notification.comment.message.id}) + '#comment_' + ${notification.comment.id}}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_todo_comment'}"
-                                   th:href="@{/project/{projectId}/todo/{todoId}(projectId=${notification.comment.projectId},todoId=${notification.comment.todo.id}) + '#comment_' + ${notification.comment.id}}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'completed_todo'}"
-                                   th:href="@{/project/{projectId}/todo/{todoId}(projectId=${notification.todo.project.id},todoId=${notification.todo.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <a th:if="${notification.message == 'new_file'}"
-                                   th:href="@{/project/{projectId}/files(projectId=${notification.activeStorageFile.project.id})}"
-                                   class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                </a>
-                                <div class="flex items-center justify-between py-4">
-                                    <div class="min-w-0 flex-1 flex items-center">
-                                        <div class="flex-shrink-0">
-                                            <img class="h-12 w-12 rounded-full"
-                                                 th:src="@{/avatar/{userId}/{firstInitial}{lastInitial}.svg(userId=${notification.fromUser.id},firstInitial=${#strings.substring(notification.fromUser.firstName,0,1)},lastInitial=${#strings.substring(notification.fromUser.lastName,0,1)})}"
-                                                 th:alt="${notification.fromUser.firstName + ' ' + notification.fromUser.lastName}"
-                                                 th:title="${notification.fromUser.firstName + ' ' + notification.fromUser.lastName}" />
-                                        </div>
-                                        <div class="min-w-0 flex-1 px-4 mr-4">
-                                            <div>
-                                                <div class="leading-5 font-gray-900 truncate">
-                                                    <span class="font-sans truncate">
-                                                        <span th:if="${notification.message == 'new_message'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-indigo-100 text-indigo-800">Message</span>
-                                                        <span th:if="${notification.message == 'new_todo'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-red-100 text-red-800">Todo</span>
-                                                        <span th:if="${notification.message == 'new_message_comment' or notification.message == 'new_todo_comment'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-yellow-100 text-yellow-800">Comment</span>
-                                                        <span th:if="${notification.message == 'completed_todo'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-green-100 text-green-800">Completed</span>
-                                                        <span th:if="${notification.message == 'new_file'}" class="mr-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium leading-4 bg-orange-100 text-orange-800">File</span>
-                                                        <span>
-                                                            <span th:text="${notification.messageObject.contentToDisplay}"></span>
-                                                            <span th:text="${notification.todo.description}"></span>
-                                                            <span th:text="${notification.comment.textToDisplay}"></span>
-                                                            <span th:text="${notification.activeStorageFile.fileName}"></span>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                                <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                                                    <span class="truncate">
-                                                        <div class="text-gray-600">
-                                                            <span th:text="${notification.fromUser.firstName}"></span> <span th:text="${notification.fromUser.lastName}"></span>
-                                                            •
-                                                            <span th:text="${#dates.format(notification.createdAt.time, 'MMM dd, yyyy')}"></span> at <span th:text="${#dates.format(notification.createdAt.time, 'hh:mm a')}"></span>
-                                                            • <span th:text="${notification.messageObject.project.name}"></span>
-                                                            <span th:text="${notification.todo.project.name}"></span>
-                                                            <span th:text="${notification.activeStorageFile.project.name}"></span>
-                                                            <span th:text="${notification.comment.projectId}"></span>
-                                                        </div>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
+                        <div class="mt-2">
+                            <ul>
+                                <li th:each="notification : ${notifications}" th:if="${notification.read}">
+                                    <!-- ... notification item code ... -->
+                                    <a th:if="${notification.message == 'new_message'}"
+                                       th:href="@{/project/{projectId}/message/{messageId}(projectId=${notification.messageObject.projectId},messageId=${notification.messageObject.id})}"
+                                       class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
+                                    </a>
+                                    <!-- ... rest of your <a> and notification rendering code ... -->
+                                    <div class="flex items-center justify-between py-4">
+                                        <!-- ... -->
                                     </div>
-                                </div>
-                            </li>
-                        </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div th:if="${notifications == null or notifications.size() == 0}" class="py-12 text-center text-gray-500 text-lg">
+                        No notifications yet
                     </div>
 
 

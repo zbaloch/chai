@@ -177,9 +177,18 @@ public class TodosController {
         Todo todo = todoRepository.getOne(todo_id);
         model.put("todo", todo);
 
+        System.out.println("Showing todo: " + todo.getId() + " for project: " + project.getId());
+
+        System.out.println("Due date: " + todo.getDueDate());
+
         // List<Comment> comments = commentRepository.findAllByMessageIdOrderByCreatedAtAsc(message_id);
         List<Comment> comments = todo.getComments();
         for(int i=0; i<comments.size(); i++) {
+
+            System.out.println("Comment: " + comments.get(i).getId() + " : " + comments.get(i).getText());
+            System.out.println("Comment User: " + comments.get(i).getUser().getFirstName());
+            System.out.println("Comment User Last Name: " + comments.get(i).getUser().getLastName());
+            
             Comment comment = comments.get(i);
             comment.setTextToDisplay(escapeHtml(comment.getText()));
 
@@ -316,6 +325,8 @@ public class TodosController {
                              Principal principal, @PathVariable Long project_id, @PathVariable Long todo_id,
                              Model model, RedirectAttributes redirectAttributes,
                              BindingResult bindingResult) throws Exception {
+
+        System.out.println("Adding comment to todo: " + todo_id + " for project: " + project_id);
         User currentUser = userRepository.findByEmail(principal.getName());
         Project project = projectRepository.getOne(project_id);
 
