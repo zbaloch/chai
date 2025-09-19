@@ -1,9 +1,17 @@
 package com.chaihq.webapp.models;
 
 import javax.persistence.*;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Calendar;
 import java.util.List;
 
+@NoArgsConstructor
+@Getter
+@Setter
 @Entity(name = "projects")
 public class Project {
 
@@ -35,70 +43,4 @@ public class Project {
 
     private String status;
 
-    public Project() {
-
-    }
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getProjectType() {
-        return projectType;
-    }
-
-    public void setProjectType(String projectType) {
-        this.projectType = projectType;
-    }
-
-    public Calendar getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Calendar createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<User> users) {
-        this.users = users;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }

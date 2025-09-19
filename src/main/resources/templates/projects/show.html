@@ -20,16 +20,16 @@
                                     Home
                                 </a>
                             </nav>
-                            <div th:if="${project.user.id == currentUser.id and project.projectType != 'hq'}" class="relative">
-                                <button v-on:click="isProjectActionsOpen = !isProjectActionsOpen" class="text-gray-800 font-bold z-10 relative">
+                            <div th:if="${project.user.id == currentUser.id and project.projectType != 'hq'}" class="relative" x-data="{ isProjectActionsOpen: false }">
+                                <button @click="isProjectActionsOpen = !isProjectActionsOpen" class="text-gray-800 font-bold z-10 relative">
                                     <svg class="fill-current w-4 h-4 mr-2" fill="none" stroke-linejoin="round" stroke-width="2" viewBox="0 0 20 20" stroke="currentColor">
                                         <path d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
                                     </svg>
                                 </button>
-                                <button v-if="isProjectActionsOpen" v-on:click="isProjectActionsOpen = false" tabindex="-1"
+                                <button x-show="isProjectActionsOpen" @click="isProjectActionsOpen = false" tabindex="-1"
                                         class="fixed inset-0 w-full cursor-default border-0 outline-none"></button>
 
-                                <div v-cloak v-if="isProjectActionsOpen" class="absolute right-0 mt-2 py-2 w-24 bg-white rounded-lg shadow-xl">
+                                <div x-cloak x-show="isProjectActionsOpen" class="absolute right-0 mt-2 py-2 w-24 bg-white rounded-lg shadow-xl">
                                     <a class="block px-4 py-1 text-gray-800 hover:bg-indigo-500 hover:text-white" th:href="@{'/project/' + ${project.id} + '/edit'}">Edit</a>
                                     <a class="block px-4 py-1 text-red-600 hover:bg-red-500 hover:text-white"
                                        data-confirm="Are you sure?" rel="nofollow" data-method="delete"
