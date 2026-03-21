@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
-<body class="font-sans bg-gray-100">
+<body class="font-sans bg-[#FAF8F4]">
 <div id="app">
     <div th:replace="~{fragments/nav :: nav}"></div>
     <div class="min-h-screen">
@@ -42,7 +42,7 @@
                                 <div class="absolute left-0 top-0">
                                     <img 
 
-                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${message.user.firstName} + '+' + ${message.user.lastName} + '&background=random&color=fff'}"
+                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${message.user.firstName} + '+' + ${message.user.lastName} + '&background=random'}"
                                                 th:alt="${message.user.firstName + ' ' + message.user.lastName}"
                                                 th:title="${message.user.firstName + ' ' + message.user.lastName}" 
                                     class="h-12 w-12 rounded-full">
@@ -81,7 +81,7 @@
                                     <div class="relative">
                                         <div class="absolute left-0 top-0">
                                             <img 
-                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${comment.user.firstName} + '+' + ${comment.user.lastName} + '&background=random&color=fff'}"
+                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${comment.user.firstName} + '+' + ${comment.user.lastName} + '&background=random'}"
                                                 th:alt="${comment.user.firstName + ' ' + comment.user.lastName}"
                                                 th:title="${comment.user.firstName + ' ' + comment.user.lastName}" 
                                                 class="h-12 w-12 rounded-full "
@@ -116,7 +116,7 @@
                                         <div class="absolute left-0 top-0">
                                             <img 
 
-                                            th:src="@{'https://ui-avatars.com/api/?name=' + ${currentUser.firstName} + '+' + ${currentUser.lastName} + '&background=random&color=fff'}"
+                                            th:src="@{'https://ui-avatars.com/api/?name=' + ${currentUser.firstName} + '+' + ${currentUser.lastName} + '&background=random'}"
                                                 th:alt="${currentUser.firstName + ' ' + currentUser.lastName}"
                                                 th:title="${currentUser.firstName + ' ' + currentUser.lastName}" 
                                             

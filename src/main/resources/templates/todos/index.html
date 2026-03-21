@@ -3,7 +3,7 @@
 
 <head th:replace="fragments/head :: head"></head>
 
-<body class="font-sans bg-gray-100">
+<body class="font-sans bg-[#FAF8F4]">
     <div id="app">
 
         <div th:replace="fragments/nav :: nav"></div>
@@ -69,7 +69,7 @@
                                                     <!-- <div class="flex-shrink-0">
                                                     <img class="h-12 w-12 rounded-full"
                                                          th:if="${todo.createdBy != null}"
-                                                         th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.createdBy.firstName} + '+' + ${todo.createdBy.lastName} + '&background=random&color=fff'}"
+                                                         th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.createdBy.firstName} + '+' + ${todo.createdBy.lastName} + '&background=random'}"
                                                          th:alt="${todo.createdBy.firstName + ' ' + todo.createdBy.lastName}"
                                                          th:title="${todo.createdBy.firstName + ' ' + todo.createdBy.lastName}" />
                                                     <span th:if="${todo.createdBy == null}">Unknown</span>
@@ -97,7 +97,7 @@
                                                                 <span class="mr-1">
                                                                     <img class="h-5 w-5 rounded-full"
                                                                         th:if="${todo.assignedTo != null}"
-                                                                        th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName} + '&background=random&color=fff'}"
+                                                                        th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName} + '&background=random'}"
                                                                         th:alt="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}"
                                                                         th:title="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}" />
                                                                     <span

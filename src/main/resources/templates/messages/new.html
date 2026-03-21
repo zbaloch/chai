@@ -3,7 +3,7 @@
 
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-gray-100">
+<body class="font-sans bg-[#FAF8F4]">
 <div id="app">
     <div th:replace="~{fragments/nav :: nav}"></div>
     <div class="min-h-screen">
@@ -46,14 +46,11 @@
                                             </p>
                                         </div>
                                     </div>
-                                    <script type="x-template" id="editor-template">
-                                        <div>
-                                            <input type="hidden" id="x" name="content" th:field="*{content}"/>
-                                            <trix-editor input="x" class="trix-editor-message"></trix-editor>
-                                        </div>
-                                    </script>
                                     <div class="sm:col-span-6">
-                                        <editor></editor>
+                                        <div class="mt-1">
+                                            <input type="hidden" id="message-content" name="content" th:field="*{content}"/>
+                                            <trix-editor input="message-content" class="trix-editor-message" style="min-height: 300px;"></trix-editor>
+                                        </div>
                                         <p class="mt-1 text-sm mb-4 text-red-500">
                                             <span th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></span>
                                         </p>
@@ -78,11 +75,6 @@
     </div>
 </div>
 <div th:replace="~{fragments/notifications :: notifications}"></div>
-<script>
-    Vue.component("editor", {
-        template: "#editor-template"
-    });
-</script>
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

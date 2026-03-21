@@ -3,7 +3,7 @@
 
 <div th:replace="fragments/head :: head"></div>
 
-<body class="font-sans bg-gray-100">
+<body class="font-sans bg-[#FAF8F4]">
     <div id="app">
 
         <div th:replace="fragments/nav :: nav"></div>
@@ -93,7 +93,7 @@
                                         <div class="flex">
                                             <span class="mr-1">
                                                 <img class="h-6 w-6 rounded-full"
-                                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName} + '&background=random&color=fff'}"
+                                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName} + '&background=random'}"
                                                     th:alt="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}"
                                                     th:title="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}">
                                             </span>
@@ -178,7 +178,7 @@
 
                                     <div class="absolute left-0 top-0">
 
-                                        <img th:src="@{'https://ui-avatars.com/api/?name=' + ${comment.user.firstName} + '+' + ${comment.user.lastName} + '&background=random&color=fff'}"
+                                        <img th:src="@{'https://ui-avatars.com/api/?name=' + ${comment.user.firstName} + '+' + ${comment.user.lastName} + '&background=random'}"
                                             th:alt="${comment.user.firstName + ' ' + comment.user.lastName}"
                                             th:title="${comment.user.firstName + ' ' + comment.user.lastName}"
                                             class="h-12 w-12 rounded-full">
@@ -232,7 +232,7 @@
                                 <div class="relative">
                                     <div class="absolute left-0 top-0">
                                         <img th:if="${currentUser != null}"
-                                            th:src="@{'https://ui-avatars.com/api/?name=' + ${currentUser.firstName} + '+' + ${currentUser.lastName} + '&background=random&color=fff'}"
+                                            th:src="@{'https://ui-avatars.com/api/?name=' + ${currentUser.firstName} + '+' + ${currentUser.lastName} + '&background=random'}"
                                             th:alt="${currentUser.firstName + ' ' + currentUser.lastName}"
                                             th:title="${currentUser.firstName + ' ' + currentUser.lastName}"
                                             class="h-12 w-12 rounded-full ">

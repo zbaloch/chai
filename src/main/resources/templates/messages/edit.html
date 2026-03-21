@@ -3,7 +3,7 @@
 
 <div th:replace="fragments/head :: head"></div>
 
-<body class="font-sans bg-gray-100">
+<body class="font-sans bg-[#FAF8F4]">
 
 <div id="app">
 
@@ -93,18 +93,11 @@
                                             </div>
                                         </div>
 
-                                        <script type="x-template" th:id="'editor-template-' + ${message.id}">
-                                            <div>
-                                                    <!-- <input id="messageContent" type="hidden" name="content"> -->
-                                                            <!-- <input id="messageContent" type="hidden" name="content"> -->
-                                                        <input type="hidden" th:id="'x_' + ${message.id}" name="content" th:value="${message.contentToDisplay}"/>
-                                                            <!-- <input th:field="*{content}" type="hidden"/> -->
-                                                        <trix-editor th:attr="input='x_' + ${message.id}" class="trix-editor-message"></trix-editor>
-                                            </div>
-                                        </script>
-
                                         <div class="sm:col-span-6">
-                                            <editor></editor>
+                                            <div class="mt-1">
+                                                <input type="hidden" th:id="'message-content-' + ${message.id}" name="content" th:value="${message.contentToDisplay}"/>
+                                                <trix-editor th:attr="input='message-content-' + ${message.id}" class="trix-editor-message" style="min-height: 300px;"></trix-editor>
+                                            </div>
                                             <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('content')}" th:errors="*{content}">
                                             </p>
                                         </div>
@@ -155,14 +148,6 @@
 
 
 <div th:replace="fragments/notifications :: notifications"></div>
-
-<script>
-    // Vue.config.ignoredElements = ['trix-editor'];
-    Vue.component("editor", {
-        template: "#editor-template-[[${message.id}]]"
-    });
-
-</script>
 
 <div th:replace="fragments/footer :: footer"></div>
 

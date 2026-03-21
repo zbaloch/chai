@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/head :: head"></head>
 
-<body class="font-sans bg-gray-100">
+<body class="font-sans bg-[#FAF8F4]">
 <div id="app">
 
     <nav th:replace="fragments/nav :: nav"></nav>
@@ -83,13 +83,13 @@
                                         <div class="mt-4">
                                             <div class="flex overflow-hidden">
                                                 <img class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid"
-                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${team.user.firstName} + '+' + ${team.user.lastName} + '&background=random&color=fff'}"
+                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${team.user.firstName} + '+' + ${team.user.lastName} + '&background=random'}"
                                                 th:alt="${team.user.firstName + ' ' + team.user.lastName}"
                                                 th:title="${team.user.firstName + ' ' + team.user.lastName}">
 
                                                 <img th:each="user : ${team.users}" 
                                                      class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid" 
-                                                     th:src="@{'https://ui-avatars.com/api/?name=' + ${user.firstName} + '+' + ${user.lastName} + '&background=random&color=fff'}"
+                                                     th:src="@{'https://ui-avatars.com/api/?name=' + ${user.firstName} + '+' + ${user.lastName} + '&background=random'}"
                                                      th:title="${user.firstName + ' ' + user.lastName}">
                                             </div>
                                         </div>
@@ -126,11 +126,11 @@
                                         <div class="mt-4">
                                             <div class="flex overflow-hidden">
                                                 <img class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid"
-                                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${project.user.firstName} + '+' + ${project.user.lastName} + '&background=random&color=fff'}"
+                                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${project.user.firstName} + '+' + ${project.user.lastName} + '&background=random'}"
                                                      th:title="${project.user.firstName + ' ' + project.user.lastName}">
                                                 <img th:each="user : ${project.users}" 
                                                      class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid" 
-                                                     th:src="@{'https://ui-avatars.com/api/?name=' + ${user.firstName} + '+' + ${user.lastName} + '&background=random&color=fff'}"
+                                                     th:src="@{'https://ui-avatars.com/api/?name=' + ${user.firstName} + '+' + ${user.lastName} + '&background=random'}"
                                                      th:title="${user.firstName + ' ' + user.lastName}">
                                             </div>
                                         </div>

@@ -33,16 +33,17 @@
                                 class="ml-2 flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition duration-150 ease-in-out cursor-pointer"
                                 @click="open = !open">
                                 <img class="h-8 w-8 rounded-full"
-                                    th:src="@{'https://ui-avatars.com/api/?length=1&name=' + ${#authentication.name} + '&background=random&color=random'}"
-                                    th:alt="${#authentication.name}" th:title="${#authentication.name}">
+                                    th:src="@{'https://ui-avatars.com/api/?length=1&name=' + (${#session.getAttribute('currentUser')} != null ? ${#session.getAttribute('currentUser').firstName} + '+' + ${#session.getAttribute('currentUser').lastName} : ${#authentication.name}) + '&background=random&color=random'}"
+                                    th:alt="${#session.getAttribute('currentUser')} != null ? ${#session.getAttribute('currentUser').firstName} + ' ' + ${#session.getAttribute('currentUser').lastName} : ${#authentication.name}"
+                                    th:title="${#session.getAttribute('currentUser')} != null ? ${#session.getAttribute('currentUser').firstName} + ' ' + ${#session.getAttribute('currentUser').lastName} : ${#authentication.name}">
                             </button>
                             <div class="relative flex-shrink-0" x-show="open" @click.away="open = false" x-transition>
                                 <div
                                     class="origin-top-right absolute right-0 mt-8 w-48 rounded-md shadow-lg z-50">
                                     <div class="py-1 rounded-md bg-white shadow-xs">
-                                        <!-- <a th:href="@{/profile}" class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100">My profile</a> -->
+                                        <!-- <a th:href="@{/profile}" class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-[#FAF8F4]">My profile</a> -->
                                         <a onclick="document.forms['logoutForm'].submit()"
-                                            class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 cursor-pointer">Sign
+                                            class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-[#FAF8F4] cursor-pointer">Sign
                                             out</a>
                                     </div>
                                 </div>

@@ -5,7 +5,7 @@
 
     <%@ include file="../includes/head.jsp"%>
 
-    <body class="font-sans bg-gray-100">
+    <body class="font-sans bg-[#FAF8F4]">
     <div id="app">
 
     <jsp:include page="../includes/nav.jsp"></jsp:include>
@@ -33,7 +33,7 @@
                                 <span th:text="#{user.username.label}">Username</span>
                             </label>
                             <div class="mt-1 rounded-md shadow-sm">
-                                <input th:field="*{username}" readonly="readonly" class="form-input block w-full bg-gray-100 transition duration-150 ease-in-out sm:text-sm sm:leading-5" />
+                                <input th:field="*{username}" readonly="readonly" class="form-input block w-full bg-[#FAF8F4] transition duration-150 ease-in-out sm:text-sm sm:leading-5" />
                             </div>
                             <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
                             </p>
