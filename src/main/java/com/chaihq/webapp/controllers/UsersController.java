@@ -233,6 +233,9 @@ public class UsersController {
             securityContextHolderStrategy.setContext(context);
             securityContextRepository.saveContext(context, request, response);
 
+            // Add currentUser to session
+            request.getSession().setAttribute("currentUser", existingUser);
+
             redirectAttrs.addFlashAttribute("success", "Login successfull.");
 
             // Invalidate the token

@@ -18,10 +18,14 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 
 import com.chaihq.webapp.services.CustomUserDetailsService;
+import com.chaihq.webapp.security.CustomAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private CustomAuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Autowired
 	private DataSource dataSource;
@@ -54,6 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
             .formLogin()
                 .loginPage("/login")
+                .successHandler(authenticationSuccessHandler)
                 .permitAll()
                 .and()
             .logout()
