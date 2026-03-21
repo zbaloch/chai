@@ -122,16 +122,13 @@
                                             
                                             class="h-12 w-12 rounded-full ">
                                         </div>
-                                        <form th:action="@{/project/{projectId}/message/{messageId}/comment(projectId=${project.id},messageId=${message.id})}" 
+                                        <form th:action="@{/project/{projectId}/message/{messageId}/comment(projectId=${project.id},messageId=${message.id})}"
                                             th:object="${comment}" method="post">
-                                            <script type="x-template" id="comment-template">
-                                                <div>
-                                                    <input type="hidden" id="newComment" name="text" th:field="*{text}"/>
-                                                    <trix-editor input="newComment" class="trix-editor-comment"></trix-editor>
-                                                </div>
-                                            </script>
                                             <div class="ml-16">
-                                                <comment-editor></comment-editor>
+                                                <div class="mt-1">
+                                                    <input type="hidden" id="comment-text" name="text" th:field="*{text}"/>
+                                                    <trix-editor input="comment-text" class="trix-editor-comment" style="min-height: 200px;"></trix-editor>
+                                                </div>
                                                 <p class="mt-1 text-sm mb-4 text-red-500">
                                                     <span th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></span>
                                                 </p>
@@ -151,11 +148,6 @@
     </div>
 </div>
 <div th:replace="~{fragments/notifications :: notifications}"></div>
-<script>
-    Vue.component("comment-editor", {
-        template: "#comment-template"
-    });
-</script>
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

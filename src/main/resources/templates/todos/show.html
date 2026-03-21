@@ -191,13 +191,12 @@
                                             <div>
                                                 <span class="font-medium"
                                                     th:text="${comment.user.firstName} + ' ' + ${comment.user.lastName}"></span>
-                                                <span class="text-sm mt-1 text-gray-600"
-                                                    th:text="${#dates.format(todo.createdAt.time, 'MMM dd, yyyy')}">
+                                                <span class="text-sm mt-1 text-gray-600">
                                                     <span
-                                                        th:text="${#dates.format(todo.createdAt.time, 'MMM dd, yyyy')}"></span>
+                                                        th:text="${#dates.format(comment.createdAt.time, 'MMM dd, yyyy')}"></span>
                                                     at
                                                     <span
-                                                        th:text="${#dates.format(todo.createdAt.time, 'h:mm a')}"></span>
+                                                        th:text="${#dates.format(comment.createdAt.time, 'h:mm a')}"></span>
                                                 </span>
                                             </div>
                                             <div class="text-sm">
