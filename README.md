@@ -7,15 +7,15 @@ Chai's intention to provide a free alternative to people who love Basecamp but c
 If you are a company that has no such requirements then you should use always use Basecamp as its affordable and amazing.
 
 ## Features:
-Chai has following features as of today (12 July 2020):
+Chai has following features as of today (12 May 2026):
 - Company HQ, Teams and Projects
-- Docs & Files
-- Chat
+- Messages
+- To-dos
 - User management (Register, Login, Add/Remove from projects/teams)
 
+
 The below is the backlog of features planned:
-- To-dos
-- Messages
+
 - Email integration (specially for Reset password)
 - Notifications
 - Automated check-ins
@@ -24,6 +24,8 @@ The below is the backlog of features planned:
 - Documentation, contribution setup etc
 - APIs
 - Mobile apps (Native or Hybrid)
+- Docs & Files
+- Chat (May never have as we believe chat is distracting)
 
 ## Getting Help & Contributing Back
 If interested n in getting any help or contributing back, please write to me on zaheer at hey.com.
