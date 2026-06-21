@@ -9,6 +9,7 @@ public class DotEnvConfig implements ApplicationContextInitializer<ConfigurableA
     public void initialize(ConfigurableApplicationContext context) {
         Dotenv dotenv = Dotenv.configure()
                 .directory(".")
+                .ignoreIfMissing()
                 .load();
 
         dotenv.entries().forEach(entry ->
