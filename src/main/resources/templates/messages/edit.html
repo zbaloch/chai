@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<div th:replace="fragments/head :: head"></div>
+<div th:replace="~{fragments/head :: head}"></div>
 
 <body class="font-sans bg-[#FAF8F4]">
 
 <div id="app">
 
-    <div th:replace="fragments/nav :: nav"></div>
+    <div th:replace="~{fragments/nav :: nav}"></div>
 
     <div class=" min-h-screen">
         <div class="py-4">
@@ -44,41 +44,8 @@
                         </h2>
                     </div>
 
-                    <%--
-                    <form:form modelAttribute="activeStorageFile" enctype="multipart/form-data">
-
-
-
-
-                        <div class="mt-4 grid grid-cols-1 row-gap-6 col-gap-4 sm:grid-cols-6">
-
-                            <div class="sm:col-span-6">
-                                <div class="mt-1 rounded-md shadow-sm">
-                                    <input type="file" name="multipartFile"/>
-                                </div>
-                            </div>
-
-
-                        </div>
-
-
-                        <div class="mt-8 border-t border-gray-200 pt-5">
-                            <div class="flex justify-end">
-                    <span class="inline-flex rounded-md shadow-sm">
-                        <a href="${contextUrl}/project/${project.id}/files" class="py-2 px-4 border border-gray-300 rounded-md text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-50 active:text-gray-800 transition duration-150 ease-in-out">Cancel</a>
-                    </span>
-                                <span class="ml-3 inline-flex rounded-md shadow-sm">
-                                <input type="submit" value="Upload file to project" class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out"/>
-                            </span>
-                            </div>
-                        </div>
-
-
-                    </form:form>
-                    --%>
-
                     <div class="">
-                        <!-- <form th:object="${activeStorageFile}" enctype="multipart/form-data"> -->
+                        <!-- form th:object="${activeStorageFile}" enctype="multipart/form-data" -->
                         <form th:object="${message}" th:action="@{/project/{projectId}/message/{messageId}/edit(projectId=${project.id}, messageId=${message.id})}" method="post">
                             <div>
                                 <div>
@@ -147,8 +114,8 @@
 </div>
 
 
-<div th:replace="fragments/notifications :: notifications"></div>
+<div th:replace="~{fragments/notifications :: notifications}"></div>
 
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </html>

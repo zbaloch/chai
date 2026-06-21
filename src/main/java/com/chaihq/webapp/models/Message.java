@@ -1,7 +1,6 @@
 package com.chaihq.webapp.models;
 
-import javax.persistence.*;
-import javax.servlet.annotation.HttpConstraint;
+import jakarta.persistence.*;
 import java.util.Calendar;
 import java.util.List;
 

@@ -9,9 +9,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.UserRepository;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.logging.Logger;
 
 @Component

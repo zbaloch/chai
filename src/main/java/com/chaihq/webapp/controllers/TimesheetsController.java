@@ -19,7 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -110,7 +110,7 @@ public class TimesheetsController {
             model.put("projects", projects);
             return "timesheets/new";
         }
-        Project project = projectRepository.getOne(timesheet.getProjectId());
+        Project project = projectRepository.getReferenceById(timesheet.getProjectId());
         User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
         System.out.println("user: " + user.getId());
         timesheet.setProject(project);
@@ -123,7 +123,7 @@ public class TimesheetsController {
 
     @GetMapping("/timesheet/{id}")
     public String show(@PathVariable Long id, Map<String, Object> model) {
-        Project project = projectRepository.getOne(id);
+        Project project = projectRepository.getReferenceById(id);
         System.out.println(project.getName());
         model.put("project", project);
         return "timesheets/show";
@@ -133,7 +133,7 @@ public class TimesheetsController {
     public String delete(@PathVariable Long id, final RedirectAttributes redirectAttributes,
                          HttpSession httpSession) {
         // TODO: Make sure this belongs to the current loggedin user
-        Timesheet timesheetToDelete = timesheetRepository.getOne(id);
+        Timesheet timesheetToDelete = timesheetRepository.getReferenceById(id);
         User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
         if(timesheetToDelete.getUser().getId() == currentUser.getId()) {
             timesheetRepository.delete(timesheetToDelete);
@@ -150,7 +150,7 @@ public class TimesheetsController {
     public String edit(@PathVariable Long id, Map<String, Object> model, HttpSession httpSession,
                        final RedirectAttributes redirectAttributes) {
 
-        Timesheet timesheet = timesheetRepository.getOne(id);
+        Timesheet timesheet = timesheetRepository.getReferenceById(id);
         User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
 
         if(timesheet.getUser().getId() == currentUser.getId()) {
@@ -181,9 +181,9 @@ public class TimesheetsController {
             return "timesheets/edit";
         }
 
-        Timesheet timesheetToUpdate = timesheetRepository.getOne(id);
+        Timesheet timesheetToUpdate = timesheetRepository.getReferenceById(id);
 
-        Project project = projectRepository.getOne(timesheet.getProjectId());
+        Project project = projectRepository.getReferenceById(timesheet.getProjectId());
         User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
         System.out.println("user: " + user.getId());
         timesheetToUpdate.setProject(project);

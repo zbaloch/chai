@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head"></head>
+<head th:replace="~{fragments/head :: head}"></head>
 
 <body class="font-sans bg-[#FAF8F4]">
 <div id="app">
 
-<div th:replace="fragments/nav :: nav"></div>
+<div th:replace="~{fragments/nav :: nav}"></div>
 
 <div class=" min-h-screen">
     <div class="py-4">
@@ -66,7 +66,7 @@
     </div>
 </div>
 
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

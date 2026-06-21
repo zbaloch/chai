@@ -2,7 +2,7 @@ package com.chaihq.webapp.models;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Calendar;
 import java.util.List;
 

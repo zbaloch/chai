@@ -7,7 +7,6 @@ import com.chaihq.webapp.storage.StorageService;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.validator.CommentValidator;
 import com.chaihq.webapp.validator.MessageValidator;
-import org.apache.tomcat.util.bcel.Const;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -22,14 +21,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.naming.Binding;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import java.security.Principal;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 
 @Controller
@@ -68,7 +66,7 @@ public class MessagesController {
 
     @GetMapping("/project/{id}/messages")
     public String index(@PathVariable Long id, Model model) {
-        Project project = projectRepository.getOne(id); // TODO make show this belongs to the user
+        Project project = projectRepository.getReferenceById(id); // TODO make show this belongs to the user
 
         List<Message> messages = messageRepository.findAllByProjectIdOrderByCreatedAtDesc(id);
 
@@ -93,7 +91,7 @@ public class MessagesController {
         message = new Message();
 
         User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        project = projectRepository.getOne(project_id); // TODO make show this belongs to the user
+        project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
         System.out.println(project.getName());
         model.put("project", project);
         System.out.println("neew");
@@ -111,7 +109,7 @@ public class MessagesController {
 
         System.out.println("Message content: " + message.getContent());
 
-        Project project = projectRepository.getOne(project_id);
+        Project project = projectRepository.getReferenceById(project_id);
         model.put(Constants.PROJECT, project);
 
         if(bindingResult.hasErrors()) {
@@ -168,10 +166,10 @@ public class MessagesController {
 
         model.addAttribute("currentUser", currentUser);
 
-        Project project = projectRepository.getOne(project_id);
+        Project project = projectRepository.getReferenceById(project_id);
         model.addAttribute("project", project);
 
-        Message message = messageRepository.getOne(message_id);
+        Message message = messageRepository.getReferenceById(message_id);
         model.addAttribute("message", message);
 
         model.addAttribute("comment", new Comment());
@@ -180,7 +178,7 @@ public class MessagesController {
         List<Comment> comments = message.getComments();
         for(int i=0; i<comments.size(); i++) {
             Comment comment = comments.get(i);
-            comment.setTextToDisplay(escapeHtml(comment.getText()));
+            comment.setTextToDisplay(escapeHtml4(comment.getText()));
 
             List<Notification> notifications = notificationRepository.findAllByObjectIdAndForUser(comment.getId(), currentUser);
             for (Notification notification: notifications
@@ -211,9 +209,9 @@ public class MessagesController {
                     @PathVariable Long message_id, Map<String, Object> model,
                     RedirectAttributes redirectAttributes) throws Exception {
 
-        Project project = projectRepository.getOne(project_id);
-        Message message = messageRepository.getOne(message_id);
-        message.setContentToDisplay(escapeHtml(message.getContent()));
+        Project project = projectRepository.getReferenceById(project_id);
+        Message message = messageRepository.getReferenceById(message_id);
+        message.setContentToDisplay(escapeHtml4(message.getContent()));
         model.put("message", message);
         model.put("project", project);
         System.out.println("edit: " + message_id);
@@ -230,13 +228,13 @@ public class MessagesController {
 
 
 
-        Project project = projectRepository.getOne(project_id);
-        Message messageToUpdate = messageRepository.getOne(message_id);
+        Project project = projectRepository.getReferenceById(project_id);
+        Message messageToUpdate = messageRepository.getReferenceById(message_id);
 
         model.put("project", project);
 
         message.setId(message_id);
-        message.setContentToDisplay(escapeHtml(message.getContent()));
+        message.setContentToDisplay(escapeHtml4(message.getContent()));
 
         model.put("message", message);
 
@@ -266,8 +264,8 @@ public class MessagesController {
             @PathVariable Long message_id, Map<String, Object> model,
             RedirectAttributes redirectAttributes) throws Exception {
 
-        project = projectRepository.getOne(project_id);
-        message = messageRepository.getOne(message_id);
+        project = projectRepository.getReferenceById(project_id);
+        message = messageRepository.getReferenceById(message_id);
         message.setStatus(Constants.DELETED);
         messageRepository.save(message);
 
@@ -288,9 +286,9 @@ public class MessagesController {
 
 
         User currentUser = userRepository.findByEmail(principal.getName());
-        Project project = projectRepository.getOne(project_id);
+        Project project = projectRepository.getReferenceById(project_id);
 
-        Message message = messageRepository.getOne(message_id);
+        Message message = messageRepository.getReferenceById(message_id);
 
         model.addAttribute("project", project);
         model.addAttribute("message", message);
@@ -344,7 +342,7 @@ public class MessagesController {
         List<Comment> comments = commentRepository.findAllByMessageIdOrderByCreatedAtAsc(message_id);
         for(int i=0; i<comments.size(); i++) {
             Comment commentTemp = comments.get(i);
-            commentTemp.setTextToDisplay(escapeHtml(commentTemp.getText()));
+            commentTemp.setTextToDisplay(escapeHtml4(commentTemp.getText()));
         }
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been added!");
@@ -365,13 +363,13 @@ public class MessagesController {
 
         commentRepository.deleteById(comment_id);
 
-        Project project = projectRepository.getOne(project_id);
-        Message message = messageRepository.getOne(message_id);
+        Project project = projectRepository.getReferenceById(project_id);
+        Message message = messageRepository.getReferenceById(message_id);
 
         List<Comment> comments = message.getComments();
         for(int i=0; i<comments.size(); i++) {
             Comment commentTemp = comments.get(i);
-            commentTemp.setTextToDisplay(escapeHtml(commentTemp.getText()));
+            commentTemp.setTextToDisplay(escapeHtml4(commentTemp.getText()));
         }
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been deleted!");
@@ -387,7 +385,7 @@ public class MessagesController {
     public Comment deleteComment(@PathVariable("project_id") long projectId, @PathVariable("message_id") long messageId,
                                   @PathVariable("comment_id") long commentId) {
         // TODO: Make sure the user has the access
-        Comment commentToDelete = commentRepository.getOne(commentId);
+        Comment commentToDelete = commentRepository.getReferenceById(commentId);
         commentRepository.delete(commentToDelete);
 
         List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(commentToDelete.getId());

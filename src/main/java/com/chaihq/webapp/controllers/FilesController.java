@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +60,7 @@ public class FilesController {
     @GetMapping("/project/{id}/files")
     public String show(@PathVariable Long id, Model model, HttpSession httpSession) {
         User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        Project project = projectRepository.getOne(id); // TODO make show this belongs to the user
+        Project project = projectRepository.getReferenceById(id); // TODO make show this belongs to the user
 
         List<ActiveStorageFile> activeStorageFiles = activeStorageFileRepository.findAllByProjectIdOrderByCreatedAtDesc(id);
 
@@ -98,7 +98,7 @@ public class FilesController {
         // TODO: Make sure the file belongs to this project and the user, filenames to be stored with some project references in the name
 
         System.out.println("Downloading file... " + id + "in project id " + projectId);
-        ActiveStorageFile activeStorageFile = activeStorageFileRepository.getOne(id);
+        ActiveStorageFile activeStorageFile = activeStorageFileRepository.getReferenceById(id);
 
         /* return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + activeStorageFile.getFileName() + "\"")
@@ -123,7 +123,7 @@ public class FilesController {
                        @ModelAttribute("project")Project project, HttpSession httpSession,
                        @PathVariable Long project_id, Map<String, Object> model) {
         User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        project = projectRepository.getOne(project_id); // TODO make show this belongs to the user
+        project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
         System.out.println(project.getName());
         model.put("project", project);
 
@@ -142,7 +142,7 @@ public class FilesController {
                        BindingResult bindingResult) throws Exception {
 
         // storageService.store(activeStorageFile.getMultipartFile());
-        Project project = projectRepository.getOne(project_id); // TODO make show this belongs to the user
+        Project project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
 
         model.put(Constants.PROJECT, project);
 

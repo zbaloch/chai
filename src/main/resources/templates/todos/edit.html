@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head"></head>
+<head th:replace="~{fragments/head :: head}"></head>
 
 <body class="font-sans bg-[#FAF8F4]">
 
 <div id="app">
 
-    <div th:replace="fragments/nav :: nav"></div>
+    <div th:replace="~{fragments/nav :: nav}"></div>
 
     <div class=" min-h-screen">
         <div class="py-4">
@@ -69,9 +69,9 @@
                                                         th:value="${user.id}" 
                                                         th:text="${user.firstName + ' ' + user.lastName}"
                                                         th:selected="${todo.assignedTo.id == user.id}">User Name</option>
-                                                <option th:value="${session.current_user.id}" 
-                                                        th:text="${session.current_user.firstName + ' ' + session.current_user.lastName}"
-                                                        th:selected="${todo.assignedTo.id == session.current_user.id}">Current User</option>
+                                                <option th:value="${session.currentUser.id}" 
+                                                        th:text="${session.currentUser.firstName + ' ' + session.currentUser.lastName}"
+                                                        th:selected="${todo.assignedTo.id == session.currentUser.id}">Current User</option>
                                             </select>
                                         </div>
                                     </div>
@@ -141,7 +141,7 @@
 
 </div>
 
-<div th:replace="fragments/notifications :: notifications"></div>
+<div th:replace="~{fragments/notifications :: notifications}"></div>
 
 <script>
     // Vue.config.ignoredElements = ['trix-editor'];
@@ -152,7 +152,7 @@
 </script>
 
 
-<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

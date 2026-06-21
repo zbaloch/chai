@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<div th:replace="fragments/head :: head"></div>
+<div th:replace="~{fragments/head :: head}"></div>
 
 <body class="font-sans bg-[#FAF8F4]">
     <div id="app">
 
-        <div th:replace="fragments/nav :: nav"></div>
+        <div th:replace="~{fragments/nav :: nav}"></div>
 
         <div class=" min-h-screen">
             <div class="py-4">
@@ -200,7 +200,7 @@
                                                 </span>
                                             </div>
                                             <div class="text-sm">
-                                                <c:if test="${sessionScope.current_user.id == comment.user.id}">
+                                                <th:block th:if="${session.currentUser != null and session.currentUser.id == comment.user.id}">
                                                     <form
                                                         th:action="@{/project/{projectId}/todo/{todoId}/comment/{commentId}/delete(projectId=${project.id}, todoId=${todo.id}, commentId=${comment.id})}"
                                                         method="post" x-data="{}"
@@ -216,7 +216,7 @@
                                                             </svg>
                                                         </button>
                                                     </form>
-                                                </c:if>
+                                                </th:block>
                                             </div>
                                         </div>
                                         <div class="formatted_content" th:utext="${comment.text}">
@@ -277,8 +277,8 @@
     </div>
 
 
-    <div th:replace="fragments/notifications :: notifications"></div>
+    <div th:replace="~{fragments/notifications :: notifications}"></div>
 
-    <div th:replace="fragments/footer :: footer"></div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </html>

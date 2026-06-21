@@ -19,7 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import java.security.Principal;
 import java.sql.Time;
@@ -114,7 +114,7 @@ public class ProjectsController {
     @GetMapping("/project/{id}")
     public String show(@PathVariable Long id, Model model, Principal principal) {
         User currentUser = userRepository.findByEmail(principal.getName());
-        Project project = projectRepository.getOne(id);
+        Project project = projectRepository.getReferenceById(id);
         System.out.println(project.getName());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("project", project);
@@ -124,7 +124,7 @@ public class ProjectsController {
     @GetMapping("/project/{id}/delete")
     public String delete(@PathVariable Long id, final RedirectAttributes redirectAttributes ) {
         // TODO: Make sure this belongs to the current loggedin user
-        Project projectToDelete = projectRepository.getOne(id);
+        Project projectToDelete = projectRepository.getReferenceById(id);
         projectToDelete.setStatus(Constants.DELETED);
         projectRepository.save(projectToDelete);
         redirectAttributes.addFlashAttribute("destruction_notice", "Project deleted!");
@@ -135,7 +135,7 @@ public class ProjectsController {
     @GetMapping("/project/{id}/users")
     public String users(@PathVariable Long id, Model model, HttpSession httpSession
                         ) {
-        Project project = projectRepository.getOne(id);
+        Project project = projectRepository.getReferenceById(id);
         model.addAttribute("project", project);
         // Get all the users
         List<User> users = userRepository.findAll();
@@ -162,9 +162,9 @@ public class ProjectsController {
                         HttpSession httpSession) {
         System.out.println("Adding users..." + puf.getProjectId() + ", " + puf.getUserId() + ", " + puf.getAction());
         // TODO: Make sure the project belongs to this user
-        Project project = projectRepository.getOne(puf.getProjectId());
+        Project project = projectRepository.getReferenceById(puf.getProjectId());
         System.out.println(project.getUsers().size());
-        User userToAdd = (User) userRepository.getOne(puf.getUserId());
+        User userToAdd = (User) userRepository.getReferenceById(puf.getUserId());
         List<User> users = userRepository.findAll();
 
         if("add".equals(puf.getAction())) {
@@ -214,7 +214,7 @@ public class ProjectsController {
 
     @GetMapping("/project/{id}/edit")
     public String edit(@PathVariable Long id, Map<String, Object> model) {
-        Project project = projectRepository.getOne(id);
+        Project project = projectRepository.getReferenceById(id);
         System.out.println(project.getName());
         model.put("project", project);
         return "projects/edit";
@@ -231,7 +231,7 @@ public class ProjectsController {
             return "projects/edit";
         }
 
-        Project projectToUpdate = projectRepository.getOne(id);
+        Project projectToUpdate = projectRepository.getReferenceById(id);
         System.out.println(project.getName());
         projectToUpdate.setName(project.getName());
         projectToUpdate.setDescription(project.getDescription());

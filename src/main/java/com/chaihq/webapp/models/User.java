@@ -1,11 +1,12 @@
 package com.chaihq.webapp.models;
 
-import org.hibernate.annotations.Type;
-
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.Calendar;
@@ -48,8 +49,10 @@ public class User {
     private Calendar tokenExpirationDate;
     private Calendar tokenUsedDate;
 
-    @Lob
-    @Type(type = "org.hibernate.type.BinaryType")
+    // Stored as a (LONG)BLOB but bound/extracted as a materialized byte[]
+    // (getBytes/setBytes) rather than the streaming java.sql.Blob API, which the
+    // SQLite JDBC driver does not implement.
+    @JdbcTypeCode(SqlTypes.MATERIALIZED_BLOB)
     private byte[] photo;
 
 

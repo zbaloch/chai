@@ -1,6 +1,6 @@
 package com.chaihq.webapp.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

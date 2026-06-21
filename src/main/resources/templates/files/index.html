@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head"></head>
+<head th:replace="~{fragments/head :: head}"></head>
 
 <body class="font-sans bg-[#FAF8F4]">
 <div id="app">
 
-    <div th:replace="fragments/nav :: nav"></div>
+    <div th:replace="~{fragments/nav :: nav}"></div>
 
     <div class=" min-h-screen">
         <div class="py-4">
@@ -40,9 +40,9 @@
                                 Docs & Files
                             </div>
                         </div>
-                        <%-- <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
+                        <!-- <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
                             ${project.description}
-                        </div> --%>
+                        </div> -->
 
                         <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
                             This is a place to store and organize assets and reference material.
@@ -57,25 +57,25 @@
                             <div class="max-w-xl mx-auto lg:max-w-screen-xl">
                                 <div class="lg:grid lg:grid-cols-3 lg:gap-8">
                                     <div class="" th:each="activeStorageFile : ${activeStorageFiles}">
-                                        <%-- <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                        <!-- <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                                             </svg>
-                                        </div> --%>
+                                        </div> -->
                                         <div class="mt-2">
                                             <a th:href="@{'/project/' + ${project.id} + '/file/' + ${activeStorageFile.id}}"
                                                target="_blank" class="font-medium text-gray-900 underline">
                                                     <span th:text="${activeStorageFile.fileName}">File Name</span>
                                             </a>
-                                            <%-- <p class="mt-1 text-sm text-gray-500">
+                                            <!-- <p class="mt-1 text-sm text-gray-500">
                                                     ${activeStorageFile.description}
-                                            </p> --%>
+                                            </p> -->
                                             <div class="text-sm text-gray-500 mt-1">
-                                                <%--Posted--%> By <span th:text="${activeStorageFile.user.firstName + ' ' + activeStorageFile.user.lastName.charAt(0)}">User Name</span>. on
+                                                <!--Posted--> By <span th:text="${activeStorageFile.user.firstName + ' ' + activeStorageFile.user.lastName.charAt(0)}">User Name</span>. on
                                                 <span th:text="${#dates.format(activeStorageFile.createdAt.time, 'MMMM dd, yyyy')}">Date</span>
-                                                <%-- · 73 KB --%>
+                                                <!-- · 73 KB -->
                                             </div>
-                                            <%--
+                                            <!--
                                             <div class="flex-1 min-w-0">
 
                                                 <div class="flex flex-row">
@@ -95,12 +95,12 @@
                                                 </div>
 
                                             </div>
-                                            --%>
+                                            -->
 
-                                            <%-- <a href="#" class="text-red-500 text-sm">Delete</a> --%>
-                                            <%-- <div>
+                                            <!-- <a href="#" class="text-red-500 text-sm">Delete</a> -->
+                                            <!-- <div>
                                                 <a href="#" class="text-sm text-blue-500 underline">Download</a>
-                                            </div> --%>
+                                            </div> -->
                                         </div>
                                     </div>
 
@@ -115,9 +115,9 @@
 </div>
 
 
-    <div th:replace="fragments/notifications :: notifications"></div>
+    <div th:replace="~{fragments/notifications :: notifications}"></div>
 
-    <div th:replace="fragments/footer :: footer"></div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

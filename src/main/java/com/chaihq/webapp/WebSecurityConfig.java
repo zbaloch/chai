@@ -1,35 +1,28 @@
 package com.chaihq.webapp;
 
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.SecurityFilterChain;
 
 import com.chaihq.webapp.services.CustomUserDetailsService;
 import com.chaihq.webapp.security.CustomAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
-    @Autowired
-    private CustomAuthenticationSuccessHandler authenticationSuccessHandler;
+    private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
 
-    @Autowired
-	private DataSource dataSource;
-    
+    public WebSecurityConfig(CustomAuthenticationSuccessHandler authenticationSuccessHandler) {
+        this.authenticationSuccessHandler = authenticationSuccessHandler;
+    }
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new CustomUserDetailsService();
@@ -40,44 +33,39 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-	public DaoAuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-		authProvider.setUserDetailsService(userDetailsService());
-		authProvider.setPasswordEncoder(passwordEncoder());
-		return authProvider;
-	}
+    // Scoped to the filter chain below (not exposed as a global @Bean) so that the
+    // configured UserDetailsService is still used for username/password login.
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeRequests()
+            .authenticationProvider(authenticationProvider())
+            .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .antMatchers("/registration", "/js/*", "/css/*", "/trix/*", "/login-magic", "/login", "/verify-token-and-login").permitAll()
+                .requestMatchers("/registration", "/js/*", "/css/*", "/trix/*", "/login-magic", "/login", "/verify-token-and-login").permitAll()
                 .anyRequest().authenticated()
-                .and()
-            .formLogin()
+            )
+            .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler(authenticationSuccessHandler)
                 .permitAll()
-                .and()
-            .logout()
-                .permitAll()
-                .and()
-            .rememberMe().key("uniqueAndSecret").tokenValiditySeconds(86400);
+            )
+            .logout(logout -> logout.permitAll())
+            .rememberMe(rememberMe -> rememberMe
+                .key("uniqueAndSecret")
+                .tokenValiditySeconds(86400)
+                .userDetailsService(userDetailsService())
+            )
+            .cors(cors -> cors.disable())
+            .csrf(csrf -> csrf.disable());
 
-        http.cors().and().csrf().disable();
-    }
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
-    }
-
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+        return http.build();
     }
 
 }

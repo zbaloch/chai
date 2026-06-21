@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +60,7 @@ public class ChatController {
 
     @GetMapping("/project/{id}/chat")
     public String show(@PathVariable Long id, Model model) {
-        Project project = projectRepository.getOne(id); // TODO make show this belongs to the user
+        Project project = projectRepository.getReferenceById(id); // TODO make show this belongs to the user
         List<Chat> chatMessages = chatRepository.findByProjectId(project.getId());
 
         model.addAttribute("project", project);
@@ -98,7 +98,7 @@ public class ChatController {
         Chat chat = new Chat();
         chat.setMessage(chatMessage.getContent());
         chat.setProjectId(Long.parseLong(chatMessage.getProjectId()));
-        User user = userRepository.getOne(Long.parseLong(chatMessage.getSenderId()));
+        User user = userRepository.getReferenceById(Long.parseLong(chatMessage.getSenderId()));
         chat.setCreatedAt(Calendar.getInstance());
         chat.setUser(user);
 
@@ -123,7 +123,7 @@ public class ChatController {
     @ResponseBody
     public Chat deleteChatMessage(@PathVariable("project_id") long projectId, @PathVariable("id") long chatMessageId) {
         System.out.println("deleteChatMessage... ");
-        Chat chat = chatRepository.getOne(chatMessageId);
+        Chat chat = chatRepository.getReferenceById(chatMessageId);
         chatRepository.delete(chat);
         return chat;
     }

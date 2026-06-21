@@ -17,14 +17,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
 import java.security.Principal;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 
 @Controller
@@ -69,7 +69,7 @@ public class TodosController {
 
     @GetMapping("/project/{project_id}/todos")
     public String index(@PathVariable Long project_id, Model model) {
-        Project project = projectRepository.getOne(project_id); // TODO make show this belongs to the user
+        Project project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
 
         List<Todo> completedTodos = todoRepository.findAllByProjectAndAndDoneOrderByDueDateAsc(project, true);
         List<Todo> pendingTodos = todoRepository.findAllByProjectAndAndDoneOrderByDueDateAsc(project, false);
@@ -93,7 +93,7 @@ public class TodosController {
                        @PathVariable Long project_id, Map<String, Object> model) {
 
 
-        project = projectRepository.getOne(project_id); // TODO make show this belongs to the user
+        project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
         model.put("project", project);
         model.put("todo", new Todo());
         return "todos/new";
@@ -106,7 +106,7 @@ public class TodosController {
                        Map<String, Object> model, RedirectAttributes redirectAttributes,
                        BindingResult bindingResult) throws Exception {
 
-        Project project = projectRepository.getOne(project_id);
+        Project project = projectRepository.getReferenceById(project_id);
 
         model.put(Constants.PROJECT, project);
 
@@ -119,7 +119,7 @@ public class TodosController {
 
         User currentUser = userRepository.findByEmail(principal.getName());
         todo.setCreatedBy(currentUser);
-        User assignedToUser = userRepository.getOne(todo.getAssignedToVariable());
+        User assignedToUser = userRepository.getReferenceById(todo.getAssignedToVariable());
         todo.setAssignedTo(assignedToUser);
         Calendar dueDate = Calendar.getInstance();
         dueDate.setTime(todo.getDueDateVariable());
@@ -170,11 +170,11 @@ public class TodosController {
         User currentUser = userRepository.findByEmail(principal.getName());
         model.put("currentUser", currentUser);
 
-        Project project = projectRepository.getOne(project_id);
+        Project project = projectRepository.getReferenceById(project_id);
         model.put("project", project);
 
 
-        Todo todo = todoRepository.getOne(todo_id);
+        Todo todo = todoRepository.getReferenceById(todo_id);
         model.put("todo", todo);
 
         System.out.println("Showing todo: " + todo.getId() + " for project: " + project.getId());
@@ -190,7 +190,7 @@ public class TodosController {
             System.out.println("Comment User Last Name: " + comments.get(i).getUser().getLastName());
             
             Comment comment = comments.get(i);
-            comment.setTextToDisplay(escapeHtml(comment.getText()));
+            comment.setTextToDisplay(escapeHtml4(comment.getText()));
 
             List<Notification> notifications = notificationRepository.findAllByObjectIdAndForUser(comment.getId(), currentUser);
             for (Notification notification: notifications
@@ -220,8 +220,8 @@ public class TodosController {
             @PathVariable Long todo_id, Map<String, Object> model,
             RedirectAttributes redirectAttributes) throws Exception {
 
-        Project project = projectRepository.getOne(project_id);
-        Todo todo = todoRepository.getOne(todo_id);
+        Project project = projectRepository.getReferenceById(project_id);
+        Todo todo = todoRepository.getReferenceById(todo_id);
         model.put("todo", todo);
         model.put("project", project);
         return "todos/edit";
@@ -235,8 +235,8 @@ public class TodosController {
 
         // TODO: Check if this belongs to this user.
 
-        Todo todoToUpdate = todoRepository.getOne(todo_id);
-        Project project = projectRepository.getOne(project_id);
+        Todo todoToUpdate = todoRepository.getReferenceById(todo_id);
+        Project project = projectRepository.getReferenceById(project_id);
 
         todo.setDueDate(todoToUpdate.getDueDate());
         todo.setDueDateVariable(todoToUpdate.getDueDate().getTime());
@@ -251,7 +251,7 @@ public class TodosController {
         }
 
 
-        User userToUpdate = userRepository.getOne(todo.getAssignedToVariable());
+        User userToUpdate = userRepository.getReferenceById(todo.getAssignedToVariable());
         Calendar dueDateCalendar = Calendar.getInstance();
         dueDateCalendar.setTime(todo.getDueDateVariable());
 
@@ -290,8 +290,8 @@ public class TodosController {
             @PathVariable Long todo_id, Map<String, Object> model,
             RedirectAttributes redirectAttributes) throws Exception {
 
-        project = projectRepository.getOne(project_id);
-        todo = todoRepository.getOne(todo_id);
+        project = projectRepository.getReferenceById(project_id);
+        todo = todoRepository.getReferenceById(todo_id);
         todoRepository.delete(todo);
 
         List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(todo.getId());
@@ -311,8 +311,8 @@ public class TodosController {
             @PathVariable Long todo_id, Map<String, Object> model,
             RedirectAttributes redirectAttributes) throws Exception {
 
-        project = projectRepository.getOne(project_id);
-        todo = todoRepository.getOne(todo_id);
+        project = projectRepository.getReferenceById(project_id);
+        todo = todoRepository.getReferenceById(todo_id);
         todo.setDone(true);
         todoRepository.save(todo);
         model.put("project", project);
@@ -328,9 +328,9 @@ public class TodosController {
 
         System.out.println("Adding comment to todo: " + todo_id + " for project: " + project_id);
         User currentUser = userRepository.findByEmail(principal.getName());
-        Project project = projectRepository.getOne(project_id);
+        Project project = projectRepository.getReferenceById(project_id);
 
-        Todo todo = todoRepository.getOne(todo_id);
+        Todo todo = todoRepository.getReferenceById(todo_id);
 
         model.addAttribute("project", project);
         model.addAttribute("todo", todo);
@@ -384,7 +384,7 @@ public class TodosController {
         List<Comment> comments = commentRepository.findAllByMessageIdOrderByCreatedAtAsc(todo_id);
         for(int i=0; i<comments.size(); i++) {
             Comment commentTemp = comments.get(i);
-            commentTemp.setTextToDisplay(escapeHtml(commentTemp.getText()));
+            commentTemp.setTextToDisplay(escapeHtml4(commentTemp.getText()));
         }
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been added!");
@@ -403,7 +403,7 @@ public class TodosController {
     public Comment deleteComment(@PathVariable("project_id") long projectId, @PathVariable("message_id") long messageId,
                                  @PathVariable("comment_id") long commentId) {
         // TODO: Make sure the user has the access
-        Comment commentToDelete = commentRepository.getOne(commentId);
+        Comment commentToDelete = commentRepository.getReferenceById(commentId);
         commentRepository.delete(commentToDelete);
 
         List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(commentToDelete.getId());

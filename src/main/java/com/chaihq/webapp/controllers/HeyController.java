@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +37,7 @@ public class HeyController {
 
     @GetMapping("/hey")
     public String index(Model model, HttpSession httpSession) {
-        Project project = projectRepository.getOne( (long) 1); // TODO make show this belongs to the user
+        Project project = projectRepository.getReferenceById( (long) 1); // TODO make show this belongs to the user
         User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
 
         // List<Notification> notifications =  notificationRepository.findAll();
@@ -49,27 +49,27 @@ public class HeyController {
             String notificationMessage = notification.getMessage();
             long objectId = notification.getObjectId();
             if(notificationType.equals(Constants.NOTIFICATION_TYPE_MESSAGE)) {
-                Message message = messageRepository.getOne(objectId); // TODO: Need to remove this
+                Message message = messageRepository.getReferenceById(objectId); // TODO: Need to remove this
                 message.setContentToDisplay(html2text(message.getContent()));
-                message.setProject( projectRepository.getOne(message.getProjectId()) ); // TODO: Need to remove this
+                message.setProject( projectRepository.getReferenceById(message.getProjectId()) ); // TODO: Need to remove this
                 notification.setMessageObject(message);
 
                 // Its a message
             }
             if(notificationType.equals(Constants.NOTIFICATION_TYPE_TODO)) {
-                notification.setTodo(todoRepository.getOne(objectId));
+                notification.setTodo(todoRepository.getReferenceById(objectId));
                 // Its a todo
             }
             if(notificationType.equals(Constants.NOTIFICATION_TYPE_MESSAGE_COMMENT)) {
                 // Its a message comment
-                Comment comment = commentRepository.getOne(objectId);
-                comment.setProject(projectRepository.getOne(objectId));
+                Comment comment = commentRepository.getReferenceById(objectId);
+                comment.setProject(projectRepository.getReferenceById(objectId));
                 comment.setTextToDisplay(html2text(comment.getText()));
                 notification.setComment( comment );
             }
             if(notificationType.equals(Constants.NOTIFICATION_TYPE_TODO_COMMENT)) {
-                Comment comment = commentRepository.getOne(objectId);
-                comment.setProject(projectRepository.getOne(objectId));
+                Comment comment = commentRepository.getReferenceById(objectId);
+                comment.setProject(projectRepository.getReferenceById(objectId));
                 comment.setTextToDisplay(html2text(comment.getText()));
                 notification.setComment( comment );
 
@@ -77,8 +77,8 @@ public class HeyController {
             }
             if(notificationType.equals(Constants.NOTIFICATION_TYPE_FILE)) {
                 // Its a file
-                ActiveStorageFile file  = activeStorageFileRepository.getOne(objectId); // TODO: Need to remove this
-                file.setProject(projectRepository.getOne(file.getProjectId())); // TODO: Need to remove this
+                ActiveStorageFile file  = activeStorageFileRepository.getReferenceById(objectId); // TODO: Need to remove this
+                file.setProject(projectRepository.getReferenceById(file.getProjectId())); // TODO: Need to remove this
                 notification.setActiveStorageFile(file);
             }
 
