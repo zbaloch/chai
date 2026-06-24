@@ -20,7 +20,7 @@
                                     Home
                                 </a>
                             </nav>
-                            <div th:if="${project.user.id == currentUser.id and project.projectType != 'hq'}" class="relative" x-data="{ isProjectActionsOpen: false }">
+                            <div th:if="${project.user != null and project.user.id == currentUser.id and project.projectType != 'hq'}" class="relative" x-data="{ isProjectActionsOpen: false }">
                                 <button @click="isProjectActionsOpen = !isProjectActionsOpen" class="text-gray-800 font-bold z-10 relative">
                                     <svg class="fill-current w-4 h-4 mr-2" fill="none" stroke-linejoin="round" stroke-width="2" viewBox="0 0 20 20" stroke="currentColor">
                                         <path d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
@@ -52,12 +52,12 @@
                             <div class="flex overflow-hidden">
 
                                 <img class="inline-block h-8 w-8 rounded-full text-white shadow-solid mr-1"
-                                th:src="@{'https://ui-avatars.com/api/?name=' + ${project.user.firstName} + '+' + ${project.user.lastName} + '&background=random'}"
+                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${project.user.firstName} + '+' + ${project.user.lastName}}"
                                      th:title="${project.user.firstName + ' ' + project.user.lastName}">
 
                                 <img th:each="user : ${project.users}" 
                                      class="inline-block h-8 w-8 rounded-full text-white shadow-solid mr-1"
-                                     th:src="@{'/avatar/' + ${user.id} + '/' + ${#strings.substring(user.firstName,0,1)} + ${#strings.substring(user.lastName,0,1)} + '.svg'}"
+                                     th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
                                      th:title="${user.firstName + ' ' + user.lastName}">
                                 
                                 <a th:if="${project.user.id == currentUser.id}" 

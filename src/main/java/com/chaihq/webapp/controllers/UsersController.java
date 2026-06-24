@@ -62,6 +62,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -96,6 +97,9 @@ public class UsersController {
     private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+
+    @Autowired
+    private RememberMeServices rememberMeServices;
 
     private final SecureRandom random = new SecureRandom();
     private static final int TOKEN_BYTE_SIZE = 32;
@@ -228,10 +232,11 @@ public class UsersController {
 
              SecurityContext context = securityContextHolderStrategy.createEmptyContext();
             final Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    user.getEmail(), null, java.util.Collections.emptyList());
+                existingUser.getEmail(), null, java.util.Collections.emptyList());
             context.setAuthentication(authentication);
             securityContextHolderStrategy.setContext(context);
             securityContextRepository.saveContext(context, request, response);
+            rememberMeServices.loginSuccess(request, response, authentication);
 
             // Add currentUser to session
             request.getSession().setAttribute("currentUser", existingUser);

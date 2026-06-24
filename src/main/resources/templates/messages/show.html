@@ -42,7 +42,7 @@
                                 <div class="absolute left-0 top-0">
                                     <img 
 
-                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${message.user.firstName} + '+' + ${message.user.lastName} + '&background=random'}"
+                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${message.user.firstName} + '+' + ${message.user.lastName}}"
                                                 th:alt="${message.user.firstName + ' ' + message.user.lastName}"
                                                 th:title="${message.user.firstName + ' ' + message.user.lastName}" 
                                     class="h-12 w-12 rounded-full">
@@ -81,7 +81,7 @@
                                     <div class="relative">
                                         <div class="absolute left-0 top-0">
                                             <img 
-                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${comment.user.firstName} + '+' + ${comment.user.lastName} + '&background=random'}"
+                                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${comment.user.firstName} + '+' + ${comment.user.lastName}}"
                                                 th:alt="${comment.user.firstName + ' ' + comment.user.lastName}"
                                                 th:title="${comment.user.firstName + ' ' + comment.user.lastName}" 
                                                 class="h-12 w-12 rounded-full "
@@ -116,7 +116,7 @@
                                         <div class="absolute left-0 top-0">
                                             <img 
 
-                                            th:src="@{'https://ui-avatars.com/api/?name=' + ${currentUser.firstName} + '+' + ${currentUser.lastName} + '&background=random'}"
+                                            th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${currentUser.firstName} + '+' + ${currentUser.lastName}}"
                                                 th:alt="${currentUser.firstName + ' ' + currentUser.lastName}"
                                                 th:title="${currentUser.firstName + ' ' + currentUser.lastName}" 
                                             

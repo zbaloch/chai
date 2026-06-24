@@ -21,44 +21,72 @@ html {
 .trix-button--icon-decrease-nesting-level { display: none; }
 
 /* Start: Trix editor formatting */
-.formatted_content a {
-    color: #5850ec;
+.formatted_content a,
+.trix-editor-content a,
+trix-editor a {
+    color: #2563eb;
     text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
-.formatted_content h1 {
-    font-size: 1.2em;
-    margin: 0 0 0.5em;
-    font-weight: bold;
+.formatted_content a:hover,
+.trix-editor-content a:hover,
+trix-editor a:hover {
+    color: #1d4ed8;
 }
 
-blockquote {
-    border-left: 3px solid #000;
-    margin: 0;
-    padding: 0 0 0 1em;
+.formatted_content h1,
+.trix-editor-content h1,
+trix-editor h1 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
 }
 
-.formatted_content pre {
-    padding: 1rem;
-    background: rgba(0,0,0,0.03);
-    border-radius: 0.4rem;
+.formatted_content blockquote,
+.trix-editor-content blockquote,
+trix-editor blockquote {
+    border-left: 4px solid #cbd5e1;
+    color: #475569;
+    margin: 0.75rem 0;
+    padding: 0.25rem 0 0.25rem 0.75rem;
+}
+
+.formatted_content pre,
+.trix-editor-content pre,
+trix-editor pre {
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
     white-space: pre;
     word-wrap: normal;
     word-break: normal;
     overflow-x: auto;
-    margin: 0.5em 0;
+    margin: 0.5rem 0;
 }
 
-.formatted_content ul {
+.formatted_content ul,
+.trix-editor-content ul,
+trix-editor ul {
     margin: 0.65em 0 0.9em;
-    padding-left: 2em;
+    padding-left: 1.5rem;
     list-style: disc;
 }
 
-.formatted_content ol {
+.formatted_content ol,
+.trix-editor-content ol,
+trix-editor ol {
     margin: 0.65em 0 0.9em;
-    padding-left: 2em;
+    padding-left: 1.5rem;
     list-style: decimal;
+}
+
+.formatted_content li,
+.trix-editor-content li,
+trix-editor li {
+    margin: 0.25rem 0;
 }
 
 /* trix-toolbar .trix-button-group--file-tools {

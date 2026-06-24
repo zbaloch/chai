@@ -3,11 +3,14 @@ package com.chaihq.webapp;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.chaihq.webapp.services.CustomUserDetailsService;
@@ -18,6 +21,12 @@ import com.chaihq.webapp.security.CustomAuthenticationSuccessHandler;
 public class WebSecurityConfig {
 
     private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
+
+    @Value("${security.remember-me.key:chai-remember-me-key}")
+    private String rememberMeKey;
+
+    @Value("${security.remember-me.token-validity-seconds:2592000}")
+    private int rememberMeTokenValiditySeconds;
 
     public WebSecurityConfig(CustomAuthenticationSuccessHandler authenticationSuccessHandler) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -58,14 +67,23 @@ public class WebSecurityConfig {
             )
             .logout(logout -> logout.permitAll())
             .rememberMe(rememberMe -> rememberMe
-                .key("uniqueAndSecret")
-                .tokenValiditySeconds(86400)
-                .userDetailsService(userDetailsService())
+                .rememberMeServices(rememberMeServices())
+                .key(rememberMeKey)
+                .tokenValiditySeconds(rememberMeTokenValiditySeconds)
             )
             .cors(cors -> cors.disable())
             .csrf(csrf -> csrf.disable());
 
         return http.build();
+    }
+
+    @Bean
+    public RememberMeServices rememberMeServices() {
+        TokenBasedRememberMeServices services =
+                new TokenBasedRememberMeServices(rememberMeKey, userDetailsService());
+        services.setAlwaysRemember(true);
+        services.setTokenValiditySeconds(rememberMeTokenValiditySeconds);
+        return services;
     }
 
 }

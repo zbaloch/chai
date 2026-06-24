@@ -53,12 +53,12 @@
                             <div class="flex overflow-hidden">
 
                                 <img class="inline-block h-8 w-8 rounded-full text-white shadow-solid mr-1"
-                                     th:src="@{'/avatar/' + ${project.user.id} + '/' + ${#strings.substring(project.user.firstName,0,1)} + ${#strings.substring(project.user.lastName,0,1)} + '.svg'}"
+                                     th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${project.user.firstName} + '+' + ${project.user.lastName}}"
                                      th:title="${project.user.firstName + ' ' + project.user.lastName}">
 
                                 <img th:each="user : ${project.users}"
                                      class="inline-block h-8 w-8 rounded-full text-white shadow-solid mr-1"
-                                     th:src="@{'/avatar/' + ${user.id} + '/' + ${#strings.substring(user.firstName,0,1)} + ${#strings.substring(user.lastName,0,1)} + '.svg'}"
+                                     th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
                                      th:title="${user.firstName + ' ' + user.lastName}">
                                 <a th:if="${session.currentUser != null and project.user.id == session.currentUser.id}"
                                    th:href="@{/project/{id}/users(id=${project.id})}" class="ml-2 text-xs text-gray-500 px-2 py-2 border border-gray-200 rounded-full">

@@ -50,6 +50,9 @@ public class Todo {
 
     private String notes;
 
+    @Column(name = "position")
+    private Integer position = 0;
+
     public long getId() {
         return id;
     }
@@ -153,6 +156,14 @@ public class Todo {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 
     @Override

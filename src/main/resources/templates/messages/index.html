@@ -44,7 +44,7 @@
                                             <div class="flex-shrink-0">
                                                 <img class="h-12 w-12 rounded-full" 
 
-                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${message.user.firstName} + '+' + ${message.user.lastName} + '&background=random'}"
+                                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${message.user.firstName} + '+' + ${message.user.lastName}}"
                                                 th:alt="${message.user.firstName + ' ' + message.user.lastName}"
                                                 th:title="${message.user.firstName + ' ' + message.user.lastName}">
                                             </div>

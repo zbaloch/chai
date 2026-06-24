@@ -59,24 +59,31 @@
                         </div>
 
                         <div class="mt-8">
-                            <ul>
+                            <ul id="pending-todos-list" th:data-project-id="${project.id}">
                                 <th:block th:each="todo : ${pendingTodos}">
-                                    <li class="mt-1">
+                                    <li th:data-id="${todo.id}" draggable="true" class="todo-item group py-1 hover:bg-blue-50 focus:outline-none focus:bg-blue-50 transition duration-150 ease-in-out rounded-lg px-1 cursor-grab flex items-center">
+                                        <span class="drag-handle mr-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-600 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 16" fill="currentColor" class="h-5 w-1.5">
+                                                <circle cx="2" cy="2" r="1.5" />
+                                                <circle cx="2" cy="8" r="1.5" />
+                                                <circle cx="2" cy="14" r="1.5" />
+                                            </svg>
+                                        </span>
                                         <a th:href="@{/project/{projectId}/todo/{todoId}(projectId=${project.id}, todoId=${todo.id})}"
-                                            class="block hover:bg-blue-50 focus:outline-none focus:bg-blue-50 transition duration-150 ease-in-out">
-                                            <div class="flex items-center justify-between">
-                                                <div class="min-w-0 flex-1 flex items-center">
+                                            class="block flex-1 flex items-center py-1">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="min-w-0 flex-1 flex items-center">
                                                     <!-- <div class="flex-shrink-0">
                                                     <img class="h-12 w-12 rounded-full"
                                                          th:if="${todo.createdBy != null}"
-                                                         th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.createdBy.firstName} + '+' + ${todo.createdBy.lastName} + '&background=random'}"
+                                                         th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${todo.createdBy.firstName} + '+' + ${todo.createdBy.lastName}}"
                                                          th:alt="${todo.createdBy.firstName + ' ' + todo.createdBy.lastName}"
                                                          th:title="${todo.createdBy.firstName + ' ' + todo.createdBy.lastName}" />
                                                     <span th:if="${todo.createdBy == null}">Unknown</span>
                                                 </div> -->
                                                     <div class="min-w-0 flex-1">
                                                         <div>
-                                                            <div class="leading-5 flex">
+                                                            <div class="leading-5 flex items-center">
                                                                 <span class="font-gray-900 mr-4"
                                                                     th:text="${todo.description}"></span>
                                                                 <!-- <span
@@ -97,7 +104,7 @@
                                                                 <span class="mr-1">
                                                                     <img class="h-5 w-5 rounded-full"
                                                                         th:if="${todo.assignedTo != null}"
-                                                                        th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName} + '&background=random'}"
+                                                                        th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName}}"
                                                                         th:alt="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}"
                                                                         th:title="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}" />
                                                                     <span
@@ -116,15 +123,6 @@
                                                                         <path stroke-linecap="round"
                                                                             stroke-linejoin="round"
                                                                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                                                    </svg>
-
-
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                        viewBox="0 0 24 24" stroke="currentColor"
-                                                                        class="h-5 w-5 text-gray-600"></svg>
-                                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                                        stroke-width="2"
-                                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                                     </svg>
                                                                 </span>
                                                                 <span class="text-gray-600 text-sm">
@@ -168,14 +166,14 @@
                                                 class="block py-2 hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
                                                 <div class="flex items-center justify-between">
                                                     <div class="min-w-0 flex-1 flex items-center">
-                                                        <div class="flex-shrink-0">
+                                                        <!-- <div class="flex-shrink-0">
                                                             <img class="h-12 w-12 rounded-full"
                                                                 th:if="${todo.createdBy != null}"
-                                                                th:src="@{'/avatar/' + ${todo.createdBy.id} + '/' + ${#strings.substring(todo.createdBy.firstName,0,1)} + ${#strings.substring(todo.createdBy.lastName,0,1)} + '.svg'}"
+                                                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${todo.createdBy.firstName} + '+' + ${todo.createdBy.lastName}}"
                                                                 th:alt="${todo.createdBy.firstName + ' ' + todo.createdBy.lastName}"
                                                                 th:title="${todo.createdBy.firstName + ' ' + todo.createdBy.lastName}">
                                                             <span th:if="${todo.createdBy == null}">Unknown</span>
-                                                        </div>
+                                                        </div> -->
                                                         <div class="min-w-0 flex-1 px-4 mr-4">
                                                             <div>
                                                                 <!-- <div class="leading-5 font-medium font-gray-900 truncate" th:text="${todo.description}">
@@ -192,7 +190,7 @@
                                                                     <span class="mr-1">
                                                                         <img class="h-5 w-5 rounded-full"
                                                                             th:if="${todo.assignedTo != null}"
-                                                                            th:src="@{'/avatar/' + ${todo.assignedTo.id} + '/' + ${#strings.substring(todo.assignedTo.firstName,0,1)} + ${#strings.substring(todo.assignedTo.lastName,0,1)} + '.svg'}"
+                                                                            th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName}}"
                                                                             th:alt="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}"
                                                                             th:title="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}">
                                                                         <span
@@ -242,6 +240,114 @@
     <div th:replace="~{fragments/notifications :: notifications}"></div>
 
     <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        (function () {
+            const list = document.getElementById('pending-todos-list');
+            if (!list) {
+                return;
+            }
+
+            const projectId = list.dataset.projectId;
+            let draggedItem = null;
+            let didDrag = false;
+
+            function getTodoItems() {
+                return Array.from(list.querySelectorAll('.todo-item'));
+            }
+
+            function getTodoIds() {
+                return getTodoItems().map(item => Number(item.dataset.id));
+            }
+
+            async function persistOrder() {
+                const payload = getTodoIds();
+                if (!projectId || payload.length === 0) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/project/${projectId}/todos/reorder`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        console.error('Failed to persist todo order:', response.status);
+                    }
+                } catch (error) {
+                    console.error('Failed to persist todo order:', error);
+                }
+            }
+
+            function handleDragOver(event) {
+                event.preventDefault();
+
+                const afterElement = getDragAfterElement(event.clientY);
+                if (!draggedItem) {
+                    return;
+                }
+
+                if (afterElement == null) {
+                    list.appendChild(draggedItem);
+                } else {
+                    list.insertBefore(draggedItem, afterElement);
+                }
+            }
+
+            function getDragAfterElement(y) {
+                const draggableElements = getTodoItems().filter(item => item !== draggedItem);
+
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    }
+
+                    return closest;
+                }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+            }
+
+            getTodoItems().forEach(item => {
+                item.addEventListener('dragstart', () => {
+                    draggedItem = item;
+                    didDrag = false;
+                    item.classList.add('opacity-50');
+                });
+
+                item.addEventListener('drag', () => {
+                    didDrag = true;
+                });
+
+                item.addEventListener('dragend', async () => {
+                    item.classList.remove('opacity-50');
+                    draggedItem = null;
+                    await persistOrder();
+
+                    setTimeout(() => {
+                        didDrag = false;
+                    }, 0);
+                });
+
+                const link = item.querySelector('a');
+                if (link) {
+                    link.addEventListener('click', (event) => {
+                        if (didDrag) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                    });
+                }
+            });
+
+            list.addEventListener('dragover', handleDragOver);
+        })();
+    </script>
 
 </body>
 

@@ -81,7 +81,7 @@
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">
                                                     <img class="h-10 w-10 rounded-full"
-                                                         th:src="@{'/avatar/' + ${user.id} + '/' + ${#strings.substring(user.firstName,0,1)} + ${#strings.substring(user.lastName,0,1)} + '.svg'}"
+                                                         th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
                                                          th:title="${user.firstName + ' ' + user.lastName}" />
                                                 </div>
                                                 <div class="ml-4">

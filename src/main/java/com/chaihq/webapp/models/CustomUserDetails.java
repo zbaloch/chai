@@ -52,7 +52,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPassword'");
+        // Remember-me services require a non-null password value for token signatures.
+        // This app primarily uses magic-link auth and the User model stores no password.
+        return "";
     }
 }

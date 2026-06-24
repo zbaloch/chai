@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,8 @@ public class TodosController {
     public String index(@PathVariable Long project_id, Model model) {
         Project project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
 
-        List<Todo> completedTodos = todoRepository.findAllByProjectAndAndDoneOrderByDueDateAsc(project, true);
-        List<Todo> pendingTodos = todoRepository.findAllByProjectAndAndDoneOrderByDueDateAsc(project, false);
+        List<Todo> completedTodos = todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, true);
+        List<Todo> pendingTodos = todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, false);
 
         model.addAttribute("project", project);
         model.addAttribute("completedTodos", completedTodos);
@@ -84,6 +85,28 @@ public class TodosController {
         logger.info("Showing todos for project: " + project.getName());
 
         return "todos/index";
+    }
+
+    @PostMapping("/project/{project_id}/todos/reorder")
+    @ResponseBody
+    public String reorderTodos(@PathVariable Long project_id, @RequestBody List<Long> todoIds) {
+        Project project = projectRepository.getReferenceById(project_id);
+        List<Todo> pendingTodos = todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, false);
+
+        Map<Long, Todo> todosById = new HashMap<>();
+        for (Todo todo : pendingTodos) {
+            todosById.put(todo.getId(), todo);
+        }
+
+        for (int i = 0; i < todoIds.size(); i++) {
+            Todo todo = todosById.get(todoIds.get(i));
+            if (todo != null) {
+                todo.setPosition(i);
+            }
+        }
+
+        todoRepository.saveAll(pendingTodos);
+        return "{\"success\": true}";
     }
 
 
@@ -126,7 +149,9 @@ public class TodosController {
         todo.setDueDate(dueDate);
         todo.setProject(project);
         todo.setCreatedAt(Calendar.getInstance());
-        // TODO: Due date
+        // Set position to end of list
+        Long count = todoRepository.countByProjectAndDone(project, false);
+        todo.setPosition(count.intValue());
         todoRepository.save(todo);
 
         // Get the project owner so that it gets this notification
@@ -238,8 +263,11 @@ public class TodosController {
         Todo todoToUpdate = todoRepository.getReferenceById(todo_id);
         Project project = projectRepository.getReferenceById(project_id);
 
-        todo.setDueDate(todoToUpdate.getDueDate());
-        todo.setDueDateVariable(todoToUpdate.getDueDate().getTime());
+        // Only use old due date if form didn't provide one (for validation fallback)
+        if (todo.getDueDateVariable() == null) {
+            todo.setDueDate(todoToUpdate.getDueDate());
+            todo.setDueDateVariable(todoToUpdate.getDueDate().getTime());
+        }
         todo.setId(todo_id);
 
         model.put("project", project);
@@ -410,6 +438,22 @@ public class TodosController {
         notificationRepository.deleteInBatch(notificationsToDelete);
 
         return commentToDelete;
+    }
+
+    @PostMapping("/project/{project_id}/todo/{todo_id}/comment/{comment_id}/delete")
+    public String deleteCommentFromForm(@PathVariable("project_id") long projectId,
+                                        @PathVariable("todo_id") long todoId,
+                                        @PathVariable("comment_id") long commentId,
+                                        RedirectAttributes redirectAttributes) {
+        // Keep form-based deletion working without relying on HTTP method override.
+        Comment commentToDelete = commentRepository.getReferenceById(commentId);
+        commentRepository.delete(commentToDelete);
+
+        List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(commentToDelete.getId());
+        notificationRepository.deleteInBatch(notificationsToDelete);
+
+        redirectAttributes.addFlashAttribute("notice", "Your comment has been deleted!");
+        return "redirect:/project/" + projectId + "/todo/" + todoId + "#comment_form";
     }
 
 

@@ -86,20 +86,14 @@
                                         </div>
                                     </div>
 
-                                    <script type="x-template" id="editor-template">
-                                        <div>
-
-
-                                            <input type="hidden" th:field="*{notes}" id="x"/>
-                                            <trix-editor input="x" class="trix-editor-message"></trix-editor>
-                                        </div>
-                                    </script>
-
                                     <div class="sm:col-span-6">
                                         <label for="notes" class="block text-sm font-medium leading-5 text-gray-700" wfd-id="81">
                                             Notes
                                         </label>
-                                        <editor></editor>
+                                        <div class="mt-1 rounded-md shadow-sm">
+                                            <input type="hidden" th:field="*{notes}" id="todo-notes"/>
+                                            <trix-editor input="todo-notes" class="trix-editor-message w-full" style="min-height: 200px;"></trix-editor>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -142,15 +136,6 @@
 </div>
 
 <div th:replace="~{fragments/notifications :: notifications}"></div>
-
-<script>
-    // Vue.config.ignoredElements = ['trix-editor'];
-    Vue.component("editor", {
-        template: "#editor-template"
-    });
-
-</script>
-
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 

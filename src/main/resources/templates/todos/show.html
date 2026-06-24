@@ -93,7 +93,7 @@
                                         <div class="flex">
                                             <span class="mr-1">
                                                 <img class="h-6 w-6 rounded-full"
-                                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName} + '&background=random'}"
+                                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${todo.assignedTo.firstName} + '+' + ${todo.assignedTo.lastName}}"
                                                     th:alt="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}"
                                                     th:title="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName}">
                                             </span>
@@ -138,7 +138,7 @@
                                     <dt class="text-sm leading-5 font-medium text-gray-500">
                                         Notes
                                     </dt>
-                                    <dd class="mt-1 text-sm leading-5 text-gray-900" th:utext="${todo.notes}"></dd>
+                                    <dd class="formatted_content mt-1 text-sm leading-5 text-gray-900" th:utext="${todo.notes}"></dd>
                                     </dd>
 
                                     <dd class="mt-1 text-sm leading-5 text-gray-900" th:if="${todo.notes == null}">
@@ -178,7 +178,7 @@
 
                                     <div class="absolute left-0 top-0">
 
-                                        <img th:src="@{'https://ui-avatars.com/api/?name=' + ${comment.user.firstName} + '+' + ${comment.user.lastName} + '&background=random'}"
+                                        <img th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${comment.user.firstName} + '+' + ${comment.user.lastName}}"
                                             th:alt="${comment.user.firstName + ' ' + comment.user.lastName}"
                                             th:title="${comment.user.firstName + ' ' + comment.user.lastName}"
                                             class="h-12 w-12 rounded-full">
@@ -231,7 +231,7 @@
                                 <div class="relative">
                                     <div class="absolute left-0 top-0">
                                         <img th:if="${currentUser != null}"
-                                            th:src="@{'https://ui-avatars.com/api/?name=' + ${currentUser.firstName} + '+' + ${currentUser.lastName} + '&background=random'}"
+                                            th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${currentUser.firstName} + '+' + ${currentUser.lastName}}"
                                             th:alt="${currentUser.firstName + ' ' + currentUser.lastName}"
                                             th:title="${currentUser.firstName + ' ' + currentUser.lastName}"
                                             class="h-12 w-12 rounded-full ">

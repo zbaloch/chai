@@ -35,11 +35,11 @@
                                             <div class="mt-4">
                                                 <div class="flex overflow-hidden">
                                                     <img class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid"
-                                                         th:src="@{'/avatar/' + ${hq.user.id} + '/' + ${#strings.substring(hq.user.firstName,0,1)} + ${#strings.substring(hq.user.lastName,0,1)} + '.svg'}"
+                                                         th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${hq.user.firstName} + '+' + ${hq.user.lastName}}"
                                                          th:title="${hq.user.firstName + ' ' + hq.user.lastName}">
                                                     <img th:each="user : ${hq.users}" 
                                                          class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid"
-                                                         th:src="@{'/avatar/' + ${user.id} + '/' + ${#strings.substring(user.firstName,0,1)} + ${#strings.substring(user.lastName,0,1)} + '.svg'}"
+                                                         th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
                                                          th:title="${user.firstName + ' ' + user.lastName}">
                                                 </div>
                                             </div>
@@ -83,13 +83,13 @@
                                         <div class="mt-4">
                                             <div class="flex overflow-hidden">
                                                 <img class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid"
-                                                th:src="@{'https://ui-avatars.com/api/?name=' + ${team.user.firstName} + '+' + ${team.user.lastName} + '&background=random'}"
+                                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${team.user.firstName} + '+' + ${team.user.lastName}}"
                                                 th:alt="${team.user.firstName + ' ' + team.user.lastName}"
                                                 th:title="${team.user.firstName + ' ' + team.user.lastName}">
 
                                                 <img th:each="user : ${team.users}" 
                                                      class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid" 
-                                                     th:src="@{'https://ui-avatars.com/api/?name=' + ${user.firstName} + '+' + ${user.lastName} + '&background=random'}"
+                                                     th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
                                                      th:title="${user.firstName + ' ' + user.lastName}">
                                             </div>
                                         </div>
@@ -126,11 +126,11 @@
                                         <div class="mt-4">
                                             <div class="flex overflow-hidden">
                                                 <img class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid"
-                                                    th:src="@{'https://ui-avatars.com/api/?name=' + ${project.user.firstName} + '+' + ${project.user.lastName} + '&background=random'}"
+                                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${project.user.firstName} + '+' + ${project.user.lastName}}"
                                                      th:title="${project.user.firstName + ' ' + project.user.lastName}">
                                                 <img th:each="user : ${project.users}" 
                                                      class="first:ml-0 mr-1 inline-block h-8 w-8 rounded-full text-white shadow-solid" 
-                                                     th:src="@{'https://ui-avatars.com/api/?name=' + ${user.firstName} + '+' + ${user.lastName} + '&background=random'}"
+                                                     th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
                                                      th:title="${user.firstName + ' ' + user.lastName}">
                                             </div>
                                         </div>

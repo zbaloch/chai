@@ -78,7 +78,7 @@
                                                     <div class="flex-1 py-4 flex-1 overflow-y-scroll" id="chat-window">
                                                         <div th:each="chatMessage : ${chatMessages}" class="flex items-start mb-4 text-sm" th:id="'chat_message_' + ${chatMessage.id}">
                                                             <img th:title="${chatMessage.user.firstName + ' ' + chatMessage.user.lastName}"
-                                                                    th:src="@{'/avatar/' + ${chatMessage.user.id} + '/' + ${chatMessage.user.firstName.charAt(0)} + ${chatMessage.user.lastName.charAt(0)} + '.svg'}"
+                                                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${chatMessage.user.firstName} + '+' + ${chatMessage.user.lastName}}"
                                                                  class="w-10 h-10 rounded-full mr-3">
                                                             <div class="flex-1 overflow-hidden">
                                                                 <div class="flex justify-between">
