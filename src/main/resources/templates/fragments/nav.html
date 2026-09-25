@@ -1,4 +1,4 @@
-<div th:fragment="nav">
+<div th:fragment="nav" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
     <div sec:authorize="isAuthenticated()">
         <form id="logoutForm" method="POST" th:action="@{/logout}">
@@ -6,87 +6,86 @@
         </form>
 
         <!-- Logged-in user navigation -->
-        <nav>
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
-                <div class="flex justify-between h-16">
-                    <div class="flex px-2 lg:px-0">
-                        <div class="flex-shrink-0 flex items-center">
-                            <a th:href="@{/projects}" class="font-bold cursor-pointer">
-                                <span th:text="#{company.name}"></span>
+        <nav class="border-b border-gray-900/5 bg-white/80 backdrop-blur-sm">
+            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center justify-between">
+                    <div class="flex items-center gap-x-8">
+                        <a th:href="@{/projects}" class="flex items-center">
+                            <span class="text-base font-semibold tracking-tight text-gray-900" th:text="#{company.name}">Chai</span>
+                        </a>
+                        <div class="flex gap-x-1">
+                            <a th:href="@{/projects}" data-nav="projects"
+                               class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
+                                Projects
                             </a>
                         </div>
                     </div>
-                    <div class="ml-4 flex items-center">
-                        <div class="ml-4 relative flex-shrink-0 flex flex-row" x-data="{ open: false }">
-                            <a href="/hey"
-                                class="relative rounded-full p-1 text-gray-400 hover:text-gray-500 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600">
+
+                    <div class="flex items-center gap-x-4">
+                        <a th:href="@{/hey}" id="nav-notifications" data-nav="hey" th:data-unread-url="@{/hasUnreadNotifications}"
+                           class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 data-active:text-gray-900">
+                            <span class="absolute -inset-1.5"></span>
+                            <span class="sr-only">View notifications</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="size-6">
+                                <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <span data-unread-dot hidden class="absolute top-1 right-1 block size-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                        </a>
+
+                        <el-dropdown class="relative">
+                            <button class="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                 <span class="absolute -inset-1.5"></span>
-                                <span class="sr-only">View notifications</span>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                                    data-slot="icon" aria-hidden="true" class="size-6">
-                                    <path
-                                        d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </a>
-                            <button
-                                class="ml-2 flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition duration-150 ease-in-out cursor-pointer"
-                                @click="open = !open">
-                                <img class="h-8 w-8 rounded-full"
-                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${session.currentUser.firstName} + '+' + ${session.currentUser.lastName}}"
-                                    th:alt="${session.currentUser.firstName} + ' ' + ${session.currentUser.lastName}"
-                                    th:title="${session.currentUser.firstName} + ' ' + ${session.currentUser.lastName}">
+                                <span class="sr-only">Open user menu</span>
+                                <img th:replace="~{fragments/ui :: avatar(${session.currentUser}, 'size-8')}">
                             </button>
-                            <div class="relative flex-shrink-0" x-show="open" @click.away="open = false" x-transition>
-                                <div
-                                    class="origin-top-right absolute right-0 mt-8 w-48 rounded-md shadow-lg z-50">
-                                    <div class="py-1 rounded-md bg-white shadow-xs">
-                                        <!-- <a th:href="@{/profile}" class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-[#FAF8F4]">My profile</a> -->
-                                        <a onclick="document.forms['logoutForm'].submit()"
-                                            class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-[#FAF8F4] cursor-pointer">Sign
-                                            out</a>
-                                    </div>
+                            <el-menu anchor="bottom end" popover
+                                     class="w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg outline-1 outline-black/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+                                <div class="px-4 py-3">
+                                    <p class="text-sm text-gray-500">Signed in as</p>
+                                    <p class="truncate text-sm font-medium text-gray-900" th:text="${session.currentUser.email}"></p>
                                 </div>
-                            </div>
-                        </div>
+                                <div class="py-1">
+                                    <button type="submit" form="logoutForm"
+                                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">
+                                        Sign out
+                                    </button>
+                                </div>
+                            </el-menu>
+                        </el-dropdown>
                     </div>
                 </div>
             </div>
         </nav>
+
+        <script>
+            (function () {
+                // Highlight the current section. Thymeleaf 3.1 can't read the request URI, so do it client-side.
+                var onHey = /\/hey\/?$/.test(location.pathname);
+                document.querySelectorAll('[data-nav]').forEach(function (a) {
+                    if ((a.dataset.nav === 'hey') === onHey) a.setAttribute('data-active', '');
+                    else a.removeAttribute('data-active');
+                });
+
+                var link = document.getElementById('nav-notifications');
+                if (!link || !window.fetch) return;
+                fetch(link.dataset.unreadUrl, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : false; })
+                    .then(function (hasUnread) { link.querySelector('[data-unread-dot]').hidden = !hasUnread; })
+                    .catch(function () {});
+            })();
+        </script>
     </div>
 
     <div sec:authorize="isAnonymous()">
         <!-- Guest user navigation -->
-        <nav>
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex">
-                        <div class="flex-shrink-0 flex items-center">
-                            <a th:href="@{/projects}" class="font-bold cursor-pointer">
-                                <span th:text="#{company.name}"></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <!-- <div class="flex-shrink-0">
-                                <a href="mailto:admin@admin.com" class="relative cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-500">
-                                    <svg class="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM10.59 8.59a1 1 0 1 1-1.42-1.42 4 4 0 1 1 5.66 5.66l-2.12 2.12a1 1 0 1 1-1.42-1.42l2.12-2.12A2 2 0 0 0 10.6 8.6zM12 18a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                                    </svg>
-                                    <span>Help</span>
-                                </a>
-                            </div> -->
-                    </div>
+        <nav class="border-b border-gray-900/5 bg-white/80 backdrop-blur-sm">
+            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center">
+                    <a th:href="@{/projects}" class="flex items-center">
+                        <span class="text-base font-semibold tracking-tight text-gray-900" th:text="#{company.name}">Chai</span>
+                    </a>
                 </div>
             </div>
         </nav>
     </div>
-</div>
-
-<div sec:authorize="isAuthenticated()">
-    Authenticated
-</div>
-<div sec:authorize="isAnonymous()">
-    Please log in.
-</div>
 </div>

@@ -1,93 +1,78 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
-    <div th:replace="~{fragments/nav :: nav}"></div>
-    <div class="min-h-screen">
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex justify-between">
-                        <nav class="flex items-center text-sm leading-5 font-medium">
-                            <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">Home</a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <a th:href="@{/project/{id}(id=${project.id})}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                <span th:text="${project.name}"></span>
-                            </a>
-                        </nav>
-                        <div>
-                            <span class="inline-flex rounded-full shadow-sm">
-                                <a th:href="@{/project/{id}/message/new(id=${project.id})}" class="inline-flex items-center px-2 py-1 border border-transparent text-sm leading-5 font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition ease-in-out duration-150">New</a>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="mt-2">
-                        <div class="flex justify-between">
-                            <div class="text-xl font-bold text-gray-900 sm:text-md sm:truncate">Messages</div>
-                        </div>
-                        <!-- <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                            <span th:text="${project.description}"></span>
-                        </div> -->
-                        <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                            Communicate, make decisions, post updates in one place (instead of emails all-over the place)
-                        </div>
-                    </div>
-                    <div class="mt-2">
-                        <ul>
-                            <li th:each="message : ${messages}">
-                                <a th:href="@{/project/{projectId}/message/{messageId}(projectId=${project.id},messageId=${message.id})}" class="block hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition duration-150 ease-in-out">
-                                    <div class="flex items-center justify-between py-4">
-                                        <div class="min-w-0 flex-1 flex items-center">
-                                            <div class="flex-shrink-0">
-                                                <img class="h-12 w-12 rounded-full" 
 
-                                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${message.user.firstName} + '+' + ${message.user.lastName}}"
-                                                th:alt="${message.user.firstName + ' ' + message.user.lastName}"
-                                                th:title="${message.user.firstName + ' ' + message.user.lastName}">
-                                            </div>
-                                            <div class="min-w-0 flex-1 px-4 mr-4">
-                                                <div>
-                                                    <div class="leading-5 font-medium font-gray-900 truncate">
-                                                        <span th:text="${message.title}"></span>
-                                                    </div>
-                                                    <!-- <div class="leading-5 font-medium font-gray-900 truncate">
-                                                        <span class="font-sans truncate" th:text="${message.contentToDisplay}"></span>
-                                                    </div> -->
-                                                    <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                                                        <span class="truncate">
-                                                            <!-- <span class="font-sans truncate" th:text="${message.contentToDisplay}"></span> -->
-                                                            <div class="text-gray-600">
-                                                                <span th:text="${message.user.firstName}"></span> <span th:text="${message.user.lastName}"></span> •
-                                                                <span th:text="${#dates.format(message.createdAt.time, 'MMM dd, yyyy')}"></span> at <span th:text="${#dates.format(message.createdAt.time, 'h:mm a')}"></span>
-                                                            </div>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-800 font-bold">
-                                                <span th:text="${#lists.size(message.comments)}"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+<body class="min-h-screen bg-canvas font-sans antialiased">
+
+<div th:replace="~{fragments/nav :: nav}"></div>
+
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
+    <div class="mt-2 flex items-start justify-between gap-x-4">
+        <div class="min-w-0">
+            <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Messages</h1>
+            <p class="mt-1 text-sm text-gray-500">Communicate, make decisions and post updates in one place, instead of emails all over the place.</p>
+        </div>
+        <a th:href="@{/project/{id}/message/new(id=${project.id})}"
+           class="inline-flex shrink-0 items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-ml-0.5 size-5">
+                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
+            New message
+        </a>
+    </div>
+
+    <ul role="list" th:unless="${#lists.isEmpty(messages)}"
+        class="mt-8 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <li th:each="message : ${messages}" class="relative flex items-center justify-between gap-x-6 px-4 py-5 hover:bg-gray-50 sm:px-6">
+            <div class="flex min-w-0 gap-x-4">
+                <img th:replace="~{fragments/ui :: avatar(${message.user}, 'size-10')}">
+                <div class="min-w-0 flex-auto">
+                    <p class="truncate text-sm/6 font-semibold text-gray-900">
+                        <a th:href="@{/project/{projectId}/message/{messageId}(projectId=${project.id},messageId=${message.id})}">
+                            <span class="absolute inset-x-0 -top-px bottom-0"></span>
+                            <span th:text="${message.title}">Title</span>
+                        </a>
+                    </p>
+                    <p class="mt-1 flex text-xs/5 text-gray-500">
+                        <span th:text="${message.user.firstName + ' ' + message.user.lastName}"></span>
+                        <svg viewBox="0 0 2 2" class="mx-2 size-0.5 self-center fill-current" aria-hidden="true"><circle cx="1" cy="1" r="1" /></svg>
+                        <time th:datetime="${#dates.format(message.createdAt.time, 'yyyy-MM-dd')}"
+                              th:text="${#dates.format(message.createdAt.time, 'MMM d, yyyy')}"></time>
+                    </p>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+            <div class="flex shrink-0 items-center gap-x-4">
+                <span th:if="${#lists.size(message.comments) > 0}"
+                      class="inline-flex items-center gap-x-1 text-xs font-medium text-gray-500"
+                      th:title="${#lists.size(message.comments) + ' comments'}">
+                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-4 text-gray-400">
+                        <path fill-rule="evenodd" d="M10 2c-2.236 0-4.43.18-6.57.524C1.993 2.755 1 4.014 1 5.426v5.148c0 1.413.993 2.67 2.43 2.902.848.137 1.705.248 2.57.331v3.443a.75.75 0 0 0 1.28.53l3.58-3.579a.78.78 0 0 1 .527-.224 41.202 41.202 0 0 0 5.183-.5c1.437-.232 2.43-1.49 2.43-2.903V5.426c0-1.413-.993-2.67-2.43-2.902A41.289 41.289 0 0 0 10 2Z" clip-rule="evenodd" />
+                    </svg>
+                    <span th:text="${#lists.size(message.comments)}"></span>
+                </span>
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 text-gray-400">
+                    <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </li>
+    </ul>
+
+    <!-- Empty state -->
+    <a th:if="${#lists.isEmpty(messages)}" th:href="@{/project/{id}/message/new(id=${project.id})}"
+       class="mt-8 block w-full rounded-xl border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="mx-auto size-12 text-gray-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+        </svg>
+        <span class="mt-2 block text-sm font-semibold text-gray-900">No messages yet</span>
+        <span class="mt-1 block text-sm text-gray-500">Post the first update for the team.</span>
+    </a>
+
+</main>
+
 <div th:replace="~{fragments/notifications :: notifications}"></div>
 <div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>
-
-
-
-

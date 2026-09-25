@@ -2,134 +2,68 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
-    <nav th:replace="~{fragments/nav :: nav}"></nav>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
 
-    <div class=" min-h-screen">
-        <div class="py-4">
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 
-                <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
+    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">People</h1>
+    <p class="mt-1 text-sm text-gray-500">
+        Add or remove people from <span class="font-medium text-gray-700" th:text="${project.name}"></span>.
+    </p>
 
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div>
-                            <div class="flex justify-between">
-                                <nav class="flex items-center text-sm leading-5 font-medium">
-                                    <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                        Home
-                                    </a>
-                                    <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <a th:href="@{'/project/' + ${project.id}}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out" th:text="${project.name}">
-                                    </a>
-                                </nav>
-                            </div>
-                        </div>
-                        <div class="mt-2">
-                            <div class="flex justify-between">
-                                <div class="text-xl font-bold text-gray-900 sm:text-md  sm:truncate">
-                                    Add or remove users from <span th:text="${project.name}"></span>
-                                </div>
-                            </div>
-                            <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                                Use the list of all users show below to add or remove users from <span th:text="${project.name}"></span>
-                            </div>
-
-
-                            </div>
-
-                        <div class="mt-4">
-                        <div th:if="${message != null}" class="rounded-md bg-green-50 p-4">
-                            <div class="flex">
-                                <div class="ml-3">
-                                    <h3 class="text-sm leading-5 font-medium text-green-700 " th:text="${message}">
-                                    </h3>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div th:if="${error != null}" class="rounded-md bg-red-50 p-4">
-                            <div class="flex">
-                                <div class="ml-3">
-                                    <h3 class="text-sm leading-5 font-medium text-red-700 " th:text="${error}">
-                                    </h3>
-                                </div>
-                            </div>
-                        </div>
-                        </div>
-
-
-
-
-                    <div class="flex flex-col mt-4">
-                        <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-                            <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200">
-                                <table class="min-w-full">
-                                    <thead>
-                                    <tr>
-                                        <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th class="px-6 py-3 border-b border-gray-200 bg-gray-50"></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody class="bg-white">
-                                    <tr th:each="user : ${users}">
-                                        <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10">
-                                                    <img class="h-10 w-10 rounded-full"
-                                                         th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
-                                                         th:title="${user.firstName + ' ' + user.lastName}" />
-                                                </div>
-                                                <div class="ml-4">
-                                                    <div class="text-sm leading-5 font-medium text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></div>
-                                                    <div class="text-sm leading-5 text-gray-500" th:text="${user.email}"></div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium">
-                                            <!-- TODO: Need to validate this on the server side too to avoid having users add themselves -->
-                                            <span th:if="${user.id == session.currentUser.id}"
-                                                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                Owner
-                                            </span>
-
-                                            <th:block th:if="${user.id != session.currentUser.id}">
-                                                <form th:if="${user.addedAlready == true}" th:action="@{'/project/' + ${project.id} + '/users'}" method="post">
-                                                    <input type="hidden" name="action" value="remove"/>
-                                                    <input type="hidden" name="projectId" th:value="${project.id}"/>
-                                                    <input type="hidden" name="userId" th:value="${user.id}"/>
-                                                    <button type="submit" class="text-red-500 hover:text-red-800">Remove</button>
-                                                </form>
-                                                <form th:if="${user.addedAlready == false}" th:action="@{'/project/' + ${project.id} + '/users'}" method="post">
-                                                    <input type="hidden" name="action" value="add"/>
-                                                    <input type="hidden" name="projectId" th:value="${project.id}"/>
-                                                    <input type="hidden" name="userId" th:value="${user.id}"/>
-                                                    <button type="submit" class="text-indigo-600 hover:text-indigo-900">Add</button>
-                                                </form>
-                                            </th:block>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-
-        </div>
+    <div class="mt-6" th:if="${message != null or error != null}">
+        <div th:replace="~{fragments/ui :: alerts}"></div>
     </div>
 
-    <div th:replace="~{fragments/notifications :: notifications}"></div>
+    <ul role="list" class="mt-8 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <li th:each="user : ${users}" class="flex items-center justify-between gap-x-6 px-4 py-4 sm:px-6">
+            <div class="flex min-w-0 items-center gap-x-4">
+                <img th:replace="~{fragments/ui :: avatar(${user}, 'size-10')}">
+                <div class="min-w-0">
+                    <p class="text-sm/6 font-semibold text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></p>
+                    <p class="truncate text-xs/5 text-gray-500" th:text="${user.email}"></p>
+                </div>
+            </div>
 
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
+            <div class="shrink-0">
+                <!-- TODO: Need to validate this on the server side too to avoid having users add themselves -->
+                <span th:if="${user.id == session.currentUser.id}"
+                      class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 inset-ring inset-ring-gray-500/10">
+                    Owner
+                </span>
 
-</div>
+                <th:block th:if="${user.id != session.currentUser.id}">
+                    <form th:if="${user.addedAlready == true}" th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="flex items-center gap-x-3">
+                        <span class="hidden items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 inset-ring inset-ring-green-600/20 sm:inline-flex">Member</span>
+                        <input type="hidden" name="action" value="remove"/>
+                        <input type="hidden" name="projectId" th:value="${project.id}"/>
+                        <input type="hidden" name="userId" th:value="${user.id}"/>
+                        <button type="submit"
+                                class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-red-600 shadow-xs inset-ring inset-ring-gray-300 hover:bg-red-50">
+                            Remove
+                        </button>
+                    </form>
+                    <form th:if="${user.addedAlready == false}" th:action="@{/project/{id}/users(id=${project.id})}" method="post">
+                        <input type="hidden" name="action" value="add"/>
+                        <input type="hidden" name="projectId" th:value="${project.id}"/>
+                        <input type="hidden" name="userId" th:value="${user.id}"/>
+                        <button type="submit"
+                                class="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            Add
+                        </button>
+                    </form>
+                </th:block>
+            </div>
+        </li>
+    </ul>
+
+</main>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
 </body>
 </html>

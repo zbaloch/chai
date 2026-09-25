@@ -1,163 +1,77 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-
-<div id="app">
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
 <div th:replace="~{fragments/nav :: nav}"></div>
 
-<div class=" min-h-screen">
-    <div class="py-4">
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 
-<div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, 'To-dos', @{/project/{id}/todos(id=${project.id})})}"></nav>
+    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">New to-do</h1>
 
-    <div class="bg-white rounded-lg shadow p-6">
+    <form th:action="@{/project/{id}/todo/new(id=${project.id})}" th:object="${todo}" method="post"
+          class="mt-8 rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <div class="grid grid-cols-1 gap-x-6 gap-y-8 px-4 py-6 sm:grid-cols-6 sm:p-8">
 
-        <div>
-            <nav class="flex items-center text-sm leading-5 font-medium">
-                <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                    Home
-                </a>
-                <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                </svg>
-                <a th:href="@{'/project/' + ${project.id}}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                    <span th:text="${project.name}">Project Name</span>
-                </a>
-
-                <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                </svg>
-                <a th:href="@{'/project/' + ${project.id} + '/todos'}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                    To-dos
-                </a>
-
-            </nav>
-        </div>
-
-        <div class="mt-2">
-            <h2 class="text-xl font-bold text-gray-900 sm:text-md  sm:truncate">
-                New To-do<!-- Todo this should let the user create a document or created folders as well later -->
-            </h2>
-        </div>
-
-        <div class="">
-            <form th:action="@{'/project/' + ${project.id} + '/todo/new'}" th:object="${todo}" method="post">
-                <div>
-                    <div>
-                        <div class="mt-6 grid grid-cols-1 row-gap-6 col-gap-4 sm:grid-cols-6">
-
-                            <div class="sm:col-span-6">
-                                <label for="description" class="block text-sm font-medium leading-5 text-gray-700" wfd-id="81">
-                                    Description
-                                </label>
-                                <div class="mt-1 rounded-md shadow-sm">
-                                    <!-- <input type="text" class="form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5"/> -->
-                                    <input th:field="*{description}" class="form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5" placeholder="Type a title..."/>
-                                        <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
-                                </div>
-                            </div>
-
-                            <div class="sm:col-span-3">
-                                <label for="assignedToVariable" class="block text-sm font-medium leading-5 text-gray-700" wfd-id="81">
-                                    Assigned to
-                                </label>
-                                <div class="mt-1 rounded-md shadow-sm">
-                                    <select th:field="*{assignedToVariable}" id="location" class="mt-1 form-select block w-full pl-3 pr-10 py-2 text-base leading-6 border-gray-300 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5">
-                                        <option th:each="user : ${project.users}" th:value="${user.id}" th:text="${user.firstName + ' ' + user.lastName}">User Name</option>
-                                        <option th:value="${project.user.id}" th:text="${project.user.firstName + ' ' + project.user.lastName}">User Name</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="sm:col-span-3">
-                                <label for="dueDateVariable" class="block text-sm font-medium leading-5 text-gray-700" wfd-id="81">
-                                    Due on
-                                </label>
-                                <div class="mt-1 rounded-md">
-
-                                    <input type="date" id="dueDateVariable" name="dueDateVariable"
-                                           th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
-                                            class=" form-input block w-full pl-3 py-2 text-base leading-6 border-gray-300 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5">
-
-                                    <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('dueDateVariable')}" th:errors="*{dueDateVariable}">
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="sm:col-span-6">
-                                <label for="notes" class="block text-sm font-medium leading-5 text-gray-700" wfd-id="81">
-                                    Notes
-                                </label>
-                                
-                                 <!-- Alpine.js Trix Editor Integration -->
-                            <div 
-                                x-data="{
-                                    notes: '',
-                                    init() {
-                                        const input = this.$refs.input;
-                                        const editor = this.$refs.trix;
-                                        editor.addEventListener('trix-change', () => {
-                                            this.notes = editor.editor.getDocument().toString();
-                                            input.value = this.notes;
-                                        });
-                                    }
-                                }" 
-                                x-init="init"
-                                class="sm:col-span-6 w-full mt-1"
-                            >
-                                <input type="hidden" id="x" name="notes" x-ref="input" x-model="notes"/>
-                                <trix-editor input="x" x-ref="trix" class="trix-editor-message w-full" style="min-height: 200px;"></trix-editor>
-                            </div>
-
-                            </div>
-
-                        </div>
-                    </div>
-
+            <div class="sm:col-span-6">
+                <label for="description" class="block text-sm/6 font-medium text-gray-900">Description</label>
+                <div class="mt-2">
+                    <input th:field="*{description}" type="text" placeholder="What needs to get done?" autofocus
+                           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"/>
                 </div>
-                <div class="mt-8 border-t border-gray-200 pt-5">
-                    <div class="flex justify-end">
-      <span class="inline-flex rounded-md shadow-sm">
-        <a th:href="@{'/project/' + ${project.id} + '/todos'}" type="button" class="py-2 px-4 border border-gray-300 rounded-md text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-50 active:text-gray-800 transition duration-150 ease-in-out">
-          Cancel
-        </a>
-      </span>
-                        <span class="ml-3 inline-flex rounded-md shadow-sm">
-        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">
-          Save
-        </button>
-      </span>
-                    </div>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+            </div>
+
+            <div class="sm:col-span-3">
+                <label for="assignedToVariable" class="block text-sm/6 font-medium text-gray-900">Assigned to</label>
+                <div class="mt-2 grid grid-cols-1">
+                    <select th:field="*{assignedToVariable}"
+                            class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                        <option th:each="user : ${project.users}" th:value="${user.id}" th:text="${user.firstName + ' ' + user.lastName}">User Name</option>
+                        <option th:value="${project.user.id}" th:text="${project.user.firstName + ' ' + project.user.lastName}">User Name</option>
+                    </select>
+                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4">
+                        <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                    </svg>
                 </div>
-            </form>
+            </div>
+
+            <div class="sm:col-span-3">
+                <label for="dueDateVariable" class="block text-sm/6 font-medium text-gray-900">Due on</label>
+                <div class="mt-2">
+                    <input type="date" id="dueDateVariable" name="dueDateVariable"
+                           th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
+                           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                </div>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('dueDateVariable')}" th:errors="*{dueDateVariable}"></p>
+            </div>
+
+            <div class="sm:col-span-6">
+                <label for="todo-notes" class="block text-sm/6 font-medium text-gray-900">
+                    Notes <span class="font-normal text-gray-500">(optional)</span>
+                </label>
+                <div class="mt-2">
+                    <input type="hidden" th:field="*{notes}" id="todo-notes"/>
+                    <trix-editor input="todo-notes" class="trix-editor-message" style="min-height: 200px;" placeholder="Add details, links or files…"></trix-editor>
+                </div>
+            </div>
 
         </div>
 
-    </div>
-</div>
+        <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
+            <a th:href="@{/project/{id}/todos(id=${project.id})}" class="text-sm/6 font-semibold text-gray-900">Cancel</a>
+            <button type="submit"
+                    class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Add to-do
+            </button>
+        </div>
+    </form>
 
-</div>
-
-</div>
-
-</div>
-
+</main>
 
 <div th:replace="~{fragments/notifications :: notifications}"></div>
-
-<script>
-    // Vue.config.ignoredElements = ['trix-editor'];
-    Vue.component("editor", {
-        template: "#editor-template"
-    });
-
-
-</script>
-
-
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>

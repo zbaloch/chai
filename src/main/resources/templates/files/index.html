@@ -1,123 +1,65 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
-    <div th:replace="~{fragments/nav :: nav}"></div>
+<div th:replace="~{fragments/nav :: nav}"></div>
 
-    <div class=" min-h-screen">
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex justify-between">
-                        <nav class="flex items-center text-sm leading-5 font-medium">
-                            <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                Home
-                            </a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <a th:href="@{'/project/' + ${project.id}}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                <span th:text="${project.name}">Project Name</span>
-                            </a>
-                        </nav>
-
-                        <div>
-                                <span class="inline-flex rounded-full shadow-sm">
-                                   <a th:href="@{'/project/' + ${project.id} + '/file/new'}" class="inline-flex items-center px-2 py-1 border border-transparent text-sm leading-5 font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition ease-in-out duration-150">
-                                       New
-                                   </a>
-                               </span>
-                        </div>
-
-                    </div>
-                    <div class="mt-2">
-                        <div class="flex justify-between">
-                            <div class="text-xl font-bold text-gray-900 sm:text-md  sm:truncate">
-                                Docs & Files
-                            </div>
-                        </div>
-                        <!-- <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                            ${project.description}
-                        </div> -->
-
-                        <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                            This is a place to store and organize assets and reference material.
-                        </div>
-
-
-                    </div>
-
-                    <div class="mt-2">
-
-                        <div class="py-6 bg-white">
-                            <div class="max-w-xl mx-auto lg:max-w-screen-xl">
-                                <div class="lg:grid lg:grid-cols-3 lg:gap-8">
-                                    <div class="" th:each="activeStorageFile : ${activeStorageFiles}">
-                                        <!-- <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-                                            </svg>
-                                        </div> -->
-                                        <div class="mt-2">
-                                            <a th:href="@{'/project/' + ${project.id} + '/file/' + ${activeStorageFile.id}}"
-                                               target="_blank" class="font-medium text-gray-900 underline">
-                                                    <span th:text="${activeStorageFile.fileName}">File Name</span>
-                                            </a>
-                                            <!-- <p class="mt-1 text-sm text-gray-500">
-                                                    ${activeStorageFile.description}
-                                            </p> -->
-                                            <div class="text-sm text-gray-500 mt-1">
-                                                <!--Posted--> By <span th:text="${activeStorageFile.user.firstName + ' ' + activeStorageFile.user.lastName.charAt(0)}">User Name</span>. on
-                                                <span th:text="${#dates.format(activeStorageFile.createdAt.time, 'MMMM dd, yyyy')}">Date</span>
-                                                <!-- · 73 KB -->
-                                            </div>
-                                            <!--
-                                            <div class="flex-1 min-w-0">
-
-                                                <div class="flex flex-row">
-                                                    <div class="mt-1 flex items-center text-sm leading-5 text-gray-500 sm:mr-6 text-sm">
-                                                        <svg class="flex-shrink-0 mr-1 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                                                            <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"></path>
-                                                        </svg>
-                                                        Full-time
-                                                    </div>
-                                                    <div class="mt-1 flex items-center text-sm leading-5 text-gray-500 sm:mr-6 text-sm">
-                                                        <svg class="flex-shrink-0 mr-1 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                                        </svg>
-                                                        Remote
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                            -->
-
-                                            <!-- <a href="#" class="text-red-500 text-sm">Delete</a> -->
-                                            <!-- <div>
-                                                <a href="#" class="text-sm text-blue-500 underline">Download</a>
-                                            </div> -->
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
+    <div class="mt-2 flex items-start justify-between gap-x-4">
+        <div class="min-w-0">
+            <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Docs &amp; Files</h1>
+            <p class="mt-1 text-sm text-gray-500">A place to store and organize assets and reference material.</p>
         </div>
+        <a th:href="@{/project/{id}/file/new(id=${project.id})}"
+           class="inline-flex shrink-0 items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-ml-0.5 size-5">
+                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
+            Upload
+        </a>
     </div>
-</div>
 
+    <ul role="list" th:unless="${#lists.isEmpty(activeStorageFiles)}"
+        class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <li th:each="activeStorageFile : ${activeStorageFiles}"
+            class="group relative flex items-start gap-x-4 rounded-xl bg-white p-4 shadow-xs ring-1 ring-gray-900/5 transition hover:shadow-md hover:ring-gray-900/10">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-gray-400 ring-1 ring-gray-900/5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+            </span>
+            <div class="min-w-0">
+                <a th:href="@{/project/{p}/file/{f}(p=${project.id},f=${activeStorageFile.id})}" target="_blank"
+                   class="block truncate text-sm/6 font-semibold text-gray-900 group-hover:text-indigo-600">
+                    <span class="absolute inset-0" aria-hidden="true"></span>
+                    <span th:text="${activeStorageFile.fileName}">File name</span>
+                </a>
+                <p class="mt-0.5 text-xs/5 text-gray-500">
+                    <span th:text="${activeStorageFile.user.firstName + ' ' + activeStorageFile.user.lastName.charAt(0) + '.'}">User</span>
+                    · <span th:text="${#dates.format(activeStorageFile.createdAt.time, 'MMM d, yyyy')}">Date</span>
+                </p>
+            </div>
+        </li>
+    </ul>
 
-    <div th:replace="~{fragments/notifications :: notifications}"></div>
+    <!-- Empty state -->
+    <a th:if="${#lists.isEmpty(activeStorageFiles)}" th:href="@{/project/{id}/file/new(id=${project.id})}"
+       class="mt-8 block w-full rounded-xl border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="mx-auto size-12 text-gray-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+        </svg>
+        <span class="mt-2 block text-sm font-semibold text-gray-900">No files yet</span>
+        <span class="mt-1 block text-sm text-gray-500">Upload the first document for this project.</span>
+    </a>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
+</main>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

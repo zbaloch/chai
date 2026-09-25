@@ -67,15 +67,12 @@ public class ProjectsController {
 
 
 
+        // Projects and (legacy) teams are the same thing — a space. Show them together.
         List<Project> projects = projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_PROJECT);
-        List<Project> projectsPartOf = projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_PROJECT);
-        projects.addAll(projectsPartOf);
+        projects.addAll(projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_PROJECT));
+        projects.addAll(projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_TEAM));
+        projects.addAll(projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_TEAM));
         model.put("projects", projects);
-
-        List<Project> teams = projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_TEAM);
-        List<Project> teamsPartOf = projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_TEAM);
-        teams.addAll(teamsPartOf);
-        model.put("teams", teams);
 
         // Get current users timelog to display on the homepage
         List<Timesheet> timesheets = timesheetRepository.findAllByUserOrderByTimeLogDateDesc(currentUser);
@@ -105,6 +102,7 @@ public class ProjectsController {
         User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
         System.out.println("user: " + user.getId());
         project.setUser(user);
+        project.setProjectType(Constants.PROJECT_TYPE_PROJECT);
         project.setCreatedAt(Calendar.getInstance());
         projectRepository.save(project);
         redirectAttributes.addFlashAttribute("notice", "Project saved!");

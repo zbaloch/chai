@@ -1,149 +1,87 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
-    <nav th:replace="~{fragments/nav :: nav}"></nav>          
+<nav th:replace="~{fragments/nav :: nav}"></nav>
 
-    <div class=" min-h-screen">     
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8"
+      th:with="isOwner=${project.user != null and project.user.id == currentUser.id}">
 
-                <div class="bg-white rounded-lg shadow p-6">
-
-                    <div>
-                        <div class="flex justify-between">
-                            <nav class="flex items-center text-sm leading-5 font-medium">
-                                <a th:href="@{'/projects'}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                    Home
-                                </a>
-                            </nav>
-                            <div th:if="${project.user != null and project.user.id == currentUser.id and project.projectType != 'hq'}" class="relative" x-data="{ isProjectActionsOpen: false }">
-                                <button @click="isProjectActionsOpen = !isProjectActionsOpen" class="text-gray-800 font-bold z-10 relative">
-                                    <svg class="fill-current w-4 h-4 mr-2" fill="none" stroke-linejoin="round" stroke-width="2" viewBox="0 0 20 20" stroke="currentColor">
-                                        <path d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
-                                    </svg>
-                                </button>
-                                <button x-show="isProjectActionsOpen" @click="isProjectActionsOpen = false" tabindex="-1"
-                                        class="fixed inset-0 w-full cursor-default border-0 outline-none"></button>
-
-                                <div x-cloak x-show="isProjectActionsOpen" class="absolute right-0 mt-2 py-2 w-24 bg-white rounded-lg shadow-xl">
-                                    <a class="block px-4 py-1 text-gray-800 hover:bg-indigo-500 hover:text-white" th:href="@{'/project/' + ${project.id} + '/edit'}">Edit</a>
-                                    <a class="block px-4 py-1 text-red-600 hover:bg-red-500 hover:text-white"
-                                       data-confirm="Are you sure?" rel="nofollow" data-method="delete"
-                                       th:href="@{'/project/' + ${project.id} + '/delete'}">Delete</a>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="mt-2">
-                        <div class="flex justify-between">
-                            <div class="text-xl font-bold text-gray-900 sm:text-md  sm:truncate" th:text="${project.name}">
-                            </div>
-                        </div>
-                        <div class="mt-1 flex items-center text-sm leading-5 text-gray-500" th:text="${project.description}">
-                        </div>
-
-                        <div class="mt-4">
-                            <div class="flex overflow-hidden">
-
-                                <img class="inline-block h-8 w-8 rounded-full text-white shadow-solid mr-1"
-                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${project.user.firstName} + '+' + ${project.user.lastName}}"
-                                     th:title="${project.user.firstName + ' ' + project.user.lastName}">
-
-                                <img th:each="user : ${project.users}" 
-                                     class="inline-block h-8 w-8 rounded-full text-white shadow-solid mr-1"
-                                     th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${user.firstName} + '+' + ${user.lastName}}"
-                                     th:title="${user.firstName + ' ' + user.lastName}">
-                                
-                                <a th:if="${project.user.id == currentUser.id}" 
-                                   th:href="@{'/project/' + ${project.id} + '/users'}" 
-                                   class="ml-2 text-xs text-gray-500 px-2 py-2 border border-gray-200 rounded-full">
-                                    Add/Remove people
-                                </a>
-
-                            </div>
-                        </div>
-
-
-                        <div class="mt-4">
-                            <div class="flex flex-wrap -mx-3">
-
-                                <div class="w-full md:w-1/2 lg:w-1/3 px-3 mb-8">
-                                    <a th:href="@{'/project/' + ${project.id} + '/todos'}" class="no-underline bg-white rounded-lg shadow hover:shadow-raised hover:translateY-2px transition flex-1 flex flex-col border border-gray-200">
-                                        <div class="p-6 flex flex-col">
-                                            <h3 class="font-display text-black no-underline mb-2 font-bold">
-                                                To-dos
-                                            </h3> <!-- TODO: Seed the HQ by default-->
-                                            <div class="text-gray-700 text-sm">
-                                                Make list of work that needs to get done, assign items, set due dates, and discuss.
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-
-                                <div class="w-full md:w-1/2 lg:w-1/3 px-3 mb-8">
-                                    <a th:href="@{'/project/' + ${project.id} + '/messages'}" class="no-underline bg-white rounded-lg shadow hover:shadow-raised hover:translateY-2px transition flex-1 flex flex-col border border-gray-200">
-                                        <div class="p-6 flex flex-col">
-                                            <h3 class="font-display text-black no-underline mb-2 font-bold">
-                                                Messages
-                                            </h3> <!-- TODO: Seed the HQ by default-->
-                                            <div class="text-gray-700 text-sm">                                                
-                                                Chat, communicate, decide, post updates in one place
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-
-
-                                
-                                <!-- <div class="w-full md:w-1/2 lg:w-1/3 px-3 mb-8">
-                                    <a href="${contextUrl}/project/${project.id}/chat" class="no-underline bg-white rounded-lg shadow hover:shadow-raised hover:translateY-2px transition flex-1 flex flex-col border border-gray-200">
-                                        <div class="p-6 flex flex-col">
-                                            <h3 class="font-display text-black no-underline mb-2 font-bold">
-                                                Chat
-                                            </h3>
-                                            <div class="text-gray-700 text-sm">
-                                                Hash things out quickly, throw links and images back and forth, think out loud, share news, riff, and chat in real-time with your team
-
-                                                Chat casually with the group, ask random questions, and share stuff without ceremony.
-
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div> -->
-
-                                <!-- <div class="w-full md:w-1/2 lg:w-1/3 px-3 mb-8">
-                                    <a th:href="@{'/project/' + ${project.id} + '/files'}" class="no-underline bg-white rounded-lg shadow hover:shadow-raised hover:translateY-2px transition flex-1 flex flex-col border border-gray-200">
-                                        <div class="p-6 flex flex-col">
-                                            <h3 class="font-display text-black no-underline mb-2 font-bold">
-                                                Docs & Files
-                                            </h3>
-                                            <div class="text-gray-700 text-sm">
-                                                This is a place to store and organize assets and files
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div> -->
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Page header -->
+    <nav th:replace="~{fragments/ui :: breadcrumbs(null, null, null)}"></nav>
+    <div class="mt-2 flex items-start justify-between gap-x-4">
+        <div class="min-w-0">
+            <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:truncate sm:text-3xl/9" th:text="${project.name}">Project</h1>
+            <p class="mt-1 text-sm text-gray-500" th:text="${project.description}"></p>
         </div>
+
+        <el-dropdown th:if="${isOwner and project.projectType != 'hq'}" class="relative shrink-0">
+            <button class="flex items-center rounded-full p-1.5 text-gray-400 hover:bg-gray-900/5 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <span class="sr-only">Project options</span>
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                    <path d="M10 3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM10 8.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM11.5 15.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z" />
+                </svg>
+            </button>
+            <el-menu anchor="bottom end" popover
+                     class="w-40 origin-top-right rounded-md bg-white py-1 shadow-lg outline-1 outline-black/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+                <a th:href="@{/project/{id}/edit(id=${project.id})}"
+                   class="block px-4 py-2 text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">Edit project</a>
+                <button type="button" command="show-modal" commandfor="delete-project"
+                        class="block w-full px-4 py-2 text-left text-sm text-red-600 focus:bg-red-50 focus:outline-hidden">Delete project</button>
+            </el-menu>
+        </el-dropdown>
     </div>
 
-    <div th:replace="~{fragments/avatarModal :: avatarModal}"></div>
+    <!-- People -->
+    <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div class="flex -space-x-2 overflow-hidden">
+            <img th:replace="~{fragments/ui :: avatar(${project.user}, 'size-8 ring-2 ring-canvas')}">
+            <th:block th:each="member : ${project.users}">
+                <img th:replace="~{fragments/ui :: avatar(${member}, 'size-8 ring-2 ring-canvas')}">
+            </th:block>
+        </div>
+        <a th:if="${isOwner}" th:href="@{/project/{id}/users(id=${project.id})}"
+           class="inline-flex items-center gap-x-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-ml-0.5 size-4 text-gray-400">
+                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
+            Add / remove people
+        </a>
+    </div>
 
-</div>
-<div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Tools -->
+    <ul role="list" class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <li class="group relative rounded-xl bg-white p-6 shadow-xs ring-1 ring-gray-900/5 transition hover:shadow-md hover:ring-gray-900/10">
+            <h3 class="text-base font-semibold text-gray-900">
+                <a th:href="@{/project/{id}/todos(id=${project.id})}" class="focus:outline-none">
+                    <span class="absolute inset-0" aria-hidden="true"></span>
+                    To-dos
+                </a>
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">Make lists of work that needs to get done, assign items, set due dates, and discuss.</p>
+        </li>
+
+        <li class="group relative rounded-xl bg-white p-6 shadow-xs ring-1 ring-gray-900/5 transition hover:shadow-md hover:ring-gray-900/10">
+            <h3 class="text-base font-semibold text-gray-900">
+                <a th:href="@{/project/{id}/messages(id=${project.id})}" class="focus:outline-none">
+                    <span class="absolute inset-0" aria-hidden="true"></span>
+                    Messages
+                </a>
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">Communicate, make decisions and post updates in one place.</p>
+        </li>
+    </ul>
+
+    <th:block th:if="${isOwner and project.projectType != 'hq'}">
+        <el-dialog th:replace="~{fragments/ui :: confirmDialog('delete-project', 'Delete project', 'This project and everything in it will be deleted. This can’t be undone.', @{/project/{id}/delete(id=${project.id})}, 'Delete project')}"></el-dialog>
+    </th:block>
+
+</main>
 
 <div th:replace="~{fragments/notifications :: notifications}"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
-
-
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!--/* One row in the notifications feed (hey/index). `n` is a Notification; HeyController populates the related object. */-->
+<li th:fragment="item(n)" xmlns:th="http://www.thymeleaf.org"
+    th:with="projectName=${n.messageObject?.project?.name ?: (n.todo?.project?.name ?: (n.activeStorageFile?.project?.name ?: n.comment?.todo?.project?.name))}"
+    class="relative flex items-center gap-x-4 px-4 py-4 hover:bg-gray-50 sm:px-6">
+
+    <th:block th:if="${n.fromUser != null}">
+        <img th:replace="~{fragments/ui :: avatar(${n.fromUser}, 'size-10')}">
+    </th:block>
+
+    <div class="min-w-0 flex-auto">
+        <p class="text-sm/6 text-gray-500">
+            <span class="font-semibold text-gray-900" th:if="${n.fromUser != null}"
+                  th:text="${n.fromUser.firstName + ' ' + n.fromUser.lastName}"></span>
+            <th:block th:switch="${n.message}">
+                <span th:case="'new_message'">posted a message</span>
+                <span th:case="'new_todo'">added a to-do</span>
+                <span th:case="'completed_todo'">completed a to-do</span>
+                <span th:case="'new_message_comment'">commented on a message</span>
+                <span th:case="'new_todo_comment'">commented on a to-do</span>
+                <span th:case="'new_file'">uploaded a file</span>
+                <span th:case="*">sent you a notification</span>
+            </th:block>
+        </p>
+
+        <p class="truncate text-sm/6 font-medium text-gray-900" th:switch="${n.message}">
+            <a th:case="'new_message'"
+               th:href="@{/project/{p}/message/{m}(p=${n.messageObject.projectId},m=${n.messageObject.id})}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.messageObject.title}"></span>
+            </a>
+            <a th:case="'new_todo'"
+               th:href="@{/project/{p}/todo/{t}(p=${n.todo.project.id},t=${n.todo.id})}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.todo.description}"></span>
+            </a>
+            <a th:case="'completed_todo'"
+               th:href="@{/project/{p}/todo/{t}(p=${n.todo.project.id},t=${n.todo.id})}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.todo.description}"></span>
+            </a>
+            <a th:case="'new_message_comment'"
+               th:href="@{/project/{p}/message/{m}(p=${n.comment.projectId},m=${n.comment.message.id})} + '#comment_' + ${n.comment.id}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.comment.message.title}"></span>
+            </a>
+            <a th:case="'new_todo_comment'"
+               th:href="@{/project/{p}/todo/{t}(p=${n.comment.projectId},t=${n.comment.todo.id})} + '#comment_' + ${n.comment.id}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.comment.todo.description}"></span>
+            </a>
+            <a th:case="'new_file'"
+               th:href="@{/project/{p}/files(p=${n.activeStorageFile.projectId})}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.activeStorageFile.fileName}"></span>
+            </a>
+        </p>
+
+        <p th:if="${n.comment != null and n.comment.textToDisplay != null}"
+           class="mt-0.5 line-clamp-1 text-sm text-gray-500" th:text="'“' + ${n.comment.textToDisplay} + '”'"></p>
+
+        <p class="mt-1 flex min-w-0 items-center text-xs/5 text-gray-500">
+            <time class="shrink-0 whitespace-nowrap" th:text="${#dates.format(n.createdAt.time, 'MMM d')} + ' at ' + ${#dates.format(n.createdAt.time, 'h:mm a')}"></time>
+            <th:block th:if="${projectName != null}">
+                <svg viewBox="0 0 2 2" class="mx-2 size-0.5 fill-current" aria-hidden="true"><circle cx="1" cy="1" r="1" /></svg>
+                <span class="truncate" th:text="${projectName}"></span>
+            </th:block>
+        </p>
+    </div>
+
+    <span th:if="${!n.read}" class="size-2.5 shrink-0 rounded-full bg-indigo-600">
+        <span class="sr-only">Unread</span>
+    </span>
+</li>

@@ -1,153 +1,113 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
-    <div th:replace="~{fragments/nav :: nav}"></div>
-    <div class="min-h-screen">
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex justify-between">
-                        <nav class="flex items-center text-sm leading-5 font-medium">
-                            <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">Home</a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <a th:href="@{/project/{id}(id=${project.id})}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                <span th:text="${project.name}"></span>
-                            </a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <a th:href="@{/project/{id}/messages(id=${project.id})}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">Messages</a>
-                        </nav>
-                        <div>
-                            <span class="inline-flex rounded-full shadow-sm">
-                                <span th:if="${message.user.id == currentUser.id}">
-                                    <a th:href="@{/project/{projectId}/message/{messageId}/edit(projectId=${project.id},messageId=${message.id})}" class="underline text-indigo-600">Edit</a>
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex justify-between">
-                        <h3 class="text-2xl leading-6 font-bold text-gray-900" th:text="${message.title}"></h3>
-                        <div class="text-sm">
-                            <!-- Comment count display removed for Thymeleaf conversion -->
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="sm:col-span-6 border-t border-b py-4 border-gray-200">
-                            <div class="relative">
-                                <div class="absolute left-0 top-0">
-                                    <img 
 
-                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${message.user.firstName} + '+' + ${message.user.lastName}}"
-                                                th:alt="${message.user.firstName + ' ' + message.user.lastName}"
-                                                th:title="${message.user.firstName + ' ' + message.user.lastName}" 
-                                    class="h-12 w-12 rounded-full">
-                                </div>
-                                <div class="ml-16">
-                                    <div class="flex justify-between ">
-                                        <div>
-                                            <span class="font-medium" th:text="${message.user.firstName} + ' ' + ${message.user.lastName}"></span>
-                                        </div>
-                                    </div>
-                                    <div class="text-sm text-gray-600">
-                                        <span th:text="${#dates.format(message.createdAt.time, 'MMM dd, yyyy')}"></span> at <span th:text="${#dates.format(message.createdAt.time, 'h:mm a')}"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trix-editor-content mt-4" th:utext="${message.content}"></div>
-                    <div class="mt-12">
-                        <div class="flex items-center">
-                            <div class="flex items-center">
-                                <span class="flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-800 font-bold">
-                                    <span th:text="${#lists.size(message.comments)}"></span>
-                                </span>
-                            </div>
-                            <h4>
-                                <div class="flex-shrink-0 pr-4 pl-4 text-lg leading-5 tracking-wider font-medium text-gray-900 ">Comments</div>
-                            </h4>
-                            <div class="flex-1 border-t border-gray-200"></div>
-                        </div>
-                    </div>
-                    <div class="mt-8">
-                        <div>
-                            <div th:each="comment : ${message.comments}">
-                                <div class="sm:col-span-6 mt-6" th:id="'comment_' + ${comment.id}">
-                                    <div class="relative">
-                                        <div class="absolute left-0 top-0">
-                                            <img 
-                                                th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${comment.user.firstName} + '+' + ${comment.user.lastName}}"
-                                                th:alt="${comment.user.firstName + ' ' + comment.user.lastName}"
-                                                th:title="${comment.user.firstName + ' ' + comment.user.lastName}" 
-                                                class="h-12 w-12 rounded-full "
-                                            />
-                                        </div>
-                                        <div class="ml-16">
-                                            <div class="flex justify-between ">
-                                                <div>
-                                                    <span class="font-medium" th:text="${comment.user.firstName} + ' ' + ${comment.user.lastName}"></span>
-                                                    <span class="text-sm mt-1 text-gray-600">
-                                                        <span th:text="${#dates.format(comment.createdAt.time, 'MMM dd, yyyy')}"></span> at <span th:text="${#dates.format(comment.createdAt.time, 'h:mm a')}"></span>
-                                                    </span>
-                                                </div>
-                                                <div class="text-sm">
-                                                    <span th:if="${currentUser.id == comment.user.id}">
-                                                        <a th:onclick="|deleteComment(${project.id},${message.id},${comment.id})|" class="underline text-red-500 cursor-pointer ">
-                                                            <svg fill="none" class="h-6 w-6 mr-4" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                            </svg>
-                                                        </a>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="formatted_content" th:utext="${comment.text}"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a name="comment_form">
-                                <div class="sm:col-span-6 mt-12">
-                                    <div class="relative">
-                                        <div class="absolute left-0 top-0">
-                                            <img 
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
-                                            th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${currentUser.firstName} + '+' + ${currentUser.lastName}}"
-                                                th:alt="${currentUser.firstName + ' ' + currentUser.lastName}"
-                                                th:title="${currentUser.firstName + ' ' + currentUser.lastName}" 
-                                            
-                                            class="h-12 w-12 rounded-full ">
-                                        </div>
-                                        <form th:action="@{/project/{projectId}/message/{messageId}/comment(projectId=${project.id},messageId=${message.id})}"
-                                            th:object="${comment}" method="post">
-                                            <div class="ml-16">
-                                                <div class="mt-1">
-                                                    <input type="hidden" id="comment-text" name="text" th:field="*{text}"/>
-                                                    <trix-editor input="comment-text" class="trix-editor-comment" style="min-height: 200px;"></trix-editor>
-                                                </div>
-                                                <p class="mt-1 text-sm mb-4 text-red-500">
-                                                    <span th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></span>
-                                                </p>
-                                                <div class="mt-4">
-                                                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">Add this comment</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
+<div th:replace="~{fragments/nav :: nav}"></div>
+
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, 'Messages', @{/project/{id}/messages(id=${project.id})})}"></nav>
+
+    <!-- Message -->
+    <article class="mt-4 rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <header class="border-b border-gray-900/5 px-4 py-6 sm:px-8">
+            <div class="flex items-start justify-between gap-x-4">
+                <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900" th:text="${message.title}">Title</h1>
+                <a th:if="${message.user.id == currentUser.id}"
+                   th:href="@{/project/{projectId}/message/{messageId}/edit(projectId=${project.id},messageId=${message.id})}"
+                   class="shrink-0 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50">
+                    Edit
+                </a>
+            </div>
+            <div class="mt-4 flex items-center gap-x-3">
+                <img th:replace="~{fragments/ui :: avatar(${message.user}, 'size-8')}">
+                <div class="text-sm/5">
+                    <p class="font-semibold text-gray-900" th:text="${message.user.firstName + ' ' + message.user.lastName}"></p>
+                    <p class="text-gray-500">
+                        <span th:text="${#dates.format(message.createdAt.time, 'MMM d, yyyy')}"></span>
+                        at <span th:text="${#dates.format(message.createdAt.time, 'h:mm a')}"></span>
+                    </p>
                 </div>
             </div>
+        </header>
+        <div class="trix-editor-content px-4 py-6 text-base/7 text-gray-700 sm:px-8" th:utext="${message.content}"></div>
+    </article>
+
+    <!-- Comments -->
+    <section aria-labelledby="comments-heading" class="mt-10">
+        <h2 id="comments-heading" class="flex items-center gap-x-2 text-base font-semibold text-gray-900">
+            Comments
+            <span data-comment-count
+                  class="inline-flex items-center rounded-full bg-gray-900/5 px-2 py-0.5 text-xs font-medium text-gray-600"
+                  th:text="${#lists.size(message.comments)}">0</span>
+        </h2>
+
+        <ul role="list" class="mt-6 space-y-6">
+            <li th:each="comment : ${message.comments}" th:id="'comment_' + ${comment.id}" class="flex gap-x-4">
+                <img th:replace="~{fragments/ui :: avatar(${comment.user}, 'size-10')}">
+                <div class="min-w-0 flex-auto rounded-xl bg-white p-4 shadow-xs ring-1 ring-gray-900/5">
+                    <div class="flex items-start justify-between gap-x-4">
+                        <p class="text-sm/6">
+                            <span class="font-semibold text-gray-900" th:text="${comment.user.firstName + ' ' + comment.user.lastName}"></span>
+                            <span class="ml-1 text-gray-500">
+                                <span th:text="${#dates.format(comment.createdAt.time, 'MMM d, yyyy')}"></span>
+                                at <span th:text="${#dates.format(comment.createdAt.time, 'h:mm a')}"></span>
+                            </span>
+                        </p>
+                        <button th:if="${currentUser.id == comment.user.id}" type="button"
+                                th:data-delete-url="@{/project/{p}/message/{m}/comment/{c}/delete(p=${project.id},m=${message.id},c=${comment.id})}"
+                                th:data-comment-id="${comment.id}"
+                                onclick="deleteComment(this)"
+                                class="-m-1.5 shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600">
+                            <span class="sr-only">Delete comment</span>
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-4">
+                                <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="formatted_content mt-1 text-sm/6 text-gray-700" th:utext="${comment.text}"></div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- New comment -->
+        <div id="comment_form" class="mt-8 flex gap-x-4">
+            <img th:replace="~{fragments/ui :: avatar(${currentUser}, 'size-10')}">
+            <form th:action="@{/project/{projectId}/message/{messageId}/comment(projectId=${project.id},messageId=${message.id})}"
+                  th:object="${comment}" method="post" class="min-w-0 flex-auto">
+                <input type="hidden" id="comment-text" name="text" th:field="*{text}"/>
+                <trix-editor input="comment-text" class="trix-editor-comment" placeholder="Add a comment…"></trix-editor>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></p>
+                <div class="mt-3 flex justify-end">
+                    <button type="submit"
+                            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        Add comment
+                    </button>
+                </div>
+            </form>
         </div>
-    </div>
-</div>
+    </section>
+
+</main>
+
 <div th:replace="~{fragments/notifications :: notifications}"></div>
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    function deleteComment(button) {
+        if (!confirm('Delete this comment?')) return;
+        fetch(button.dataset.deleteUrl, { method: 'DELETE' })
+            .then(function (response) {
+                if (!response.ok) throw new Error(response.status);
+                document.getElementById('comment_' + button.dataset.commentId).remove();
+                var count = document.querySelector('[data-comment-count]');
+                if (count) count.textContent = Math.max(0, Number(count.textContent) - 1);
+            })
+            .catch(function (error) { console.error('Failed to delete comment:', error); });
+    }
+</script>
+
 </body>
 </html>

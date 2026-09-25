@@ -1,80 +1,46 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
-    <div th:replace="~{fragments/nav :: nav}"></div>
-    <div class="min-h-screen">
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div>
-                        <nav class="flex items-center text-sm leading-5 font-medium">
-                            <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">Home
-                            </a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                      clip-rule="evenodd"></path>
-                            </svg>
-                            <a th:href="@{/project/{id}(id=${project.id})}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                <span th:text="${project.name}"></span>
-                            </a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                      clip-rule="evenodd"></path>
-                            </svg>
-                            <a th:href="@{/project/{id}/messages(id=${project.id})}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">Messages
-                            </a>
-                        </nav>
-                    </div>
-                    <div class="mt-2">
-                        <h2 class="text-xl font-bold text-gray-900 sm:text-md sm:truncate">New message <!-- Todo this should let the user create a document or created folders as well later --></h2>
-                    </div>
-                    <div>
-                        <form th:action="@{/project/{id}/message/new(id=${project.id})}" th:object="${message}" method="post">
-                            <div>
-                                <div class="mt-6 grid grid-cols-1 row-gap-6 col-gap-4 sm:grid-cols-6">
-                                    <div class="sm:col-span-6">
-                                        <div class="mt-1 rounded-md shadow-sm">
-                                            <input th:field="*{title}" class="form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5" placeholder="Type a title..."/>
-                                            <p class="mt-1 text-sm mb-4 text-red-500">
-                                                <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="sm:col-span-6">
-                                        <div class="mt-1">
-                                            <input type="hidden" id="message-content" name="content" th:field="*{content}"/>
-                                            <trix-editor input="message-content" class="trix-editor-message" style="min-height: 300px;"></trix-editor>
-                                        </div>
-                                        <p class="mt-1 text-sm mb-4 text-red-500">
-                                            <span th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-8 border-t border-gray-200 pt-5">
-                                <div class="flex justify-end">
-                                    <span class="inline-flex rounded-md shadow-sm">
-                                        <a th:href="@{/project/{id}/messages(id=${project.id})}" type="button" class="py-2 px-4 border border-gray-300 rounded-md text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-50 active:text-gray-800 transition duration-150 ease-in-out">Cancel</a>
-                                    </span>
-                                    <span class="ml-3 inline-flex rounded-md shadow-sm">
-                                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">Save</button>
-                                    </span>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+<body class="min-h-screen bg-canvas font-sans antialiased">
+
+<div th:replace="~{fragments/nav :: nav}"></div>
+
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, 'Messages', @{/project/{id}/messages(id=${project.id})})}"></nav>
+    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">New message</h1>
+
+    <form th:action="@{/project/{id}/message/new(id=${project.id})}" th:object="${message}" method="post"
+          class="mt-8 rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <div class="space-y-6 px-4 py-6 sm:p-8">
+            <div>
+                <label for="title" class="sr-only">Title</label>
+                <input th:field="*{title}" type="text" placeholder="Type a title…" autofocus
+                       class="block w-full border-0 bg-transparent px-0 py-1 text-xl font-semibold text-gray-900 placeholder:text-gray-300 focus:outline-none" />
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+            </div>
+
+            <div>
+                <input type="hidden" id="message-content" name="content" th:field="*{content}"/>
+                <trix-editor input="message-content" class="trix-editor-message" style="min-height: 300px;" placeholder="Write away…"></trix-editor>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></p>
             </div>
         </div>
-    </div>
-</div>
+
+        <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
+            <a th:href="@{/project/{id}/messages(id=${project.id})}" class="text-sm/6 font-semibold text-gray-900">Cancel</a>
+            <button type="submit"
+                    class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Post message
+            </button>
+        </div>
+    </form>
+
+</main>
+
 <div th:replace="~{fragments/notifications :: notifications}"></div>
 <div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>

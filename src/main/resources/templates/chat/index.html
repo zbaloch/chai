@@ -1,143 +1,62 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
-    <div th:replace="~{fragments/nav :: nav}"></div>
+<div th:replace="~{fragments/nav :: nav}"></div>
 
-    <div class="">
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex justify-between">
-                        <nav class="flex items-center text-sm leading-5 font-medium">
-                            <a th:href="@{/projects}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                Home
-                            </a>
-                            <svg class="flex-shrink-0 mx-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
+    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Chat</h1>
+
+    <div class="mt-8 flex flex-col overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5" style="height: calc(100vh - 260px);">
+        <!-- Chat messages -->
+        <ul role="list" id="chat-window" class="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-6">
+            <li th:each="chatMessage : ${chatMessages}" th:id="'chat_message_' + ${chatMessage.id}" class="group flex gap-x-3">
+                <img th:replace="~{fragments/ui :: avatar(${chatMessage.user}, 'size-9')}">
+                <div class="min-w-0 flex-auto">
+                    <div class="flex items-baseline justify-between gap-x-4">
+                        <p class="text-sm/6">
+                            <span class="font-semibold text-gray-900" th:text="${chatMessage.user.firstName + ' ' + chatMessage.user.lastName}">User Name</span>
+                            <span class="ml-1 text-xs text-gray-500">
+                                <span th:text="${#dates.format(chatMessage.createdAt.time, 'MMM d, yyyy')}">Date</span>
+                                at <span th:text="${#dates.format(chatMessage.createdAt.time, 'h:mm a')}">Time</span>
+                            </span>
+                        </p>
+                        <a th:if="${chatMessage.user.id == session.currentUser.id}"
+                           th:onclick="|deleteChatMessage(${project.id}, ${chatMessage.id})|"
+                           class="cursor-pointer rounded-md p-1 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600">
+                            <span class="sr-only">Delete message</span>
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-4">
+                                <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
                             </svg>
-                            <a th:href="@{'/project/' + ${project.id}}" class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                                <span th:text="${project.name}">Project Name</span>
-                            </a>
-                        </nav>
-
-                        <div>
-
-                        </div>
-
+                        </a>
                     </div>
-                    <div class="mt-2">
-                        <div class="flex justify-between">
-                            <div class="text-xl font-bold text-gray-900 sm:text-md  sm:truncate">
-                                Chat
-                            </div>
-                        </div>
-                        <!-- <div class="mt-1 flex items-center text-sm leading-5 text-gray-500">
-                            Chat casually with the group, ask random questions, and share stuff without ceremony.
-                        </div> -->
-                    </div>
-
-
-
-
-                    <div class="mt-4">
-                            <div class="mx-auto max-w-screen-xl border-t">
-                                <!-- <div class="lg:grid lg:grid-cols-3 lg:gap-8"> -->
-
-                                     <!-- component -->
-                                        <div class="font-sans antialiased">
-                                            <!-- Sidebar / channel list -->
-
-                                            <!-- Chat content -->
-                                            <div class="flex flex-col bg-white overflow-hidden" style="height: calc(100vh - 260px);">
-                                                <!-- Top bar -->
-                                                <!-- <div class="border-b flex px-6 py-2 items-center flex-none overflow-hidden">
-                                                    <div class="flex flex-col">
-                                                        <h3 class="text-grey-darkest mb-1 font-extrabold">#general</h3>
-                                                        <div class="text-grey-dark text-sm truncate">
-                                                            Chit-chattin' about ugly HTML and mixing of concerns.
-                                                        </div>
-                                                    </div>
-                                                    <div class="ml-auto hidden md:block">
-                                                        <div class="relative">
-                                                            <input type="search" placeholder="Search" class="appearance-none border border-grey rounded-lg pl-8 pr-4 py-2">
-                                                            <div class="absolute pin-y pin-l pl-3 flex items-center justify-center">
-                                                                <svg class="fill-current text-grey h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                                    <path d="M12.9 14.32a8 8 0 1 1 1.41-1.41l5.35 5.33-1.42 1.42-5.33-5.34zM8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12z" />
-                                                                </svg>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div> -->
-                                                <!-- Chat messages -->
-                                                <div class="flex flex-col min-h-full">
-                                                    <div class="flex-1 py-4 flex-1 overflow-y-scroll" id="chat-window">
-                                                        <div th:each="chatMessage : ${chatMessages}" class="flex items-start mb-4 text-sm" th:id="'chat_message_' + ${chatMessage.id}">
-                                                            <img th:title="${chatMessage.user.firstName + ' ' + chatMessage.user.lastName}"
-                                                                    th:src="@{'https://api.dicebear.com/10.x/initials/svg?seed=' + ${chatMessage.user.firstName} + '+' + ${chatMessage.user.lastName}}"
-                                                                 class="w-10 h-10 rounded-full mr-3">
-                                                            <div class="flex-1 overflow-hidden">
-                                                                <div class="flex justify-between">
-                                                                    <div>
-                                                                        <div>
-                                                                            <span class="font-bold">
-                                                                                <span th:text="${chatMessage.user.firstName + ' ' + chatMessage.user.lastName}">User Name</span>
-                                                                            </span>
-                                                                            <span class="text-grey text-xs">
-                                                                                <span th:text="${#dates.format(chatMessage.createdAt.time, 'MMM dd, yyyy')}">Date</span> at <span th:text="${#dates.format(chatMessage.createdAt.time, 'h:m a')}">Time</span>
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <a th:if="${chatMessage.user.id == session.currentUser.id}" th:onclick="|deleteChatMessage(${project.id}, ${chatMessage.id})|" class="underline text-red-500 cursor-pointer ">
-                                                                            <svg fill="none" class="h-5 w-5 mr-4" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                                            </svg>
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                                <p class="text-black leading-normal">
-                                                                    <span th:text="${chatMessage.message}">Message Content</span>
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex-none">
-                                                        <div>
-                                                            <div class="mt-1 relative rounded-md shadow-sm">
-                                                                <input id="chatMessageInput"
-                                                                       class="form-input block w-full sm:text-sm sm:leading-5"
-                                                                       placeholder="Type of your message..." value=""
-                                                                       v-on:keyup.enter="sendMessage"/>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                 </div>
-                                            </div>
-                                        </div>
-                            </div>
-                    </div>
+                    <p class="text-sm/6 text-gray-700" th:text="${chatMessage.message}">Message Content</p>
                 </div>
-            </div>
+            </li>
+        </ul>
+
+        <!-- Composer -->
+        <div class="border-t border-gray-900/5 p-4">
+            <label for="chatMessageInput" class="sr-only">Message</label>
+            <input id="chatMessageInput" type="text" placeholder="Type your message…" value="" autocomplete="off"
+                   class="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"/>
         </div>
     </div>
-</div>
 
+</main>
 
 <div th:replace="~{fragments/notifications :: notifications}"></div>
-
 <div th:replace="~{fragments/footer :: footer}"></div>
-
 
 <input type="hidden" id="user.username" th:value="${session.currentUser.email}"/>
 <input type="hidden" id="user.id" th:value="${session.currentUser.id}"/>
 <input type="hidden" id="user.firstName" th:value="${session.currentUser.firstName}"/>
 <input type="hidden" id="user.lastName" th:value="${session.currentUser.lastName}"/>
-<input type="hidden" id="user.initials" th:value="${session.currentUser.firstName.charAt(0) + session.currentUser.lastName.charAt(0)}"/>
+<input type="hidden" id="user.initials" th:value="${'' + session.currentUser.firstName.charAt(0) + session.currentUser.lastName.charAt(0)}"/>
 <input type="hidden" id="project.id" th:value="${project.id}"/>
 <input type="hidden" id="isChatPage" value="true"/>
 <input type="hidden" id="chat.contextUrl" th:value="@{/}"/>

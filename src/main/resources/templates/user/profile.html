@@ -2,80 +2,60 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
 
-<body class="font-sans bg-[#FAF8F4]">
-<div id="app">
+<body class="min-h-screen bg-canvas font-sans antialiased">
 
-    <nav th:replace="~{fragments/nav :: nav}"></nav>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
 
-    <div class=" min-h-screen">
-        <div class="py-4">
-            <div class="max-w-4xl mx-auto px-4 sm:px-4 lg:px-4">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-900 sm:text-md  sm:truncate">
-                           My profile
-                        </h2>
-                    </div>
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 
-                    <form th:object="${userForm}" th:action="@{/profile}" method="post">
+    <nav th:replace="~{fragments/ui :: breadcrumbs(null, null, null)}"></nav>
+    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">My profile</h1>
 
-                    <div class="mt-4 grid grid-cols-1 row-gap-6 col-gap-4 sm:grid-cols-6">
+    <form th:object="${userForm}" th:action="@{/profile}" method="post"
+          class="mt-8 rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 px-4 py-6 sm:grid-cols-6 sm:p-8">
 
-                        <div class="sm:col-span-6">
-                            <label class="block text-sm font-medium leading-5 text-gray-700">
-                                <span th:text="#{user.username.label}">Username</span>
-                            </label>
-                            <div class="mt-1 rounded-md shadow-sm">
-                                <input th:field="*{email}" readonly="readonly" class="form-input block w-full bg-[#FAF8F4] transition duration-150 ease-in-out sm:text-sm sm:leading-5" />
-                            </div>
-                            <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
-                            </p>
-                        </div>
-
-                        <div class="sm:col-span-6">
-                            <label class="block text-sm font-medium leading-5 text-gray-700">
-                                <span th:text="#{user.firstName.label}">First Name</span>
-                            </label>
-                            <div class="mt-1 rounded-md shadow-sm">
-                                <input th:field="*{firstName}" class="form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5" />
-                            </div>
-                            <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}">
-                            </p>
-                        </div>
-
-                        <div class="sm:col-span-6">
-                            <label class="block text-sm font-medium leading-5 text-gray-700">
-                                <span th:text="#{user.lastName.label}">Last Name</span>
-                            </label>
-                            <div class="mt-1 rounded-md shadow-sm">
-                                <input th:field="*{lastName}" class="form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5" />
-                            </div>
-                            <p class="mt-1 text-sm mb-4 text-red-500" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}">
-                            </p>
-                        </div>
-
-                    </div>
-
-
-                    <div class="mt-8 border-t border-gray-200 pt-5">
-                        <div class="flex justify-end">
-                    <span class="inline-flex rounded-md shadow-sm">
-                        <a th:href="@{/projects}" class="py-2 px-4 border border-gray-300 rounded-md text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-50 active:text-gray-800 transition duration-150 ease-in-out">Cancel</a>
-                    </span>
-                            <span class="ml-3 inline-flex rounded-md shadow-sm">
-                                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out">Save</button>
-                            </span>
-                        </div>
-                    </div>
-                </form>
+            <div class="sm:col-span-6">
+                <label for="email" class="block text-sm/6 font-medium text-gray-900">Email address</label>
+                <div class="mt-2">
+                    <input th:field="*{email}" type="email" readonly="readonly"
+                           class="block w-full cursor-not-allowed rounded-md bg-gray-50 px-3 py-1.5 text-base text-gray-500 outline-1 -outline-offset-1 outline-gray-200 sm:text-sm/6" />
+                </div>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
             </div>
 
-            <div th:replace="~{fragments/notifications :: notifications}"></div>
+            <div class="sm:col-span-3">
+                <label for="firstName" class="block text-sm/6 font-medium text-gray-900" th:text="#{user.firstName.label}">First name</label>
+                <div class="mt-2">
+                    <input th:field="*{firstName}" type="text" autocomplete="given-name"
+                           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                </div>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></p>
+            </div>
+
+            <div class="sm:col-span-3">
+                <label for="lastName" class="block text-sm/6 font-medium text-gray-900" th:text="#{user.lastName.label}">Last name</label>
+                <div class="mt-2">
+                    <input th:field="*{lastName}" type="text" autocomplete="family-name"
+                           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                </div>
+                <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></p>
+            </div>
 
         </div>
-    </div>
-</div>
 
+        <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
+            <a th:href="@{/projects}" class="text-sm/6 font-semibold text-gray-900">Cancel</a>
+            <button type="submit"
+                    class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Save
+            </button>
+        </div>
+    </form>
+
+</main>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 </body>
