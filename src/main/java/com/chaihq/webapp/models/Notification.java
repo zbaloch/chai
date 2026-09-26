@@ -1,6 +1,8 @@
 package com.chaihq.webapp.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -12,7 +14,7 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "for_user", referencedColumnName = "id")
     private User forUser;
 
@@ -31,6 +33,7 @@ public class Notification {
     @Column(name = "read_at")
     private Calendar readAt;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String message;
 
     /* todo
@@ -52,7 +55,7 @@ public class Notification {
     private ActiveStorageFile activeStorageFile;
 
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "from_user", referencedColumnName = "id")
     private User fromUser;
 

@@ -1,6 +1,8 @@
 package com.chaihq.webapp.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,7 @@ public class Project {
 
     private long id;
     private String name;
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String description;
 
     @Column(name = "project_type")
@@ -29,7 +32,7 @@ public class Project {
     private Calendar createdAt;
 
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private User user;
 

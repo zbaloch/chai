@@ -49,38 +49,3 @@ max_allowed_packet=500M in the my.ini for your mysql server
 
 ##### Disclaimer:
 I built Chai from ground-up and does not use design or code assets from Basecamp.
-
-
-#### Environment variables with SQLite Database
-
-```
-export chai_spring_port=8080
-# export chai_spring_jpa_database_platform=com.github.gwenn.hibernate.dialect.SQLiteDialect
-
-export chai_spring_jpa_database_platform=org.sqlite.hibernate.dialect.SQLiteDialect
-
-# export chai_spring_jpa_database_platform=org.hibernate.dialect.SQLiteDialect
-
-# export chai_spring_datasource_username=default_user
-
-# export chai_spring_datasource_password=default_password
-
-export chai_spring_datasource_url=jdbc:sqlite:database.sqlite
-
-export chai_spring_datasource_driver_class_name=org.sqlite.JDBC
-
-# export chai_spring_jpa_database_platform=org.hibernate.community.dialect.SQLiteDialect
-
-export chai_spring_jpa_database_platform=org.sqlite.hibernate.dialect.SQLiteDialect
-
-# export chai_spring_jpa_database_platform=com.github.gwenn.hibernate.dialect.SQLiteDialect
-
-export chai_spring_email_from=hey@chaihq.com
-export chai_spring_mail_host=sandbox.smtp.mailtrap.io
-export chai_spring_mail_port=2525
-export chai_spring_mail_username=
-export chai_spring_mail_password=
-export chai_spring_host_url=http://localhost:8080
-
-
-```

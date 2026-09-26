@@ -3,6 +3,8 @@ package com.chaihq.webapp.models;
 import com.chaihq.webapp.utilities.Util;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 
 @Entity(name = "comments")
@@ -11,6 +13,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String text;
 
     @Transient
@@ -19,7 +22,7 @@ public class Comment {
     @Column(name = "comment_type")
     private String commentType; // That is message, todo, or updates etc.
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

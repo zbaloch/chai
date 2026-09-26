@@ -3,6 +3,8 @@ package com.chaihq.webapp.models;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class ActiveStorageFile {
     @Column(name = "created_at")
     private Calendar createdAt;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARBINARY)
     @Column(name = "file_data")
     private byte[] fileData;
 
@@ -47,7 +50,7 @@ public class ActiveStorageFile {
     @Transient
     private MultipartFile multipartFile;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
 

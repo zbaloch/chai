@@ -3,6 +3,8 @@ package com.chaihq.webapp.models;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -14,11 +16,11 @@ public class Timesheet {
     private long id;
 
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "project_id", referencedColumnName = "id")
     private Project project;
 
@@ -38,6 +40,7 @@ public class Timesheet {
     @Column(name = "task")
     private String task;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     @Column(name = "notes")
     private String notes;
 

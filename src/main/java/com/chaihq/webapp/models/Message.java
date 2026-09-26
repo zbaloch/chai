@@ -3,6 +3,8 @@ package com.chaihq.webapp.models;
 import com.chaihq.webapp.utilities.Util;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 import java.util.List;
 
@@ -15,9 +17,10 @@ public class Message {
 
     private String title;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String content;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

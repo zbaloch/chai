@@ -5,6 +5,8 @@ import com.chaihq.webapp.utilities.Util;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -18,7 +20,7 @@ public class Todo {
 
     private String description;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "assigned_to", referencedColumnName = "id")
     private User assignedTo;
 
@@ -34,14 +36,14 @@ public class Todo {
 
     private boolean done;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private User createdBy;
 
     @Column(name = "created_at")
     private Calendar createdAt;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "project_id", referencedColumnName = "id")
     private Project project;
 
@@ -50,6 +52,7 @@ public class Todo {
 
     private String status;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String notes;
 
     @Column(name = "position")

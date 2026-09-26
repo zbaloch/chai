@@ -1,6 +1,8 @@
 package com.chaihq.webapp.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Calendar;
 import java.util.List;
 
@@ -12,13 +14,14 @@ public class Chat {
     private long id;
 
     // @OneToOne(cascade = CascadeType.ALL)
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
     @Column(name = "project_id")
     private long projectId;
 
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String message;
 
     @Column(name = "created_at")
