@@ -1,5 +1,7 @@
 package com.chaihq.webapp.models;
 
+import com.chaihq.webapp.utilities.Util;
+
 import jakarta.persistence.*;
 import java.util.Calendar;
 
@@ -55,7 +57,7 @@ public class Comment {
     }
 
     public void setText(String text) {
-        this.text = text;
+        this.text = Util.blankRichTextToEmpty(text);
     }
 
     public long getProjectId() {

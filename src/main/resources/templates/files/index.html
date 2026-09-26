@@ -15,7 +15,7 @@
             <p class="mt-1 text-sm text-gray-500">A place to store and organize assets and reference material.</p>
         </div>
         <a th:href="@{/project/{id}/file/new(id=${project.id})}"
-           class="inline-flex shrink-0 items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+           class="inline-flex shrink-0 items-center gap-x-1.5 rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="-ml-0.5 size-5">
                 <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
             </svg>
@@ -34,7 +34,7 @@
             </span>
             <div class="min-w-0">
                 <a th:href="@{/project/{p}/file/{f}(p=${project.id},f=${activeStorageFile.id})}" target="_blank"
-                   class="block truncate text-sm/6 font-semibold text-gray-900 group-hover:text-indigo-600">
+                   class="block truncate text-sm/6 font-semibold text-gray-900 group-hover:text-sky-600">
                     <span class="absolute inset-0" aria-hidden="true"></span>
                     <span th:text="${activeStorageFile.fileName}">File name</span>
                 </a>
@@ -48,7 +48,7 @@
 
     <!-- Empty state -->
     <a th:if="${#lists.isEmpty(activeStorageFiles)}" th:href="@{/project/{id}/file/new(id=${project.id})}"
-       class="mt-8 block w-full rounded-xl border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600">
+       class="mt-8 block w-full rounded-xl border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-sky-600">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="mx-auto size-12 text-gray-400">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
         </svg>

@@ -1,5 +1,7 @@
 package com.chaihq.webapp.models;
 
+import com.chaihq.webapp.utilities.Util;
+
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.*;
@@ -147,7 +149,7 @@ public class Todo {
     }
 
     public void setNotes(String notes) {
-        this.notes = notes;
+        this.notes = Util.blankRichTextToEmpty(notes);
     }
 
     public String getStatus() {

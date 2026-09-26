@@ -1,5 +1,7 @@
 package com.chaihq.webapp.models;
 
+import com.chaihq.webapp.utilities.Util;
+
 import jakarta.persistence.*;
 import java.util.Calendar;
 import java.util.List;
@@ -51,7 +53,7 @@ public class Message {
     }
 
     public void setContent(String content) {
-        this.content = content;
+        this.content = Util.blankRichTextToEmpty(content);
     }
 
     public User getUser() {

@@ -23,7 +23,7 @@
 
                     <div class="flex items-center gap-x-4">
                         <a th:href="@{/hey}" id="nav-notifications" data-nav="hey" th:data-unread-url="@{/hasUnreadNotifications}"
-                           class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 data-active:text-gray-900">
+                           class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 data-active:text-gray-900">
                             <span class="absolute -inset-1.5"></span>
                             <span class="sr-only">View notifications</span>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="size-6">
@@ -33,7 +33,7 @@
                         </a>
 
                         <el-dropdown class="relative">
-                            <button class="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            <button class="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
                                 <span class="absolute -inset-1.5"></span>
                                 <span class="sr-only">Open user menu</span>
                                 <img th:replace="~{fragments/ui :: avatar(${session.currentUser}, 'size-8')}">

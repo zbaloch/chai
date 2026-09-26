@@ -17,11 +17,14 @@
     <!-- Tailwind Plus Elements: el-dropdown, el-menu, el-dialog -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 
-    <link rel="stylesheet" type="text/css" th:href="@{/css/trix.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/lexxy.css}">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turbolinks/5.2.0/turbolinks.js"></script>
-    <script th:src="@{/js/trix.js}"></script>
-    <script th:src="@{/js/attachments.js}"></script>
+    <script th:src="@{/js/lexxy.js}"></script>
+    <script>
+        // Syntax-highlight code blocks in rendered rich text
+        document.addEventListener("turbolinks:load", function () { Lexxy.highlightCode() })
+    </script>
 
 </head>

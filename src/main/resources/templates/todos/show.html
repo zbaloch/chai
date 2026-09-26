@@ -70,7 +70,7 @@
             <div class="sm:col-span-2">
                 <dt class="text-sm/6 font-medium text-gray-500">Notes</dt>
                 <dd th:if="${todo.notes != null and !#strings.isEmpty(todo.notes)}"
-                    class="formatted_content mt-1 text-sm/6 text-gray-900" th:utext="${todo.notes}"></dd>
+                    class="lexxy-content mt-1 text-sm/6 text-gray-900" th:utext="${todo.notes}"></dd>
                 <dd th:unless="${todo.notes != null and !#strings.isEmpty(todo.notes)}"
                     class="mt-1 text-sm/6 text-gray-500">No notes here.</dd>
             </div>
@@ -102,13 +102,17 @@
                               method="post" onsubmit="return confirm('Delete this comment?')">
                             <button type="submit" class="-m-1.5 shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600">
                                 <span class="sr-only">Delete comment</span>
-                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-4">
-                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4">
+                                    <path d="M10 11v6" />
+                                    <path d="M14 11v6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                    <path d="M3 6h18" />
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                 </svg>
                             </button>
                         </form>
                     </div>
-                    <div class="formatted_content mt-1 text-sm/6 text-gray-700" th:utext="${comment.text}"></div>
+                    <div class="lexxy-content mt-1 text-sm/6 text-gray-700" th:utext="${comment.text}"></div>
                 </div>
             </li>
         </ul>
@@ -120,11 +124,10 @@
             </th:block>
             <form method="post" class="min-w-0 flex-auto"
                   th:action="@{/project/{projectId}/todo/{todoId}/comment(projectId=${project.id}, todoId=${todo.id})}">
-                <input id="text" type="hidden" name="text">
-                <trix-editor input="text" class="trix-editor-comment" placeholder="Add a comment…"></trix-editor>
+                <lexxy-editor name="text" class="lexxy-content editor-comment" placeholder="Add a comment…"></lexxy-editor>
                 <div class="mt-3 flex justify-end">
                     <button type="submit"
-                            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            class="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
                         Add comment
                     </button>
                 </div>
