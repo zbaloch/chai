@@ -32,7 +32,7 @@
                 </div>
             </div>
         </header>
-        <div class="lexxy-content px-4 py-6 text-base/7 text-gray-700 sm:px-8" th:utext="${message.content}"></div>
+        <div class="lexxy-content px-4 py-6 text-base/7 text-gray-700 sm:px-8" th:utext="${@richText.render(message.content)}"></div>
     </article>
 
     <!-- Comments -->
@@ -71,7 +71,7 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="lexxy-content mt-1 text-sm/6 text-gray-700" th:utext="${comment.text}"></div>
+                    <div class="lexxy-content mt-1 text-sm/6 text-gray-700" th:utext="${@richText.render(comment.text)}"></div>
                 </div>
             </li>
         </ul>
@@ -81,7 +81,7 @@
             <img th:replace="~{fragments/ui :: avatar(${currentUser}, 'size-10')}">
             <form th:action="@{/project/{projectId}/message/{messageId}/comment(projectId=${project.id},messageId=${message.id})}"
                   th:object="${comment}" method="post" class="min-w-0 flex-auto">
-                <lexxy-editor name="text" th:value="*{text}" class="lexxy-content editor-comment" placeholder="Add a comment…"></lexxy-editor>
+                <lexxy-editor data-direct-upload-url="/attachments/direct_uploads" data-blob-url-template="/attachments/:signed_id/:filename" name="text" th:value="*{text}" class="lexxy-content editor-comment" placeholder="Add a comment…"></lexxy-editor>
                 <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></p>
                 <div class="mt-3 flex justify-end">
                     <button type="submit"

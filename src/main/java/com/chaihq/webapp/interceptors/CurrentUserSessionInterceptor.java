@@ -8,6 +8,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.utilities.Constants;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,10 +28,9 @@ public class CurrentUserSessionInterceptor implements HandlerInterceptor {
         try {
             HttpSession session = request.getSession();
 
-            // Check if currentUser is already in session
-            Object currentUserAttr = session.getAttribute("currentUser");
-
-            if (currentUserAttr == null) {
+            // Controllers read the user from "current_user" and templates from "currentUser". A new
+            // session (e.g. after a restart, signed back in by the remember-me cookie) has neither.
+            if (session.getAttribute(Constants.CURRENT_USER) == null || session.getAttribute("currentUser") == null) {
                 // Try to get authenticated user
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -43,6 +43,8 @@ public class CurrentUserSessionInterceptor implements HandlerInterceptor {
                         User user = userRepository.findByEmail(username);
 
                         if (user != null) {
+                            user.setInitialFirstNameLastName(initial(user.getFirstName()) + initial(user.getLastName()));
+                            session.setAttribute(Constants.CURRENT_USER, user);
                             session.setAttribute("currentUser", user);
                             logger.info("Loaded currentUser from database: " + user.getFirstName() + " " + user.getLastName());
                         }
@@ -55,5 +57,9 @@ public class CurrentUserSessionInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    private static String initial(String name) {
+        return name == null || name.isEmpty() ? "" : name.substring(0, 1);
     }
 }

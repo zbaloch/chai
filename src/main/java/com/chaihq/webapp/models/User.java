@@ -49,6 +49,11 @@ public class User {
     private Calendar tokenExpirationDate;
     private Calendar tokenUsedDate;
 
+    // Random per-user value that signs the "remember me" login cookie (magic-link
+    // accounts have no password to sign with). Changing it signs the user out everywhere.
+    @Column(name = "remember_secret", length = 64)
+    private String rememberSecret;
+
     // Stored as a (LONG)BLOB but bound/extracted as a materialized byte[]
     // (getBytes/setBytes) rather than the streaming java.sql.Blob API, which the
     // SQLite JDBC driver does not implement.

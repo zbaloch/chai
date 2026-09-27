@@ -10,11 +10,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.chaihq.webapp.services.CustomUserDetailsService;
+import com.chaihq.webapp.repositories.UserRepository;
 import com.chaihq.webapp.security.CustomAuthenticationSuccessHandler;
+import com.chaihq.webapp.security.LongLivedRememberMeServices;
 
 @Configuration
 @EnableWebSecurity
@@ -25,11 +26,14 @@ public class WebSecurityConfig {
     @Value("${security.remember-me.key:chai-remember-me-key}")
     private String rememberMeKey;
 
-    @Value("${security.remember-me.token-validity-seconds:2592000}")
+    @Value("${security.remember-me.token-validity-seconds:31536000}")
     private int rememberMeTokenValiditySeconds;
 
-    public WebSecurityConfig(CustomAuthenticationSuccessHandler authenticationSuccessHandler) {
+    private final UserRepository userRepository;
+
+    public WebSecurityConfig(CustomAuthenticationSuccessHandler authenticationSuccessHandler, UserRepository userRepository) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
+        this.userRepository = userRepository;
     }
 
     @Bean
@@ -79,8 +83,7 @@ public class WebSecurityConfig {
 
     @Bean
     public RememberMeServices rememberMeServices() {
-        TokenBasedRememberMeServices services =
-                new TokenBasedRememberMeServices(rememberMeKey, userDetailsService());
+        LongLivedRememberMeServices services = new LongLivedRememberMeServices(rememberMeKey, userRepository);
         services.setAlwaysRemember(true);
         services.setTokenValiditySeconds(rememberMeTokenValiditySeconds);
         return services;

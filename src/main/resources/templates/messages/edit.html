@@ -22,7 +22,7 @@
             </div>
 
             <div>
-                <lexxy-editor name="content" th:value="${message.content}" class="lexxy-content editor-message"></lexxy-editor>
+                <lexxy-editor data-direct-upload-url="/attachments/direct_uploads" data-blob-url-template="/attachments/:signed_id/:filename" name="content" th:value="${message.content}" class="lexxy-content editor-message"></lexxy-editor>
                 <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></p>
             </div>
         </div>
