@@ -35,6 +35,23 @@ public class EmailService {
     // The token is passed separately: only its hash is stored on the user
     @Async
     public void sendEmail(User user, String token) {
+        String link = url + "/verify-token-and-login?email=" + URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8)
+                + "&token=" + token;
+        // Only at DEBUG: anyone who can read the log could use the link to sign in
+        log.debug("Login link for user {}: {}", user.getId(), link);
+        send(user.getEmail(), "Chai login magic link", "Please use this link to login: \n\n" + link);
+    }
+
+    @Async
+    public void sendInvitation(String email, String inviterName, String accountName, String token) {
+        String link = url + "/invitations/" + token;
+        log.debug("Invitation link for {}: {}", email, link);
+        send(email, inviterName + " invited you to join " + accountName + " on Chai",
+                inviterName + " invited you to join " + accountName + " on Chai.\n\n"
+                        + "Accept the invitation here: \n\n" + link + "\n\nThe link works for 14 days.");
+    }
+
+    private void send(String to, String subject, String text) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(host);
         mailSender.setPort(587);
@@ -46,20 +63,15 @@ public class EmailService {
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
 
-        String link = url + "/verify-token-and-login?email=" + URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8)
-                + "&token=" + token;
-
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
-        message.setTo(user.getEmail());
-        message.setSubject("Chai login magic link");
-        message.setText("Please use this link to login: \n\n" + link);
-        // Only at DEBUG: anyone who can read the log could use the link to sign in
-        log.debug("Login link for user {}: {}", user.getId(), link);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
         try {
             mailSender.send(message);
         } catch (RuntimeException e) {
-            log.error("Could not send login email to user {}: {}", user.getId(), e.getMessage());
+            log.error("Could not send email \"{}\": {}", subject, e.getMessage());
         }
     }
 }

@@ -113,11 +113,13 @@ public class TodosController {
     public String neew(@PathVariable Long project_id, Model model) {
         model.addAttribute("project", projectAccess.project(project_id, projectAccess.currentUser()));
         model.addAttribute("todo", new Todo());
+        model.addAttribute("dueOn", NO_DUE_DATE);
         return "todos/new";
     }
 
     @PostMapping("/project/{project_id}/todo/new")
     public String save(@ModelAttribute("todo") Todo todo, BindingResult bindingResult,
+                       @RequestParam(value = "dueOn", required = false) String dueOn,
                        @PathVariable Long project_id, Model model, RedirectAttributes redirectAttributes) {
         User currentUser = projectAccess.currentUser();
         Project project = projectAccess.project(project_id, currentUser);
@@ -128,14 +130,14 @@ public class TodosController {
         if (assignee == null) {
             bindingResult.rejectValue("assignedToVariable", "required.field");
         }
+        Calendar dueDate = dueDate(todo, dueOn, bindingResult);
         if(bindingResult.hasErrors()) {
+            model.addAttribute("dueOn", dueOn);
             return "todos/new";
         }
 
         todo.setCreatedBy(currentUser);
         todo.setAssignedTo(assignee);
-        Calendar dueDate = Calendar.getInstance();
-        dueDate.setTime(todo.getDueDateVariable());
         todo.setDueDate(dueDate);
         todo.setProject(project);
         todo.setCreatedAt(Calendar.getInstance());
@@ -158,6 +160,7 @@ public class TodosController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("project", project);
         model.addAttribute("todo", todo);
+        model.addAttribute("canChange", canChange(project, todo, currentUser));
 
         for (Comment comment : todo.getComments()) {
             comment.setTextToDisplay(escapeHtml4(comment.getText()));
@@ -177,11 +180,16 @@ public class TodosController {
 
         model.addAttribute("todo", todo);
         model.addAttribute("project", project);
+        if (todo.getDueDate() != null) {
+            todo.setDueDateVariable(todo.getDueDate().getTime());
+        }
+        model.addAttribute("dueOn", todo.getDueDate() == null ? NO_DUE_DATE : SPECIFIC_DAY);
         return "todos/edit";
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/edit")
     public String update(@ModelAttribute("todo") Todo todo, BindingResult bindingResult,
+                         @RequestParam(value = "dueOn", required = false) String dueOn,
                          @PathVariable Long project_id, @PathVariable Long todo_id,
                          Model model, RedirectAttributes redirectAttributes) {
         User currentUser = projectAccess.currentUser();
@@ -189,11 +197,6 @@ public class TodosController {
         Todo todoToUpdate = projectAccess.todo(project, todo_id, currentUser);
         requireCanChange(project, todoToUpdate, currentUser);
 
-        // Only use old due date if form didn't provide one (for validation fallback)
-        if (todo.getDueDateVariable() == null && todoToUpdate.getDueDate() != null) {
-            todo.setDueDate(todoToUpdate.getDueDate());
-            todo.setDueDateVariable(todoToUpdate.getDueDate().getTime());
-        }
         todo.setId(todo_id);
         model.addAttribute("project", project);
         model.addAttribute("todo", todo);
@@ -203,14 +206,14 @@ public class TodosController {
         if (assignee == null) {
             bindingResult.rejectValue("assignedToVariable", "required.field");
         }
+        Calendar dueDate = dueDate(todo, dueOn, bindingResult);
         if(bindingResult.hasErrors()) {
+            model.addAttribute("dueOn", dueOn);
             return "todos/edit";
         }
 
-        Calendar dueDateCalendar = Calendar.getInstance();
-        dueDateCalendar.setTime(todo.getDueDateVariable());
         todoToUpdate.setAssignedTo(assignee);
-        todoToUpdate.setDueDate(dueDateCalendar);
+        todoToUpdate.setDueDate(dueDate);
         todoToUpdate.setDescription(todo.getDescription());
         todoToUpdate.setNotes(todo.getNotes());
         todoRepository.save(todoToUpdate);
@@ -224,7 +227,7 @@ public class TodosController {
         User currentUser = projectAccess.currentUser();
         Project project = projectAccess.project(project_id, currentUser);
         Todo todo = projectAccess.todo(project, todo_id, currentUser);
-        projectAccess.requireAuthorOrOwner(project, todo.getCreatedBy(), currentUser, "todo", todo.getId());
+        projectAccess.requireAuthorOrAdmin(project, todo.getCreatedBy(), currentUser, "todo", todo.getId());
 
         todoRepository.delete(todo);
         notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(todo.getId()));
@@ -305,7 +308,7 @@ public class TodosController {
         if (comment.getTodo() == null || comment.getTodo().getId() != todo.getId()) {
             throw projectAccess.denied(currentUser, "comment", commentId);
         }
-        projectAccess.requireAuthorOrOwner(project, comment.getUser(), currentUser, "comment", commentId);
+        projectAccess.requireAuthorOrAdmin(project, comment.getUser(), currentUser, "comment", commentId);
         return comment;
     }
 
@@ -314,12 +317,34 @@ public class TodosController {
         notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(comment.getId()));
     }
 
-    // The creator, the assignee and the project owner may edit or complete a to-do
-    private void requireCanChange(Project project, Todo todo, User user) {
+    // The creator, the assignee and account owners/admins may edit or complete a to-do
+    private boolean canChange(Project project, Todo todo, User user) {
+        boolean isCreator = todo.getCreatedBy() != null && todo.getCreatedBy().getId() == user.getId();
         boolean isAssignee = todo.getAssignedTo() != null && todo.getAssignedTo().getId() == user.getId();
-        if (!isAssignee) {
-            projectAccess.requireAuthorOrOwner(project, todo.getCreatedBy(), user, "todo", todo.getId());
+        return isCreator || isAssignee || projectAccess.canManage(project, user);
+    }
+
+    private void requireCanChange(Project project, Todo todo, User user) {
+        if (!canChange(project, todo, user)) {
+            throw projectAccess.denied(user, "todo", todo.getId());
         }
+    }
+
+    // Due dates are optional: "No due date", or "A specific day" which then needs a date
+    private static final String NO_DUE_DATE = "none", SPECIFIC_DAY = "date";
+
+    private Calendar dueDate(Todo todo, String dueOn, BindingResult bindingResult) {
+        if (!SPECIFIC_DAY.equals(dueOn)) {
+            todo.setDueDateVariable(null);
+            return null;
+        }
+        if (todo.getDueDateVariable() == null) {
+            bindingResult.rejectValue("dueDateVariable", "todo.dueDate.missing", "Pick a date, or choose No due date.");
+            return null;
+        }
+        Calendar dueDate = Calendar.getInstance();
+        dueDate.setTime(todo.getDueDateVariable());
+        return dueDate;
     }
 
     // To-dos can only be assigned to people in the project

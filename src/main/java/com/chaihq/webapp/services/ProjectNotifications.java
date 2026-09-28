@@ -21,10 +21,9 @@ public class ProjectNotifications {
         this.notificationRepository = notificationRepository;
     }
 
-    /** Notify the project's owner and members about something new, except whoever did it. */
+    /** Notify the people on the project about something new, except whoever did it. */
     public void notifyProject(Project project, User from, String type, long objectId, String text) {
         List<User> recipients = new ArrayList<>(project.getUsers());
-        recipients.add(project.getUser());
         Set<Long> notified = new HashSet<>();
         for (User user : recipients) {
             if (user == null || user.getId() == from.getId() || !notified.add(user.getId())) {

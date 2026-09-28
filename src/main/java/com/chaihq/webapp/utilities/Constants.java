@@ -4,8 +4,13 @@ public class Constants {
     public static final String CURRENT_USER = "current_user";
     public static final String USER_STATUS_ACTIVE = "active";
     public static final String EMAIL_REGEX = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
-    public static final String PROJECT_TYPE_HQ = "hq";
-    public static final String PROJECT_TYPE_TEAM = "team";
+
+    // Account roles. Owners and admins manage the account and every project in it; members work in the projects they're on.
+    public static final String ROLE_OWNER = "owner";
+    public static final String ROLE_ADMIN = "admin";
+    public static final String ROLE_MEMBER = "member";
+    public static final String CURRENT_ACCOUNT = "currentAccount";
+    public static final String CURRENT_ACCOUNT_ROLE = "currentAccountRole";
     public static final String PROJECT_TYPE_PROJECT = "project";
 
     public static final String MESSAGE = "message";

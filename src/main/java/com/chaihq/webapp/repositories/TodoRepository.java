@@ -15,4 +15,9 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     public Long countByProjectAndDone(Project project, boolean done);
     @Query(value = "SELECT * FROM todos WHERE notes LIKE :pattern", nativeQuery = true)
     List<Todo> findByNotesLike(@Param("pattern") String pattern);
+
+    @Query(value = "SELECT * FROM todos WHERE project_id IN (:projectIds) "
+            + "AND (LOWER(description) LIKE :pattern ESCAPE '!' OR LOWER(notes) LIKE :pattern ESCAPE '!') "
+            + "ORDER BY created_at DESC LIMIT 200", nativeQuery = true)
+    List<Todo> search(@Param("projectIds") List<Long> projectIds, @Param("pattern") String pattern);
 }

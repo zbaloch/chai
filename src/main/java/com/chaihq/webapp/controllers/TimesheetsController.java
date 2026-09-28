@@ -7,6 +7,7 @@ import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.TimesheetRepository;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.Accounts;
 import com.chaihq.webapp.services.ProjectAccess;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.validator.ProjectValidator;
@@ -49,63 +50,31 @@ public class TimesheetsController {
     private ProjectAccess projectAccess;
 
     @Autowired
-    private TimesheetRepository timeLogRepository;
+    private Accounts accounts;
 
 
     // @GetMapping("/projects")
-    @RequestMapping(value = { "/timesheets"}, method = RequestMethod.GET)
-    public String index(Map<String, Object> model, HttpSession httpSession) {
-        // List<Project> projects = projectRepository.findAll();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentPrincipalName = authentication.getName();
-        // TODO: Maybe put this user in the session so that its not required to inqure from database again and again.
-        User user = userRepository.findByEmail(currentPrincipalName);
-        String intialFirstNameLastName = "" + user.getFirstName().charAt(0) + "" + user.getLastName().charAt(0);
-        user.setInitialFirstNameLastName(intialFirstNameLastName);
-        httpSession.setAttribute(Constants.CURRENT_USER, user); // current_user is a term used within ruby on rails framework.
-
-        User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        List<User> users = new ArrayList<User>();
-        users.add(currentUser);
-
-        List<Project> hqs = projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_HQ);
-        List<Project> hqsPartOf = projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_HQ);
-        hqs.addAll(hqsPartOf);
-        model.put("hqs", hqs);
-
-
-
-        // Projects and (legacy) teams are the same thing — a space. Show them together.
-        List<Project> projects = projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_PROJECT);
-        projects.addAll(projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_PROJECT));
-        projects.addAll(projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_TEAM));
-        projects.addAll(projectRepository.findByUsersInAndProjectTypeIs(users, Constants.PROJECT_TYPE_TEAM));
-        model.put("projects", projects);
-
-        // Get current users timelog to display on the homepage
-        List<Timesheet> timeLogs = timeLogRepository.findAllByUserOrderByTimeLogDateDesc(currentUser);
-        model.put("timeLogs", timeLogs);
-
-        return "projects/index";
+    @GetMapping("/timesheets")
+    public String index() {
+        return "redirect:/projects";
     }
 
     @GetMapping("/timesheet/new")
-    public String neew(@ModelAttribute("timesheet")Timesheet timesheet, HttpSession httpSession,
+    public String neew(@ModelAttribute("timesheet")Timesheet timesheet, HttpSession session,
                        Map<String, Object> model) {
-        User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        List<Project> projects = projectRepository.findByUserAndProjectTypeEquals(currentUser,
-                Constants.PROJECT_TYPE_PROJECT);
+        User currentUser = projectAccess.currentUser();
+        List<Project> projects = accounts.visibleProjects(accounts.current(session, currentUser), currentUser);
         model.put("projects", projects);
         return "timesheets/new";
     }
 
     @PostMapping("/timesheet/new")
     public String save(@ModelAttribute("timesheet")Timesheet timesheet, BindingResult bindingResult,
-                       final RedirectAttributes redirectAttributes, Map<String, Object> model) {
+                       final RedirectAttributes redirectAttributes, Map<String, Object> model, HttpSession session) {
         User currentUser = projectAccess.currentUser();
         timesheetValidator.validate(timesheet, bindingResult);
         if (bindingResult.hasErrors()) {
-            model.put("projects", projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_PROJECT));
+            model.put("projects", accounts.visibleProjects(accounts.current(session, currentUser), currentUser));
             return "timesheets/new";
         }
         timesheet.setProject(projectAccess.project(timesheet.getProjectId(), currentUser));
@@ -116,10 +85,10 @@ public class TimesheetsController {
         return "redirect:/projects";
     }
 
+    // Old duplicate of the project page
     @GetMapping("/timesheet/{id}")
-    public String show(@PathVariable Long id, Map<String, Object> model) {
-        model.put("project", projectAccess.project(id, projectAccess.currentUser()));
-        return "timesheets/show";
+    public String show(@PathVariable Long id) {
+        return "redirect:/project/" + projectAccess.project(id, projectAccess.currentUser()).getId();
     }
 
     @PostMapping("/timesheet/{id}/delete")
@@ -130,23 +99,23 @@ public class TimesheetsController {
     }
 
     @GetMapping("/timesheet/{id}/edit")
-    public String edit(@PathVariable Long id, Map<String, Object> model) {
+    public String edit(@PathVariable Long id, Map<String, Object> model, HttpSession session) {
         Timesheet timesheet = ownTimesheet(id);
-        model.put("projects", projectRepository.findByUserAndProjectTypeEquals(timesheet.getUser(), Constants.PROJECT_TYPE_PROJECT));
+        model.put("projects", accounts.visibleProjects(accounts.current(session, timesheet.getUser()), timesheet.getUser()));
         model.put("timesheet", timesheet);
         return "timesheets/edit";
     }
 
     @PostMapping("/timesheet/{id}/edit")
     public String update(@PathVariable Long id, @ModelAttribute("timesheet")Timesheet timesheet, BindingResult bindingResult,
-                         Map<String, Object> model, final RedirectAttributes redirectAttributes) {
+                         Map<String, Object> model, final RedirectAttributes redirectAttributes, HttpSession session) {
         Timesheet timesheetToUpdate = ownTimesheet(id);
         User currentUser = timesheetToUpdate.getUser();
 
         timesheetValidator.validate(timesheet, bindingResult);
         if (bindingResult.hasErrors()) {
             model.put("timesheet", timesheet);
-            model.put("projects", projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_PROJECT));
+            model.put("projects", accounts.visibleProjects(accounts.current(session, currentUser), currentUser));
             return "timesheets/edit";
         }
 

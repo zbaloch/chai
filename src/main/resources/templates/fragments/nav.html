@@ -18,10 +18,23 @@
                                class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
                                 Projects
                             </a>
+                            <a th:if="${session.currentAccount != null}" th:href="@{/account/people}" data-nav="people"
+                               class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
+                                People
+                            </a>
                         </div>
                     </div>
 
                     <div class="flex items-center gap-x-4">
+                        <a th:href="@{/search}" id="nav-search" data-nav="search" title="Search (Shift + J)"
+                           class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 data-active:text-gray-900">
+                            <span class="absolute -inset-1.5"></span>
+                            <span class="sr-only">Search</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="size-6">
+                                <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+
                         <a th:href="@{/hey}" id="nav-notifications" data-nav="hey" th:data-unread-url="@{/hasUnreadNotifications}"
                            class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 data-active:text-gray-900">
                             <span class="absolute -inset-1.5"></span>
@@ -44,6 +57,18 @@
                                     <p class="text-sm text-gray-500">Signed in as</p>
                                     <p class="truncate text-sm font-medium text-gray-900" th:text="${session.currentUser.email}"></p>
                                 </div>
+                                <div th:if="${session.currentAccount != null}" class="py-1">
+                                    <p class="truncate px-4 pt-2 pb-1 text-xs font-medium text-gray-500" th:text="${session.currentAccount.name}">Account</p>
+                                    <a th:href="@{/account/people}"
+                                       class="block px-4 py-2 text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">People</a>
+                                    <a th:if="${session.currentAccountRole == 'owner' or session.currentAccountRole == 'admin'}" th:href="@{/account/edit}"
+                                       class="block px-4 py-2 text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">Account settings</a>
+                                </div>
+                                <div class="py-1">
+                                    <a th:href="@{/accounts}"
+                                       class="block px-4 py-2 text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden"
+                                       th:text="${accountCount != null and accountCount > 1} ? 'Switch account' : 'Your accounts'">Your accounts</a>
+                                </div>
                                 <div class="py-1">
                                     <button type="submit" form="logoutForm"
                                             class="block w-full px-4 py-2 text-left text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">
@@ -60,11 +85,32 @@
         <script>
             (function () {
                 // Highlight the current section. Thymeleaf 3.1 can't read the request URI, so do it client-side.
-                var onHey = /\/hey\/?$/.test(location.pathname);
+                var section = /\/hey\/?$/.test(location.pathname) ? 'hey'
+                    : /^\/search/.test(location.pathname) ? 'search'
+                    : /^\/account\/people/.test(location.pathname) ? 'people' : 'projects';
                 document.querySelectorAll('[data-nav]').forEach(function (a) {
-                    if ((a.dataset.nav === 'hey') === onHey) a.setAttribute('data-active', '');
+                    if (a.dataset.nav === section) a.setAttribute('data-active', '');
                     else a.removeAttribute('data-active');
                 });
+
+                // Search shortcuts: Shift+J or / (when not typing), and Ctrl/Cmd+K or Ctrl/Cmd+G (always)
+                if (!window.chaiSearchShortcut) {
+                    window.chaiSearchShortcut = true;
+                    document.addEventListener('keydown', function (e) {
+                        var el = e.target;
+                        var typing = el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+                        var key = e.key.toLowerCase();
+                        var withCommand = (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && (key === 'k' || key === 'g');
+                        var plain = !typing && !e.metaKey && !e.ctrlKey && !e.altKey
+                            && ((e.shiftKey && key === 'j') || e.key === '/');
+                        if (!withCommand && !plain) return;
+                        var box = document.getElementById('search-q');
+                        e.preventDefault();
+                        if (box) { box.focus(); box.select(); }
+                        else if (window.Turbolinks) Turbolinks.visit('/search');
+                        else location.href = '/search';
+                    });
+                }
 
                 var link = document.getElementById('nav-notifications');
                 if (!link || !window.fetch) return;

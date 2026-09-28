@@ -8,6 +8,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.Accounts;
 import com.chaihq.webapp.utilities.Constants;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,9 @@ public class CurrentUserSessionInterceptor implements HandlerInterceptor {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private Accounts accounts;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -50,6 +54,12 @@ public class CurrentUserSessionInterceptor implements HandlerInterceptor {
                         }
                     }
                 }
+            }
+
+            // The account being worked in, for the nav (name, role, account switcher)
+            if (session.getAttribute(Constants.CURRENT_USER) instanceof User user) {
+                accounts.current(session, user);
+                request.setAttribute("accountCount", accounts.memberships(user).size());
             }
         } catch (Exception e) {
             logger.warning("Error in CurrentUserSessionInterceptor: " + e.getMessage());

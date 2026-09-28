@@ -13,4 +13,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     public List<Comment> findAllByTodoIdOrderByCreatedAtAsc(long todoId);
     @Query(value = "SELECT * FROM comments WHERE text LIKE :pattern", nativeQuery = true)
     List<Comment> findByTextLike(@Param("pattern") String pattern);
+
+    @Query(value = "SELECT * FROM comments WHERE project_id IN (:projectIds) AND LOWER(text) LIKE :pattern ESCAPE '!' "
+            + "ORDER BY created_at DESC LIMIT 200", nativeQuery = true)
+    List<Comment> search(@Param("projectIds") List<Long> projectIds, @Param("pattern") String pattern);
 }

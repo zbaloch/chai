@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+
+<body class="min-h-screen bg-canvas font-sans antialiased">
+
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Search</h1>
+
+    <form th:action="@{/search}" method="get" class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <input th:if="${type != null}" type="hidden" name="type" th:value="${type}"/>
+        <div class="grid min-w-0 flex-1 grid-cols-1">
+            <label for="search-q" class="sr-only">Search</label>
+            <input id="search-q" type="search" name="q" th:value="${q}" autofocus autocomplete="off"
+                   th:placeholder="'Search messages, to-dos and comments in ' + ${account.name}"
+                   class="col-start-1 row-start-1 block w-full rounded-md bg-white py-2 pr-3 pl-10 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6"/>
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 ml-3 size-5 self-center text-gray-400">
+                <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <div class="grid shrink-0 grid-cols-1 sm:w-56">
+            <label for="search-project" class="sr-only">Project</label>
+            <select id="search-project" name="project" onchange="this.form.requestSubmit()"
+                    class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6">
+                <option value="">All projects</option>
+                <option th:each="project : ${projects}" th:value="${project.id}" th:text="${project.name}"
+                        th:selected="${projectId != null and projectId == project.id}">Project</option>
+            </select>
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4">
+                <path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd" />
+            </svg>
+        </div>
+    </form>
+
+    <th:block th:if="${!#strings.isEmpty(q)}">
+
+        <!-- Type filters -->
+        <nav class="mt-6 flex flex-wrap gap-2" aria-label="Filter results">
+            <a th:each="f : ${filters}"
+               th:href="@{/search(q=${q}, type=${f.type}, project=${projectId})}"
+               th:classappend="${type == f.type} ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-700 inset-ring inset-ring-gray-300 hover:bg-gray-50'"
+               class="inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-sm font-medium">
+                <span th:text="${f.label}">All</span>
+                <span class="text-xs opacity-70" th:text="${f.count}">0</span>
+            </a>
+        </nav>
+
+        <!-- Results -->
+        <ul th:unless="${#lists.isEmpty(results.hits)}" role="list"
+            class="mt-6 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+            <li th:each="hit : ${results.hits}" class="relative flex gap-x-4 px-4 py-4 hover:bg-gray-50 sm:px-6">
+                <th:block th:if="${hit.author != null}"><img th:replace="~{fragments/ui :: avatar(${hit.author}, 'mt-0.5 size-8')}"></th:block>
+                <div class="min-w-0 flex-auto">
+                    <p class="flex flex-wrap items-center gap-x-1.5 text-xs/5 text-gray-500">
+                        <span class="font-medium text-gray-700" th:text="${hit.label}">Message</span>
+                        <span aria-hidden="true">·</span>
+                        <span th:text="${hit.project.name}">Project</span>
+                        <th:block th:if="${hit.date != null}">
+                            <span aria-hidden="true">·</span>
+                            <time th:text="${#dates.format(hit.date.time, 'MMM d, yyyy')}"></time>
+                        </th:block>
+                    </p>
+                    <p class="mt-0.5 truncate text-sm/6 font-semibold text-gray-900">
+                        <a th:href="@{${hit.url}}">
+                            <span class="absolute inset-0" aria-hidden="true"></span>
+                            <span><th:block th:each="part : ${hit.titleSegments(terms)}"><mark th:if="${part.match}" class="rounded-sm bg-yellow-100 px-0.5 text-gray-900" th:text="${part.text}"></mark><th:block th:unless="${part.match}" th:text="${part.text}"></th:block></th:block></span>
+                        </a>
+                    </p>
+                    <p th:unless="${#lists.isEmpty(hit.snippet)}" class="mt-0.5 line-clamp-2 text-sm/6 text-gray-600"><th:block th:each="part : ${hit.snippet}"><mark th:if="${part.match}" class="rounded-sm bg-yellow-100 px-0.5 text-gray-900" th:text="${part.text}"></mark><th:block th:unless="${part.match}" th:text="${part.text}"></th:block></th:block></p>
+                </div>
+            </li>
+        </ul>
+
+        <div th:if="${#lists.isEmpty(results.hits)}"
+             class="mt-6 rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
+            <p class="text-sm font-semibold text-gray-900">
+                Nothing found for “<span th:text="${q}"></span>”
+            </p>
+            <p class="mt-1 text-sm text-gray-500">Try fewer or different words, or search all projects.</p>
+        </div>
+    </th:block>
+
+    <p th:if="${#strings.isEmpty(q)}" class="mt-6 text-sm text-gray-500">
+        Find messages, to-dos and comments across the projects you're on.
+        Press <kbd class="rounded-sm bg-white px-1.5 py-0.5 font-sans text-xs text-gray-700 inset-ring inset-ring-gray-300">Shift + J</kbd>
+        anywhere to search.
+    </p>
+
+    <script>
+        // Turbolinks swaps pages without honouring autofocus; put the cursor at the end of the query
+        (function () {
+            var box = document.getElementById('search-q');
+            if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+        })();
+    </script>
+</main>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

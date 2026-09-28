@@ -62,7 +62,7 @@ public class WebSecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .requestMatchers("/registration", "/js/*", "/css/*", "/login-magic", "/login", "/verify-token-and-login").permitAll()
+                .requestMatchers("/registration", "/js/*", "/css/*", "/login-magic", "/login", "/verify-token-and-login", "/invitations/*").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

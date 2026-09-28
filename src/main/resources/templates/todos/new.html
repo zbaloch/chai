@@ -30,7 +30,6 @@
                     <select th:field="*{assignedToVariable}"
                             class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6">
                         <option th:each="user : ${project.users}" th:value="${user.id}" th:text="${user.firstName + ' ' + user.lastName}">User Name</option>
-                        <option th:value="${project.user.id}" th:text="${project.user.firstName + ' ' + project.user.lastName}">User Name</option>
                     </select>
                     <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4">
                         <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
@@ -38,15 +37,37 @@
                 </div>
             </div>
 
-            <div class="sm:col-span-3">
-                <label for="dueDateVariable" class="block text-sm/6 font-medium text-gray-900">Due on</label>
-                <div class="mt-2">
-                    <input type="date" id="dueDateVariable" name="dueDateVariable"
-                           th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
-                           class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6">
+            <fieldset class="sm:col-span-3" data-due-date>
+                <legend class="block text-sm/6 font-medium text-gray-900">Due on</legend>
+                <div class="mt-2 space-y-3">
+                    <label class="flex items-center gap-x-3">
+                        <input type="radio" name="dueOn" value="none" th:checked="${dueOn != 'date'}"
+                               class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden checked:border-sky-600 checked:bg-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 forced-colors:appearance-auto forced-colors:before:hidden"/>
+                        <span class="text-sm/6 text-gray-900">No due date</span>
+                    </label>
+                    <label class="flex items-center gap-x-3">
+                        <input type="radio" name="dueOn" value="date" th:checked="${dueOn == 'date'}"
+                               class="relative size-4 shrink-0 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden checked:border-sky-600 checked:bg-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 forced-colors:appearance-auto forced-colors:before:hidden"/>
+                        <span class="shrink-0 text-sm/6 text-gray-900">A specific day</span>
+                        <input type="date" id="dueDateVariable" name="dueDateVariable" aria-label="Due date" th:disabled="${dueOn != 'date'}"
+                               th:value="${todo.dueDateVariable != null} ? ${#dates.format(todo.dueDateVariable, 'yyyy-MM-dd')} : ${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
+                               class="block w-full min-w-0 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 disabled:bg-gray-50 disabled:text-gray-400 disabled:outline-gray-200 sm:text-sm/6"/>
+                    </label>
                 </div>
                 <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('dueDateVariable')}" th:errors="*{dueDateVariable}"></p>
-            </div>
+                <script>
+                    // The date is only used (and only editable) when "A specific day" is chosen
+                    (function (fieldset) {
+                        var date = fieldset.querySelector('input[type=date]');
+                        fieldset.querySelectorAll('input[name=dueOn]').forEach(function (radio) {
+                            radio.addEventListener('change', function () {
+                                date.disabled = radio.value !== 'date';
+                                if (!date.disabled) date.focus();
+                            });
+                        });
+                    })(document.currentScript.closest('[data-due-date]'));
+                </script>
+            </fieldset>
 
             <div class="sm:col-span-6">
                 <label for="todo-notes" class="block text-sm/6 font-medium text-gray-900">

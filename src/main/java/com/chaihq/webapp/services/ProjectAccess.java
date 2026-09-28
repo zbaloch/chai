@@ -15,9 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Objects;
 
 /**
- * The one place that decides who may see or change what. Everything inside a project
- * (messages, to-dos, comments, files, chat, attachments) is visible to the project's owner
- * and members only. Anything a user may not access is reported as "not found", so the
+ * The one place that decides who may see or change what. Projects belong to an account.
+ * Everything inside a project (messages, to-dos, comments, files, chat, attachments) is
+ * visible to the project's members, and to the account's owners and admins, as long as they
+ * are still in that account. Anything a user may not access is reported as "not found", so the
  * response doesn't reveal that it exists.
  */
 @Service
@@ -30,10 +31,12 @@ public class ProjectAccess {
     private final MessageRepository messageRepository;
     private final TodoRepository todoRepository;
     private final CommentRepository commentRepository;
+    private final Accounts accounts;
 
     public ProjectAccess(UserRepository userRepository, ProjectRepository projectRepository,
                          MessageRepository messageRepository, TodoRepository todoRepository,
-                         CommentRepository commentRepository) {
+                         CommentRepository commentRepository, Accounts accounts) {
+        this.accounts = accounts;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.messageRepository = messageRepository;
@@ -52,10 +55,14 @@ public class ProjectAccess {
     }
 
     public boolean isMember(Project project, User user) {
-        if (project == null || user == null || Constants.DELETED.equals(project.getStatus())) {
+        if (project == null || user == null || project.getAccount() == null || Constants.DELETED.equals(project.getStatus())) {
             return false;
         }
-        if (project.getUser() != null && project.getUser().getId() == user.getId()) {
+        String role = accounts.role(project.getAccount(), user);
+        if (role == null) {
+            return false; // no longer in the project's account
+        }
+        if (Constants.ROLE_OWNER.equals(role) || Constants.ROLE_ADMIN.equals(role)) {
             return true;
         }
         return project.getUsers() != null && project.getUsers().stream().anyMatch(u -> u.getId() == user.getId());
@@ -69,11 +76,12 @@ public class ProjectAccess {
         return isMember(project, user);
     }
 
-    public boolean isOwner(Project project, User user) {
-        return isMember(project, user) && project.getUser() != null && project.getUser().getId() == user.getId();
+    /** Account owners and admins manage every project in their account. */
+    public boolean canManage(Project project, User user) {
+        return isMember(project, user) && accounts.isAdmin(project.getAccount(), user);
     }
 
-    /** A project the user owns or belongs to. */
+    /** A project the user can work in. */
     public Project project(Long projectId, User user) {
         Project project = projectId == null ? null : projectRepository.findById(projectId).orElse(null);
         if (!isMember(project, user)) {
@@ -82,11 +90,11 @@ public class ProjectAccess {
         return project;
     }
 
-    /** A project the user owns — for renaming, deleting and managing members. */
-    public Project ownedProject(Long projectId, User user) {
+    /** A project the user can manage (delete) — an owner or admin of its account. */
+    public Project managedProject(Long projectId, User user) {
         Project project = project(projectId, user);
-        if (!isOwner(project, user)) {
-            throw denied(user, "owned project", projectId);
+        if (!canManage(project, user)) {
+            throw denied(user, "managed project", projectId);
         }
         return project;
     }
@@ -116,10 +124,10 @@ public class ProjectAccess {
         return comment;
     }
 
-    /** Authors can change their own posts; project owners can moderate anything in their project. */
-    public void requireAuthorOrOwner(Project project, User author, User user, String what, long id) {
+    /** Authors can change their own posts; account owners and admins can moderate anything. */
+    public void requireAuthorOrAdmin(Project project, User author, User user, String what, long id) {
         boolean isAuthor = author != null && author.getId() == user.getId();
-        if (!isAuthor && !isOwner(project, user)) {
+        if (!isAuthor && !canManage(project, user)) {
             throw denied(user, what, id);
         }
     }

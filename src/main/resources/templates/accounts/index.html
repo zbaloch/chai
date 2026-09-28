@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+
+<body class="min-h-screen bg-canvas font-sans antialiased">
+
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+
+<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Your accounts</h1>
+    <p class="mt-1 text-sm text-gray-500" th:unless="${#lists.isEmpty(memberships)}">Choose the account you want to work in.</p>
+    <p class="mt-1 text-sm text-gray-500" th:if="${#lists.isEmpty(memberships)}">
+        You're not in an account yet. Create one for your company, or ask someone to invite you to theirs.
+    </p>
+
+    <ul role="list" class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <li th:each="membership : ${memberships}"
+            class="group relative flex flex-col rounded-xl bg-white p-6 shadow-xs ring-1 ring-gray-900/5 transition hover:shadow-md hover:ring-gray-900/10"
+            th:classappend="${current != null and current.id == membership.account.id} ? 'ring-2 ring-sky-600 hover:ring-sky-600'">
+            <form th:action="@{/accounts/{id}/switch(id=${membership.account.id})}" method="post">
+                <h3 class="text-base font-semibold text-gray-900">
+                    <button type="submit" class="text-left focus:outline-none">
+                        <span class="absolute inset-0" aria-hidden="true"></span>
+                        <span th:text="${membership.account.name}">Company</span>
+                    </button>
+                </h3>
+            </form>
+            <p class="mt-1 text-sm text-gray-500">
+                <span th:text="${membership.role == 'owner'} ? 'Owner' : (${membership.role == 'admin'} ? 'Admin' : 'Member')">Member</span>
+                <span th:if="${current != null and current.id == membership.account.id}"> · Current</span>
+            </p>
+        </li>
+
+        <li>
+            <a th:href="@{/accounts/new}"
+               class="flex h-full min-h-28 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-6 text-center hover:border-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-sky-600">
+                <span class="text-sm font-semibold text-gray-900">Create a new account</span>
+                <span class="mt-1 text-sm text-gray-500">For another company or team</span>
+            </a>
+        </li>
+    </ul>
+
+</main>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

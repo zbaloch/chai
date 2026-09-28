@@ -1,68 +1,82 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
-
 <body class="min-h-screen bg-canvas font-sans antialiased">
-
 <nav th:replace="~{fragments/nav :: nav}"></nav>
-
 <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-
     <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
-    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">People</h1>
+    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">People on this project</h1>
     <p class="mt-1 text-sm text-gray-500">
-        Add people by their email address, or remove them from <span class="font-medium text-gray-700" th:text="${project.name}"></span>.
+        Anyone on <span class="font-medium text-gray-700" th:text="${project.name}"></span> can add people
+        from <span class="font-medium text-gray-700" th:text="${project.account.name}"></span>. Only account owners and admins can remove them.
     </p>
-
     <div class="mt-6" th:if="${message != null or error != null}">
         <div th:replace="~{fragments/ui :: alerts}"></div>
     </div>
 
-    <form th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="mt-8 flex gap-x-3">
-        <input type="hidden" name="action" value="add"/>
-        <label for="member-email" class="sr-only">Email address</label>
-        <input id="member-email" type="email" name="email" required placeholder="Email address of someone with a Chai account"
-               class="block w-full min-w-0 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6"/>
-        <button type="submit"
-                class="shrink-0 rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
-            Add
-        </button>
-    </form>
-    <ul role="list" class="mt-6 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
-        <li th:each="user : ${users}" class="flex items-center justify-between gap-x-6 px-4 py-4 sm:px-6">
+    <ul role="list" class="mt-8 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+        <li th:each="user : ${people}" class="flex items-center justify-between gap-x-6 px-4 py-4 sm:px-6">
             <div class="flex min-w-0 items-center gap-x-4">
                 <img th:replace="~{fragments/ui :: avatar(${user}, 'size-10')}">
                 <div class="min-w-0">
-                    <p class="text-sm/6 font-semibold text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></p>
+                    <p class="text-sm/6 font-semibold text-gray-900">
+                        <span th:text="${user.firstName + ' ' + user.lastName}"></span>
+                        <span th:if="${user.id == currentUser.id}" class="font-normal text-gray-500">(you)</span>
+                    </p>
                     <p class="truncate text-xs/5 text-gray-500" th:text="${user.email}"></p>
                 </div>
             </div>
-
-            <div class="shrink-0">
-                <span th:if="${user.id == session.currentUser.id}"
-                      class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 inset-ring inset-ring-gray-500/10">
-                    Owner
-                </span>
-
-                <th:block th:if="${user.id != session.currentUser.id}">
-                    <form th:if="${user.addedAlready == true}" th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="flex items-center gap-x-3">
-                        <span class="hidden items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 inset-ring inset-ring-green-600/20 sm:inline-flex">Member</span>
-                        <input type="hidden" name="action" value="remove"/>
-                        <input type="hidden" name="userId" th:value="${user.id}"/>
-                        <button type="submit"
-                                class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-red-600 shadow-xs inset-ring inset-ring-gray-300 hover:bg-red-50">
-                            Remove
-                        </button>
-                    </form>
-                </th:block>
-            </div>
+            <form th:if="${canManage}" th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="shrink-0">
+                <input type="hidden" name="action" value="remove"/>
+                <input type="hidden" name="userId" th:value="${user.id}"/>
+                <button type="submit"
+                        class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-red-600 shadow-xs inset-ring inset-ring-gray-300 hover:bg-red-50">
+                    Remove
+                </button>
+            </form>
         </li>
     </ul>
 
-</main>
+    <section class="mt-10">
+        <div class="flex items-center justify-between gap-x-4">
+            <h2 class="text-base font-semibold text-gray-900">
+                Add people from <span th:text="${project.account.name}"></span>
+            </h2>
+            <a th:if="${canManage}" th:href="@{/account/people}" class="text-sm font-semibold text-sky-600 hover:text-sky-500">
+                Invite someone new
+            </a>
+        </div>
 
+        <ul th:unless="${#lists.isEmpty(others)}" role="list"
+            class="mt-4 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+            <li th:each="user : ${others}" class="flex items-center justify-between gap-x-6 px-4 py-4 sm:px-6">
+                <div class="flex min-w-0 items-center gap-x-4">
+                    <img th:replace="~{fragments/ui :: avatar(${user}, 'size-10')}">
+                    <div class="min-w-0">
+                        <p class="text-sm/6 font-semibold text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></p>
+                        <p class="truncate text-xs/5 text-gray-500" th:text="${user.email}"></p>
+                    </div>
+                </div>
+                <form th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="shrink-0">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="userId" th:value="${user.id}"/>
+                    <button type="submit"
+                            class="rounded-md bg-sky-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
+                        Add
+                    </button>
+                </form>
+            </li>
+        </ul>
+
+        <p th:if="${#lists.isEmpty(others)}" class="mt-4 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+            Everyone in <span th:text="${project.account.name}"></span> is on this project.
+            <th:block th:if="${canManage}">
+                <a th:href="@{/account/people}" class="font-semibold text-sky-600 hover:text-sky-500">Invite someone new</a> to add more people.
+            </th:block>
+        </p>
+    </section>
+</main>
 <div th:replace="~{fragments/notifications :: notifications}"></div>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
-
 </body>
 </html>

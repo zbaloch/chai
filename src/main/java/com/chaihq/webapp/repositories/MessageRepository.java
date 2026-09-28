@@ -12,4 +12,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     // pattern like "%abc%"; used to find which post uses an upload
     @Query(value = "SELECT * FROM messages WHERE content LIKE :pattern", nativeQuery = true)
     List<Message> findByContentLike(@Param("pattern") String pattern);
+
+    // Search: pattern is lower-case "%term%" with LIKE wildcards escaped by '!'
+    @Query(value = "SELECT * FROM messages WHERE project_id IN (:projectIds) AND (status IS NULL OR status <> 'deleted') "
+            + "AND (LOWER(title) LIKE :pattern ESCAPE '!' OR LOWER(content) LIKE :pattern ESCAPE '!') "
+            + "ORDER BY created_at DESC LIMIT 200", nativeQuery = true)
+    List<Message> search(@Param("projectIds") List<Long> projectIds, @Param("pattern") String pattern);
 }

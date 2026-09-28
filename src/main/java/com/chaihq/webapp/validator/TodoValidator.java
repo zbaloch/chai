@@ -19,7 +19,7 @@ public class TodoValidator implements Validator {
         Todo todo = (Todo) o;
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "required.field");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "dueDateVariable", "required.field");
+        // The due date is optional; TodosController checks it when "A specific day" is chosen
 
     }
 }

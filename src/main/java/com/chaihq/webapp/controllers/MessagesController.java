@@ -143,7 +143,7 @@ public class MessagesController {
         User currentUser = projectAccess.currentUser();
         Project project = projectAccess.project(project_id, currentUser);
         Message message = projectAccess.message(project, message_id, currentUser);
-        projectAccess.requireAuthorOrOwner(project, message.getUser(), currentUser, "message", message.getId());
+        projectAccess.requireAuthorOrAdmin(project, message.getUser(), currentUser, "message", message.getId());
 
         model.addAttribute("message", message);
         model.addAttribute("project", project);
@@ -157,7 +157,7 @@ public class MessagesController {
         User currentUser = projectAccess.currentUser();
         Project project = projectAccess.project(project_id, currentUser);
         Message messageToUpdate = projectAccess.message(project, message_id, currentUser);
-        projectAccess.requireAuthorOrOwner(project, messageToUpdate.getUser(), currentUser, "message", messageToUpdate.getId());
+        projectAccess.requireAuthorOrAdmin(project, messageToUpdate.getUser(), currentUser, "message", messageToUpdate.getId());
 
         model.addAttribute("project", project);
         message.setId(message_id);
@@ -182,7 +182,7 @@ public class MessagesController {
         User currentUser = projectAccess.currentUser();
         Project project = projectAccess.project(project_id, currentUser);
         Message message = projectAccess.message(project, message_id, currentUser);
-        projectAccess.requireAuthorOrOwner(project, message.getUser(), currentUser, "message", message.getId());
+        projectAccess.requireAuthorOrAdmin(project, message.getUser(), currentUser, "message", message.getId());
 
         message.setStatus(Constants.DELETED);
         messageRepository.save(message);
@@ -234,7 +234,7 @@ public class MessagesController {
         if (commentToDelete.getMessage() == null || commentToDelete.getMessage().getId() != message.getId()) {
             throw projectAccess.denied(currentUser, "comment", commentId);
         }
-        projectAccess.requireAuthorOrOwner(project, commentToDelete.getUser(), currentUser, "comment", commentId);
+        projectAccess.requireAuthorOrAdmin(project, commentToDelete.getUser(), currentUser, "comment", commentId);
 
         commentRepository.delete(commentToDelete);
         notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(commentToDelete.getId()));

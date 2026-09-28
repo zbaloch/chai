@@ -105,7 +105,7 @@ public class ChatController {
         if (chat == null || chat.getProjectId() != project.getId()) {
             throw projectAccess.denied(currentUser, "chat message", chatMessageId);
         }
-        projectAccess.requireAuthorOrOwner(project, chat.getUser(), currentUser, "chat message", chatMessageId);
+        projectAccess.requireAuthorOrAdmin(project, chat.getUser(), currentUser, "chat message", chatMessageId);
         chatRepository.delete(chat);
         return Map.of("id", chat.getId());
     }

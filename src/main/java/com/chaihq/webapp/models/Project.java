@@ -32,9 +32,14 @@ public class Project {
     private Calendar createdAt;
 
 
+    // Who created the project. Only a record: projects have no owner, their account does.
     @ManyToOne
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id", referencedColumnName = "id")
+    private Account account;
 
     @ManyToMany
     @JoinTable(

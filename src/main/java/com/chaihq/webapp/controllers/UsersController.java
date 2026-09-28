@@ -6,7 +6,9 @@ import com.chaihq.webapp.models.Project;
 import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.Accounts;
 import com.chaihq.webapp.services.EmailService;
+import com.chaihq.webapp.services.SignIn;
 import com.chaihq.webapp.services.UserService;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.utilities.Util;
@@ -112,6 +114,12 @@ public class UsersController {
 
     private static Logger log = LoggerFactory.getLogger(UsersController.class);
 
+    @Autowired
+    private Accounts accounts;
+
+    @Autowired
+    private SignIn signIn;
+
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String registration(Model model) {
         model.addAttribute("user", new User());
@@ -120,18 +128,25 @@ public class UsersController {
     }
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public String registration(@ModelAttribute("user") User userForm, BindingResult bindingResult, Model model) {
+    public String registration(@ModelAttribute("user") User userForm, BindingResult bindingResult,
+                               @RequestParam(value = "companyName", required = false) String companyName, Model model) {
         userValidator.validate(userForm, bindingResult);
-        if (bindingResult.hasErrors()) {
+        if (companyName == null || companyName.isBlank()) {
+            model.addAttribute("companyNameError", "Enter your company or team name.");
+        }
+        if (bindingResult.hasErrors() || companyName == null || companyName.isBlank()) {
+            model.addAttribute("companyName", companyName);
             return "registration";
         }
 
-        // Signing up again with an existing email just sends that account a login link; it
-        // never creates a second account or changes the existing one.
+        // Signing up again with an existing email just sends that person a login link; it never
+        // creates a second user or changes the existing one.
         User user = userRepository.findByEmail(userForm.getEmail());
         if (user == null) {
             user = userForm;
             userService.save(user);
+            // Like Basecamp: the company name becomes the new person's account, which they own
+            accounts.create(companyName, user);
         }
         sendLoginLink(user);
 
@@ -189,19 +204,7 @@ public class UsersController {
         existingUser.setTokenExpirationDate(null);
         userRepository.save(existingUser);
 
-        // New session id on login so a session id planted before login can't be reused
-        request.getSession(true);
-        request.changeSessionId();
-
-        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
-        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
-                existingUser.getEmail(), null, java.util.Collections.emptyList());
-        context.setAuthentication(authentication);
-        securityContextHolderStrategy.setContext(context);
-        securityContextRepository.saveContext(context, request, response);
-        rememberMeServices.loginSuccess(request, response, authentication);
-
-        request.getSession().setAttribute("currentUser", existingUser);
+        signIn.signIn(existingUser, request, response);
         log.info("User {} signed in with a login link", existingUser.getId());
 
         redirectAttrs.addFlashAttribute("success", "Login successfull.");

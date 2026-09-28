@@ -26,6 +26,8 @@ The below is the backlog of features planned:
 - Mobile apps (Native or Hybrid)
 - Docs & Files
 - Chat (May never have as we believe chat is distracting)
+- Search across todos, messages, comments, people, chat and even notifications.
+- All messages, all todos in one place
 
 ## Getting Help & Contributing Back
 If interested n in getting any help or contributing back, please write to me on zaheer at hey.com.
