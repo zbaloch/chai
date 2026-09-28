@@ -4,6 +4,15 @@ public class ProjectUserForm {
     private long projectId;
     private long userId;
     private String action;
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public long getProjectId() {
         return projectId;

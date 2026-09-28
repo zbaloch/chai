@@ -39,6 +39,10 @@ public class EditorAttachment {
     @Column(name = "user_id")
     private Long userId;
 
+    // Only this project's people can see the file
+    @Column(name = "project_id")
+    private Long projectId;
+
     @Column(name = "created_at")
     private Calendar createdAt;
 
@@ -100,6 +104,14 @@ public class EditorAttachment {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Calendar getCreatedAt() {

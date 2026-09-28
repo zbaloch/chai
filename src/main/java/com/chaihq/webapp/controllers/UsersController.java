@@ -47,6 +47,12 @@ import java.util.concurrent.TimeUnit;
 
 import java.security.Principal;
 import java.security.SecureRandom;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.security.core.Authentication;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Calendar;
 import java.util.List;
 
@@ -114,50 +120,23 @@ public class UsersController {
     }
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public String registration(@ModelAttribute("user") User userForm, 
-            BindingResult bindingResult, 
-            Model model, 
-            HttpServletRequest request,
-            HttpServletResponse response
-        ) {
+    public String registration(@ModelAttribute("user") User userForm, BindingResult bindingResult, Model model) {
         userValidator.validate(userForm, bindingResult);
-
         if (bindingResult.hasErrors()) {
             return "registration";
         }
 
-        User existingUser = userRepository.findByEmail(userForm.getEmail());
-        String token = generateToken();
-
-        if(existingUser != null) {
-            
-            existingUser.setToken(token);
-            Calendar expirationDate = Calendar.getInstance();
-            expirationDate.add(Calendar.HOUR, 1);
-            existingUser.setTokenExpirationDate( expirationDate );
-            existingUser.setTokenUsedDate(null);
-            userRepository.save(existingUser);
-            emailService.sendEmail(existingUser);
-
-        } else {
-
-            userForm.setToken(token);
-            Calendar expirationDate = Calendar.getInstance();
-            expirationDate.add(Calendar.HOUR, 1);
-            userForm.setTokenExpirationDate( expirationDate );
-            userForm.setTokenUsedDate(null);
-            userRepository.save(userForm);
-            emailService.sendEmail(userForm);
-
+        // Signing up again with an existing email just sends that account a login link; it
+        // never creates a second account or changes the existing one.
+        User user = userRepository.findByEmail(userForm.getEmail());
+        if (user == null) {
+            user = userForm;
+            userService.save(user);
         }
+        sendLoginLink(user);
 
-        log.info("token " + token);
         model.addAttribute("user", new User());
-        
         model.addAttribute("message", "Check your email for the magic link to login to your account.");
-
-        userService.save(userForm);
-
         return "login";
     }
 
@@ -173,94 +152,92 @@ public class UsersController {
     }
 
     @PostMapping("/login-magic")
-    public String loginMagic(User user, 
-        Model model,
-        HttpServletRequest request,
-        HttpServletResponse response
-    ) {
+    public String loginMagic(@ModelAttribute("user") User user, Model model) {
         User existingUser = userRepository.findByEmail(user.getEmail());
+        model.addAttribute("user", new User());
 
-        String token = generateToken();
-
-        if(existingUser != null) {
-            
-            existingUser.setToken(token);
-            Calendar expirationDate = Calendar.getInstance();
-            expirationDate.add(Calendar.HOUR, 1);
-            existingUser.setTokenExpirationDate( expirationDate );
-            existingUser.setTokenUsedDate(null);
-            userRepository.save(existingUser);
-
-            log.info("token " + token);
-            model.addAttribute("user", new User());
-
-            emailService.sendEmail(existingUser);
-
-            model.addAttribute("message", "Check your email for the magic link to login to your account.");
-            
-            return "login";
-
-        } else {
-
-            log.info("token " + token);
-            model.addAttribute("user", new User());
-
+        if (existingUser == null) {
             model.addAttribute("error", "No account for this email. Sign up first.");
-
-           return "registration";
-
+            return "registration";
         }
-        
+
+        sendLoginLink(existingUser);
+        model.addAttribute("message", "Check your email for the magic link to login to your account.");
+        return "login";
     }
 
     @GetMapping("/verify-token-and-login")
-    public String verifyTokenAndLogin(User user, 
-        Model model,
-        @Param(value = "token") String token,
-        @Param(value = "email") String email,
-        HttpServletRequest request,
-        HttpServletResponse response,
-        RedirectAttributes redirectAttrs
-    ) {
-        if(email.contains(" ")) {
-            email = email.replaceAll(" ", "+");
+    public String verifyTokenAndLogin(@RequestParam(value = "token", required = false) String token,
+                                      @RequestParam(value = "email", required = false) String email,
+                                      Model model, HttpServletRequest request, HttpServletResponse response,
+                                      RedirectAttributes redirectAttrs) {
+        if (email != null) {
+            email = email.replace(" ", "+");
         }
-        log.info(email);
-        log.info(token);
-        User existingUser = userRepository.findByEmailAndToken(email, token);
-        if(existingUser != null) {
+        User existingUser = email == null ? null : userRepository.findByEmail(email);
 
-             SecurityContext context = securityContextHolderStrategy.createEmptyContext();
-            final Authentication authentication = new UsernamePasswordAuthenticationToken(
+        if (!isValidLoginToken(existingUser, token)) {
+            log.warn("Rejected login link for {}", email);
+            model.addAttribute("user", new User());
+            model.addAttribute("error", "That login link is invalid or has expired. Enter your email to get a new one.");
+            return "login";
+        }
+
+        // Links work once
+        existingUser.setToken(null);
+        existingUser.setTokenUsedDate(Calendar.getInstance());
+        existingUser.setTokenExpirationDate(null);
+        userRepository.save(existingUser);
+
+        // New session id on login so a session id planted before login can't be reused
+        request.getSession(true);
+        request.changeSessionId();
+
+        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
+        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                 existingUser.getEmail(), null, java.util.Collections.emptyList());
-            context.setAuthentication(authentication);
-            securityContextHolderStrategy.setContext(context);
-            securityContextRepository.saveContext(context, request, response);
-            rememberMeServices.loginSuccess(request, response, authentication);
+        context.setAuthentication(authentication);
+        securityContextHolderStrategy.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+        rememberMeServices.loginSuccess(request, response, authentication);
 
-            // Add currentUser to session
-            request.getSession().setAttribute("currentUser", existingUser);
+        request.getSession().setAttribute("currentUser", existingUser);
+        log.info("User {} signed in with a login link", existingUser.getId());
 
-            redirectAttrs.addFlashAttribute("success", "Login successfull.");
-
-            // Invalidate the token
-            existingUser.setToken(null);
-            existingUser.setTokenUsedDate(null);
-            existingUser.setTokenExpirationDate(null);
-            userRepository.save(existingUser);
-
-            model.addAttribute("user", existingUser);
-
-            return "redirect:/projects";
-        } else {
-            model.addAttribute("error", "No account for this email. Signup now to selling on Async.");
-
-           return "login";
-        }
-
-
+        redirectAttrs.addFlashAttribute("success", "Login successfull.");
+        return "redirect:/projects";
     }
 
+    // Tokens are stored hashed, expire after an hour, and are compared in constant time
+    private boolean isValidLoginToken(User user, String token) {
+        if (user == null || token == null || user.getToken() == null || user.getTokenExpirationDate() == null) {
+            return false;
+        }
+        if (user.getTokenExpirationDate().before(Calendar.getInstance())) {
+            return false;
+        }
+        return MessageDigest.isEqual(hashToken(token).getBytes(StandardCharsets.UTF_8),
+                user.getToken().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void sendLoginLink(User user) {
+        String token = generateToken();
+        Calendar expirationDate = Calendar.getInstance();
+        expirationDate.add(Calendar.HOUR, 1);
+        user.setToken(hashToken(token));
+        user.setTokenExpirationDate(expirationDate);
+        user.setTokenUsedDate(null);
+        userRepository.save(user);
+        emailService.sendEmail(user, token);
+    }
+
+    private static String hashToken(String token) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     @RequestMapping(value = "/profile", method = RequestMethod.GET)
     public String profile(Model model, HttpSession httpSession) {
@@ -359,7 +336,7 @@ public class UsersController {
         File avatarDir = new File( servletContext.getRealPath("/WEB-INF/jsp/user/avatars/") );
         File avatar = new File(avatarDir.getAbsolutePath() + "/" + util.reduceNumber(userId) + ".svg");
         String avatarString = IOUtils.toString(new FileReader(avatar));
-        avatarString = avatarString.replace("_USER_INITIAL_", userInitials);
+        avatarString = avatarString.replace("_USER_INITIAL_", org.apache.commons.text.StringEscapeUtils.escapeXml11(userInitials));
 
         InputStream is = IOUtils.toInputStream(avatarString);
 
@@ -377,7 +354,7 @@ public class UsersController {
                 .cacheControl(cacheControl)
                 .contentType(MediaType.parseMediaType("image/svg+xml; charset=utf-8"))
                 // .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + activeStorageFile.getFileName() + "\"")
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+ userInitials + ".svg\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"avatar.svg\"")
                 .body(new ByteArrayResource( IOUtils.toByteArray(is) ));
 
     }
@@ -389,6 +366,12 @@ public class UsersController {
         context.setAuthentication(authentication);
         securityContextHolderStrategy.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+    }
+
+    // Forms may only set these; id, token, roles, etc. are never taken from a request
+    @InitBinder({"user", "userForm"})
+    public void userFields(WebDataBinder binder) {
+        binder.setAllowedFields("firstName", "lastName", "email");
     }
 
     private String generateToken() {

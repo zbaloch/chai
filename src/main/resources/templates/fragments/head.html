@@ -2,11 +2,14 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF token for scripts (fetch calls and editor uploads send it as X-CSRF-TOKEN) -->
+    <meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}">
     <title th:text="#{company.name}">Company Name</title>
 
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Third-party scripts are pinned to exact versions with integrity hashes, so a changed or compromised CDN file is refused -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3/dist/index.global.min.js" integrity="sha384-aJ9rL4k6lF+91guGvUFVSkpIcge7Zd9EiI4TQDLoK9kFaFJgKHgjEXVvG/qA5COj" crossorigin="anonymous"></script>
     <style type="text/tailwindcss">
         @theme {
             --font-sans: InterVariable, Inter, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -15,12 +18,12 @@
     </style>
 
     <!-- Tailwind Plus Elements: el-dropdown, el-menu, el-dialog -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1.0.22/dist/index.min.js" type="module" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" crossorigin="anonymous"></script>
 
     <link rel="stylesheet" type="text/css" th:href="@{/css/lexxy.css}">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/turbolinks/5.2.0/turbolinks.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turbolinks/5.2.0/turbolinks.js" integrity="sha384-e0qFAVkArN1dyymxMH35JdOyqaonxrxODNFAvMxThOhlG4XGCjfW92Y8GQmud8hK" crossorigin="anonymous"></script>
     <script th:src="@{/js/lexxy.js}"></script>
     <script>
         // Syntax-highlight code blocks in rendered rich text

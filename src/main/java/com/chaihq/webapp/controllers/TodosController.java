@@ -2,6 +2,8 @@ package com.chaihq.webapp.controllers;
 
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.*;
+import com.chaihq.webapp.services.ProjectAccess;
+import com.chaihq.webapp.services.ProjectNotifications;
 import com.chaihq.webapp.storage.StorageService;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.validator.CommentValidator;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -67,37 +70,34 @@ public class TodosController {
     @Autowired
     private CommentValidator commentValidator;
 
+    @Autowired
+    private ProjectAccess projectAccess;
+
+    @Autowired
+    private ProjectNotifications notifications;
+
 
     @GetMapping("/project/{project_id}/todos")
     public String index(@PathVariable Long project_id, Model model) {
-        Project project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
-
-        List<Todo> completedTodos = todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, true);
-        List<Todo> pendingTodos = todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, false);
+        Project project = projectAccess.project(project_id, projectAccess.currentUser());
 
         model.addAttribute("project", project);
-        model.addAttribute("completedTodos", completedTodos);
-        model.addAttribute("pendingTodos", pendingTodos);
-
-        logger.info("completedTodos, " + completedTodos.size());
-        logger.info("pendingTodos, " + pendingTodos.size());
-
-        logger.info("Showing todos for project: " + project.getName());
-
+        model.addAttribute("completedTodos", todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, true));
+        model.addAttribute("pendingTodos", todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, false));
         return "todos/index";
     }
 
     @PostMapping("/project/{project_id}/todos/reorder")
     @ResponseBody
-    public String reorderTodos(@PathVariable Long project_id, @RequestBody List<Long> todoIds) {
-        Project project = projectRepository.getReferenceById(project_id);
+    public Map<String, Object> reorderTodos(@PathVariable Long project_id, @RequestBody List<Long> todoIds) {
+        Project project = projectAccess.project(project_id, projectAccess.currentUser());
         List<Todo> pendingTodos = todoRepository.findAllByProjectAndDoneOrderByPositionAscDueDateAsc(project, false);
 
+        // Only this project's to-dos can be reordered; unknown ids are ignored
         Map<Long, Todo> todosById = new HashMap<>();
         for (Todo todo : pendingTodos) {
             todosById.put(todo.getId(), todo);
         }
-
         for (int i = 0; i < todoIds.size(); i++) {
             Todo todo = todosById.get(todoIds.get(i));
             if (todo != null) {
@@ -106,259 +106,153 @@ public class TodosController {
         }
 
         todoRepository.saveAll(pendingTodos);
-        return "{\"success\": true}";
+        return Map.of("success", true);
     }
 
-
     @GetMapping("/project/{project_id}/todo/new")
-    public String neew(@ModelAttribute("project") Project project,
-                       HttpSession httpSession,
-                       @PathVariable Long project_id, Map<String, Object> model) {
-
-
-        project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
-        model.put("project", project);
-        model.put("todo", new Todo());
+    public String neew(@PathVariable Long project_id, Model model) {
+        model.addAttribute("project", projectAccess.project(project_id, projectAccess.currentUser()));
+        model.addAttribute("todo", new Todo());
         return "todos/new";
-
     }
 
     @PostMapping("/project/{project_id}/todo/new")
-    public String save(@ModelAttribute("todo") Todo todo,
-                        Principal principal, @PathVariable Long project_id,
-                       Map<String, Object> model, RedirectAttributes redirectAttributes,
-                       BindingResult bindingResult) throws Exception {
-
-        Project project = projectRepository.getReferenceById(project_id);
-
-        model.put(Constants.PROJECT, project);
+    public String save(@ModelAttribute("todo") Todo todo, BindingResult bindingResult,
+                       @PathVariable Long project_id, Model model, RedirectAttributes redirectAttributes) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        model.addAttribute(Constants.PROJECT, project);
 
         todoValidator.validate(todo, bindingResult);
+        User assignee = memberOrNull(project, todo.getAssignedToVariable());
+        if (assignee == null) {
+            bindingResult.rejectValue("assignedToVariable", "required.field");
+        }
         if(bindingResult.hasErrors()) {
             return "todos/new";
         }
 
-        // Todo: validate
-
-        User currentUser = userRepository.findByEmail(principal.getName());
         todo.setCreatedBy(currentUser);
-        User assignedToUser = userRepository.getReferenceById(todo.getAssignedToVariable());
-        todo.setAssignedTo(assignedToUser);
+        todo.setAssignedTo(assignee);
         Calendar dueDate = Calendar.getInstance();
         dueDate.setTime(todo.getDueDateVariable());
         todo.setDueDate(dueDate);
         todo.setProject(project);
         todo.setCreatedAt(Calendar.getInstance());
         // Set position to end of list
-        Long count = todoRepository.countByProjectAndDone(project, false);
-        todo.setPosition(count.intValue());
+        todo.setPosition(todoRepository.countByProjectAndDone(project, false).intValue());
         todoRepository.save(todo);
 
-        // Get the project owner so that it gets this notification
-        if(currentUser.getId() != project.getUser().getId()) {
-            Notification notification = new Notification();
-            notification.setType(Constants.NOTIFICATION_TYPE_TODO);
-            notification.setObjectId(todo.getId());
-            notification.setMessage(Constants.NOTIFICATION_MESSAGE_NEW_TODO);
-            notification.setCreatedAt(Calendar.getInstance());
-            notification.setFromUser(currentUser);
-            notification.setForUser(project.getUser());
-            notificationRepository.save(notification);
-        }
-
-        for(int i=0; i<project.getUsers().size(); i++) {
-            User forUser = project.getUsers().get(i);
-            if(forUser.getId() != currentUser.getId()) {
-                Notification notification = new Notification();
-                notification.setType(Constants.NOTIFICATION_TYPE_TODO);
-                notification.setObjectId(todo.getId());
-                notification.setMessage(Constants.NOTIFICATION_MESSAGE_NEW_TODO);
-                notification.setCreatedAt(Calendar.getInstance());
-                notification.setFromUser(currentUser);
-                notification.setForUser(forUser);
-                notificationRepository.save(notification);
-            }
-        }
-
+        notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_TODO, todo.getId(), Constants.NOTIFICATION_MESSAGE_NEW_TODO);
 
         redirectAttributes.addFlashAttribute("notice", "Your todo was created!");
-        model.put(Constants.PROJECT, project);
-
-        return "redirect:/project/" + project_id + "/todos";
-
+        return "redirect:/project/" + project.getId() + "/todos";
     }
 
     @GetMapping("/project/{project_id}/todo/{todo_id}")
-    public String show( Principal principal, @PathVariable Long project_id, @PathVariable Long todo_id,
-                        Map<String, Object> model, RedirectAttributes redirectAttributes) throws Exception {
+    public String show(@PathVariable Long project_id, @PathVariable Long todo_id, Model model) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Todo todo = projectAccess.todo(project, todo_id, currentUser);
 
-        User currentUser = userRepository.findByEmail(principal.getName());
-        model.put("currentUser", currentUser);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("project", project);
+        model.addAttribute("todo", todo);
 
-        Project project = projectRepository.getReferenceById(project_id);
-        model.put("project", project);
-
-
-        Todo todo = todoRepository.getReferenceById(todo_id);
-        model.put("todo", todo);
-
-        System.out.println("Showing todo: " + todo.getId() + " for project: " + project.getId());
-
-        System.out.println("Due date: " + todo.getDueDate());
-
-        // List<Comment> comments = commentRepository.findAllByMessageIdOrderByCreatedAtAsc(message_id);
-        List<Comment> comments = todo.getComments();
-        for(int i=0; i<comments.size(); i++) {
-
-            System.out.println("Comment: " + comments.get(i).getId() + " : " + comments.get(i).getText());
-            System.out.println("Comment User: " + comments.get(i).getUser().getFirstName());
-            System.out.println("Comment User Last Name: " + comments.get(i).getUser().getLastName());
-            
-            Comment comment = comments.get(i);
+        for (Comment comment : todo.getComments()) {
             comment.setTextToDisplay(escapeHtml4(comment.getText()));
-
-            List<Notification> notifications = notificationRepository.findAllByObjectIdAndForUser(comment.getId(), currentUser);
-            for (Notification notification: notifications
-            ) {
-                notification.setRead(true);
-                notification.setReadAt(Calendar.getInstance());
-                notificationRepository.save(notification);
-            }
+            notifications.markRead(comment.getId(), currentUser);
         }
-
-        // Mark any notifications as read
-        List<Notification> notifications = notificationRepository.findAllByObjectIdAndForUser(todo.getId(), currentUser);
-        for (Notification notification: notifications
-             ) {
-            notification.setRead(true);
-            notification.setReadAt(Calendar.getInstance());
-            notificationRepository.save(notification);
-        }
-
+        notifications.markRead(todo.getId(), currentUser);
 
         return "todos/show";
     }
 
     @GetMapping("/project/{project_id}/todo/{todo_id}/edit")
-    public String edit(
-            HttpSession httpSession, @PathVariable Long project_id,
-            @PathVariable Long todo_id, Map<String, Object> model,
-            RedirectAttributes redirectAttributes) throws Exception {
+    public String edit(@PathVariable Long project_id, @PathVariable Long todo_id, Model model) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Todo todo = projectAccess.todo(project, todo_id, currentUser);
+        requireCanChange(project, todo, currentUser);
 
-        Project project = projectRepository.getReferenceById(project_id);
-        Todo todo = todoRepository.getReferenceById(todo_id);
-        model.put("todo", todo);
-        model.put("project", project);
+        model.addAttribute("todo", todo);
+        model.addAttribute("project", project);
         return "todos/edit";
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/edit")
-    public String update(@ModelAttribute("todo") Todo todo,
-                         BindingResult bindingResult,
-                         HttpSession httpSession, @PathVariable Long project_id, @PathVariable Long todo_id,
-                         Map<String, Object> model, RedirectAttributes redirectAttributes) throws Exception {
-
-        // TODO: Check if this belongs to this user.
-
-        Todo todoToUpdate = todoRepository.getReferenceById(todo_id);
-        Project project = projectRepository.getReferenceById(project_id);
+    public String update(@ModelAttribute("todo") Todo todo, BindingResult bindingResult,
+                         @PathVariable Long project_id, @PathVariable Long todo_id,
+                         Model model, RedirectAttributes redirectAttributes) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Todo todoToUpdate = projectAccess.todo(project, todo_id, currentUser);
+        requireCanChange(project, todoToUpdate, currentUser);
 
         // Only use old due date if form didn't provide one (for validation fallback)
-        if (todo.getDueDateVariable() == null) {
+        if (todo.getDueDateVariable() == null && todoToUpdate.getDueDate() != null) {
             todo.setDueDate(todoToUpdate.getDueDate());
             todo.setDueDateVariable(todoToUpdate.getDueDate().getTime());
         }
         todo.setId(todo_id);
-
-        model.put("project", project);
-        model.put("todo", todo);
+        model.addAttribute("project", project);
+        model.addAttribute("todo", todo);
 
         todoValidator.validate(todo, bindingResult);
+        User assignee = memberOrNull(project, todo.getAssignedToVariable());
+        if (assignee == null) {
+            bindingResult.rejectValue("assignedToVariable", "required.field");
+        }
         if(bindingResult.hasErrors()) {
             return "todos/edit";
         }
 
-
-        User userToUpdate = userRepository.getReferenceById(todo.getAssignedToVariable());
         Calendar dueDateCalendar = Calendar.getInstance();
         dueDateCalendar.setTime(todo.getDueDateVariable());
-
-        todoToUpdate.setAssignedTo(userToUpdate);
+        todoToUpdate.setAssignedTo(assignee);
         todoToUpdate.setDueDate(dueDateCalendar);
-
         todoToUpdate.setDescription(todo.getDescription());
         todoToUpdate.setNotes(todo.getNotes());
-
-        System.out.println(todoToUpdate);
-
-
-
-
         todoRepository.save(todoToUpdate);
 
-        /* description: Sample todo
-        assignedToVariable: 8
-        dueDateVariable: 2019-08-22
-        notes: <div>This is great!!!!</div> */
-
         redirectAttributes.addFlashAttribute("notice", "Your todo was updated!");
-
-        model.put("project", project);
-        model.put("todo", todoToUpdate);
-
-        return "redirect:/project/" + project_id + "/todo/" + todoToUpdate.getId();
-
+        return "redirect:/project/" + project.getId() + "/todo/" + todoToUpdate.getId();
     }
 
-    @GetMapping("/project/{project_id}/todo/{todo_id}/delete")
-    public String delete(
-            @ModelAttribute("todo") Todo todo,
-            @ModelAttribute("project") Project project,
-            HttpSession httpSession, @PathVariable Long project_id,
-            @PathVariable Long todo_id, Map<String, Object> model,
-            RedirectAttributes redirectAttributes) throws Exception {
+    @PostMapping("/project/{project_id}/todo/{todo_id}/delete")
+    public String delete(@PathVariable Long project_id, @PathVariable Long todo_id, RedirectAttributes redirectAttributes) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Todo todo = projectAccess.todo(project, todo_id, currentUser);
+        projectAccess.requireAuthorOrOwner(project, todo.getCreatedBy(), currentUser, "todo", todo.getId());
 
-        project = projectRepository.getReferenceById(project_id);
-        todo = todoRepository.getReferenceById(todo_id);
         todoRepository.delete(todo);
+        notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(todo.getId()));
 
-        List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(todo.getId());
-        notificationRepository.deleteInBatch(notificationsToDelete);
-
-        model.put("project", project);
         redirectAttributes.addFlashAttribute("notice", "Your todo was deleted!");
-        return "redirect:/project/" + project_id + "/todos";
+        return "redirect:/project/" + project.getId() + "/todos";
     }
 
+    @PostMapping("/project/{project_id}/todo/{todo_id}/complete")
+    public String complete(@PathVariable Long project_id, @PathVariable Long todo_id, RedirectAttributes redirectAttributes) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Todo todo = projectAccess.todo(project, todo_id, currentUser);
+        requireCanChange(project, todo, currentUser);
 
-    @GetMapping("/project/{project_id}/todo/{todo_id}/complete")
-    public String complete(
-            @ModelAttribute("todo") Todo todo,
-            @ModelAttribute("project") Project project,
-            HttpSession httpSession, @PathVariable Long project_id,
-            @PathVariable Long todo_id, Map<String, Object> model,
-            RedirectAttributes redirectAttributes) throws Exception {
-
-        project = projectRepository.getReferenceById(project_id);
-        todo = todoRepository.getReferenceById(todo_id);
         todo.setDone(true);
         todoRepository.save(todo);
-        model.put("project", project);
         redirectAttributes.addFlashAttribute("notice", "Good job! You completed a to-do!");
-        return "redirect:/project/" + project_id + "/todos";
+        return "redirect:/project/" + project.getId() + "/todos";
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/comment")
-    public String addComment(@ModelAttribute("comment") Comment comment,
-                             Principal principal, @PathVariable Long project_id, @PathVariable Long todo_id,
-                             Model model, RedirectAttributes redirectAttributes,
-                             BindingResult bindingResult) throws Exception {
-
-        System.out.println("Adding comment to todo: " + todo_id + " for project: " + project_id);
-        User currentUser = userRepository.findByEmail(principal.getName());
-        Project project = projectRepository.getReferenceById(project_id);
-
-        Todo todo = todoRepository.getReferenceById(todo_id);
+    public String addComment(@ModelAttribute("comment") Comment comment, BindingResult bindingResult,
+                             @PathVariable Long project_id, @PathVariable Long todo_id,
+                             Model model, RedirectAttributes redirectAttributes) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Todo todo = projectAccess.todo(project, todo_id, currentUser);
 
         model.addAttribute("project", project);
         model.addAttribute("todo", todo);
@@ -369,75 +263,28 @@ public class TodosController {
             return "todos/show";
         }
 
-
-        System.out.println("comment.getText(): " + comment.getText());
-        // TODO: Make sure the user has the rights to add a comment here.
-        comment.setProjectId(project_id);
-        
+        comment.setProjectId(project.getId());
         comment.setUser(currentUser);
         comment.setCreatedAt(Calendar.getInstance());
         comment.setCommentType(Constants.TODO);
         comment.setTodo(todo);
         commentRepository.save(comment);
 
-
-        // Get the project owner so that it gets this notification
-        if(currentUser.getId() != project.getUser().getId()) {
-            Notification notification = new Notification();
-            notification.setType(Constants.NOTIFICATION_TYPE_TODO_COMMENT);
-            notification.setObjectId(comment.getId());
-            notification.setMessage(Constants.NOTIFICATION_MESSAGE_NEW_TODO_COMMENT);
-            notification.setCreatedAt(Calendar.getInstance());
-            notification.setFromUser(currentUser);
-            notification.setForUser(project.getUser());
-            notificationRepository.save(notification);
-        }
-
-        for(int i=0; i<project.getUsers().size(); i++) {
-            User forUser = project.getUsers().get(i);
-            if(forUser.getId() != currentUser.getId()) {
-                Notification notification = new Notification();
-                notification.setType(Constants.NOTIFICATION_TYPE_TODO_COMMENT);
-                notification.setObjectId(comment.getId());
-                notification.setMessage(Constants.NOTIFICATION_MESSAGE_NEW_TODO_COMMENT);
-                notification.setCreatedAt(Calendar.getInstance());
-                notification.setFromUser(currentUser);
-                notification.setForUser(forUser);
-                notificationRepository.save(notification);
-            }
-        }
-
-
-        // Get all the update comments
-        List<Comment> comments = commentRepository.findAllByMessageIdOrderByCreatedAtAsc(todo_id);
-        for(int i=0; i<comments.size(); i++) {
-            Comment commentTemp = comments.get(i);
-            commentTemp.setTextToDisplay(escapeHtml4(commentTemp.getText()));
-        }
+        notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_TODO_COMMENT, comment.getId(), Constants.NOTIFICATION_MESSAGE_NEW_TODO_COMMENT);
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been added!");
-        // model.put("notice", "Your comment has been added!");
-        model.addAttribute("project", project);
-        model.addAttribute("todo", todo);
-        model.addAttribute("currentUser", currentUser);
-        // model.put(Constants.COMMENTS, comments);
-        return "redirect:/project/" + project_id + "/todo/" + todo.getId() + "#comment_" + comment.getId();
-        // return "messages/show";
+        return "redirect:/project/" + project.getId() + "/todo/" + todo.getId() + "#comment_" + comment.getId();
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value="/project/{project_id}/todo/{message_id}/comment/{comment_id}/delete",
+    @RequestMapping(method = RequestMethod.DELETE, value="/project/{project_id}/todo/{todo_id}/comment/{comment_id}/delete",
             produces = "application/json")
     @ResponseBody
-    public Comment deleteComment(@PathVariable("project_id") long projectId, @PathVariable("message_id") long messageId,
-                                 @PathVariable("comment_id") long commentId) {
-        // TODO: Make sure the user has the access
-        Comment commentToDelete = commentRepository.getReferenceById(commentId);
-        commentRepository.delete(commentToDelete);
-
-        List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(commentToDelete.getId());
-        notificationRepository.deleteInBatch(notificationsToDelete);
-
-        return commentToDelete;
+    public Map<String, Object> deleteComment(@PathVariable("project_id") long projectId, @PathVariable("todo_id") long todoId,
+                                             @PathVariable("comment_id") long commentId) {
+        Comment comment = deletableComment(projectId, todoId, commentId);
+        deleteWithNotifications(comment);
+        // Only the id: returning the entity would serialise its author, login token included
+        return Map.of("id", comment.getId());
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/comment/{comment_id}/delete")
@@ -445,20 +292,54 @@ public class TodosController {
                                         @PathVariable("todo_id") long todoId,
                                         @PathVariable("comment_id") long commentId,
                                         RedirectAttributes redirectAttributes) {
-        // Keep form-based deletion working without relying on HTTP method override.
-        Comment commentToDelete = commentRepository.getReferenceById(commentId);
-        commentRepository.delete(commentToDelete);
-
-        List<Notification> notificationsToDelete = notificationRepository.findAllByObjectId(commentToDelete.getId());
-        notificationRepository.deleteInBatch(notificationsToDelete);
-
+        deleteWithNotifications(deletableComment(projectId, todoId, commentId));
         redirectAttributes.addFlashAttribute("notice", "Your comment has been deleted!");
         return "redirect:/project/" + projectId + "/todo/" + todoId + "#comment_form";
     }
 
+    private Comment deletableComment(long projectId, long todoId, long commentId) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(projectId, currentUser);
+        Todo todo = projectAccess.todo(project, todoId, currentUser);
+        Comment comment = projectAccess.comment(project, commentId, currentUser);
+        if (comment.getTodo() == null || comment.getTodo().getId() != todo.getId()) {
+            throw projectAccess.denied(currentUser, "comment", commentId);
+        }
+        projectAccess.requireAuthorOrOwner(project, comment.getUser(), currentUser, "comment", commentId);
+        return comment;
+    }
 
+    private void deleteWithNotifications(Comment comment) {
+        commentRepository.delete(comment);
+        notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(comment.getId()));
+    }
 
+    // The creator, the assignee and the project owner may edit or complete a to-do
+    private void requireCanChange(Project project, Todo todo, User user) {
+        boolean isAssignee = todo.getAssignedTo() != null && todo.getAssignedTo().getId() == user.getId();
+        if (!isAssignee) {
+            projectAccess.requireAuthorOrOwner(project, todo.getCreatedBy(), user, "todo", todo.getId());
+        }
+    }
 
+    // To-dos can only be assigned to people in the project
+    private User memberOrNull(Project project, Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        User user = userRepository.findById(userId).orElse(null);
+        return projectAccess.isMember(project, user) ? user : null;
+    }
+
+    @InitBinder("todo")
+    public void todoFields(WebDataBinder binder) {
+        binder.setAllowedFields("description", "assignedToVariable", "dueDateVariable", "notes");
+    }
+
+    @InitBinder("comment")
+    public void commentFields(WebDataBinder binder) {
+        binder.setAllowedFields("text");
+    }
 
     public String html2text(String html) {
         return Jsoup.parse(html).text();

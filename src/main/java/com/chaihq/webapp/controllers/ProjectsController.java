@@ -7,6 +7,7 @@ import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.TimesheetRepository;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.ProjectAccess;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.utilities.Util;
 import com.chaihq.webapp.validator.ProjectValidator;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -39,6 +41,9 @@ public class ProjectsController {
 
     @Autowired
     private ProjectValidator projectValidator;
+
+    @Autowired
+    private ProjectAccess projectAccess;
 
     @Autowired
     private TimesheetRepository timesheetRepository;
@@ -86,22 +91,18 @@ public class ProjectsController {
     }
 
     @GetMapping("/project/new")
-    public String neew(@ModelAttribute("project")Project project, HttpSession httpSession) {
-        // httpSession.setAttribute("current_user", dummyLoginUser());
-        System.out.println("neew");
+    public String neew(@ModelAttribute("project")Project project) {
         return "projects/new";
     }
 
     @PostMapping("/project/new")
-    public String save(@ModelAttribute("project")Project project, final RedirectAttributes redirectAttributes, HttpSession httpSession,
+    public String save(@ModelAttribute("project")Project project, final RedirectAttributes redirectAttributes,
                        BindingResult bindingResult) {
         projectValidator.validate(project, bindingResult);
         if (bindingResult.hasErrors()) {
             return "projects/new";
         }
-        User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        System.out.println("user: " + user.getId());
-        project.setUser(user);
+        project.setUser(projectAccess.currentUser());
         project.setProjectType(Constants.PROJECT_TYPE_PROJECT);
         project.setCreatedAt(Calendar.getInstance());
         projectRepository.save(project);
@@ -110,133 +111,102 @@ public class ProjectsController {
     }
 
     @GetMapping("/project/{id}")
-    public String show(@PathVariable Long id, Model model, Principal principal) {
-        User currentUser = userRepository.findByEmail(principal.getName());
-        Project project = projectRepository.getReferenceById(id);
-        System.out.println(project.getName());
+    public String show(@PathVariable Long id, Model model) {
+        User currentUser = projectAccess.currentUser();
         model.addAttribute("currentUser", currentUser);
-        model.addAttribute("project", project);
+        model.addAttribute("project", projectAccess.project(id, currentUser));
         return "projects/show";
     }
 
-    @GetMapping("/project/{id}/delete")
-    public String delete(@PathVariable Long id, final RedirectAttributes redirectAttributes ) {
-        // TODO: Make sure this belongs to the current loggedin user
-        Project projectToDelete = projectRepository.getReferenceById(id);
+    @PostMapping("/project/{id}/delete")
+    public String delete(@PathVariable Long id, final RedirectAttributes redirectAttributes) {
+        Project projectToDelete = projectAccess.ownedProject(id, projectAccess.currentUser());
         projectToDelete.setStatus(Constants.DELETED);
         projectRepository.save(projectToDelete);
         redirectAttributes.addFlashAttribute("destruction_notice", "Project deleted!");
         return "redirect:/projects";
     }
 
-
     @GetMapping("/project/{id}/users")
-    public String users(@PathVariable Long id, Model model, HttpSession httpSession
-                        ) {
-        Project project = projectRepository.getReferenceById(id);
-        model.addAttribute("project", project);
-        // Get all the users
-        List<User> users = userRepository.findAll();
-
-        for(int i=0; i<users.size(); i++) {
-            User user = users.get(i);
-            for(int j=0; j<project.getUsers().size(); j++) {
-                User projectUser = project.getUsers().get(j);
-                if(user.getId() == projectUser.getId()) {
-                    user.setAddedAlready(true);
-                }
-            }
-        }
-
-        model.addAttribute("users", users);
-        model.addAttribute("puf", new ProjectUserForm());
+    public String users(@PathVariable Long id, Model model) {
+        Project project = projectAccess.ownedProject(id, projectAccess.currentUser());
+        showPeople(project, model);
         return "projects/users";
     }
 
     @PostMapping("/project/{id}/users")
-    public String addRemoveUser(Map<String, Object> model,
-                        @ModelAttribute ProjectUserForm puf,
-                        @PathVariable Long id,
-                        HttpSession httpSession) {
-        System.out.println("Adding users..." + puf.getProjectId() + ", " + puf.getUserId() + ", " + puf.getAction());
-        // TODO: Make sure the project belongs to this user
-        Project project = projectRepository.getReferenceById(puf.getProjectId());
-        System.out.println(project.getUsers().size());
-        User userToAdd = (User) userRepository.getReferenceById(puf.getUserId());
-        List<User> users = userRepository.findAll();
+    public String addRemoveUser(Model model, @ModelAttribute("puf") ProjectUserForm puf, @PathVariable Long id) {
+        // The project comes from the URL, never from the form, and only its owner may change members
+        Project project = projectAccess.ownedProject(id, projectAccess.currentUser());
 
-        if("add".equals(puf.getAction())) {
-            project.getUsers().add(userToAdd);
-            model.put("notice", userToAdd.getFirstName() + " added to " + project.getName());
-            // model.put("notice", "User added!");
-            projectRepository.save(project);
-        } else if("remove".equals(puf.getAction())) {
-
-            for(int i=0; i<project.getUsers().size(); i++) {
-                User user = project.getUsers().get(i);
-                System.out.println(user.getId() + " == " + puf.getUserId());
-                System.out.println(user.getId() == puf.getUserId());
-                if(user.getId() == puf.getUserId()) {
-                    project.getUsers().remove(i);
-                    projectRepository.save(project);
-                    break;
-                }
+        if ("add".equals(puf.getAction())) {
+            String email = puf.getEmail() == null ? "" : puf.getEmail().trim();
+            User userToAdd = userRepository.findByEmail(email);
+            if (userToAdd == null) {
+                model.addAttribute("error", "No one with that email has a Chai account yet.");
+            } else if (projectAccess.isMember(project, userToAdd)) {
+                model.addAttribute("message", userToAdd.getFirstName() + " is already in " + project.getName() + ".");
+            } else {
+                project.getUsers().add(userToAdd);
+                projectRepository.save(project);
+                model.addAttribute("message", userToAdd.getFirstName() + " added to " + project.getName() + ".");
             }
-
-            model.put("notice", "User removed!");
-        } else {
-            // model.put("notice", "User added!");
-        }
-
-        for(int i=0; i<users.size(); i++) {
-            User user = users.get(i);
-            for(int j=0; j<project.getUsers().size(); j++) {
-                User projectUser = project.getUsers().get(j);
-                if(user.getId() == projectUser.getId()) {
-                    user.setAddedAlready(true);
-                }
+        } else if ("remove".equals(puf.getAction())) {
+            if (project.getUsers().removeIf(user -> user.getId() == puf.getUserId())) {
+                projectRepository.save(project);
+                model.addAttribute("message", "Removed from " + project.getName() + ".");
             }
         }
-        model.put("project", project);
-        model.put("users", users);
-        model.put("puf", puf);
 
-
-
+        showPeople(project, model);
         return "projects/users";
     }
 
-
-
-
+    // Only the project's own people are listed — never every account in the system
+    private void showPeople(Project project, Model model) {
+        List<User> people = new ArrayList<>();
+        people.add(project.getUser());
+        for (User member : project.getUsers()) {
+            member.setAddedAlready(true);
+            people.add(member);
+        }
+        model.addAttribute("project", project);
+        model.addAttribute("users", people);
+        model.addAttribute("puf", new ProjectUserForm());
+    }
 
     @GetMapping("/project/{id}/edit")
     public String edit(@PathVariable Long id, Map<String, Object> model) {
-        Project project = projectRepository.getReferenceById(id);
-        System.out.println(project.getName());
-        model.put("project", project);
+        model.put("project", projectAccess.ownedProject(id, projectAccess.currentUser()));
         return "projects/edit";
     }
 
-
     @PostMapping("/project/{id}/edit")
     public String update(@PathVariable Long id, @ModelAttribute("project")Project project,
-                         Map<String, Object> model, HttpSession httpSession, BindingResult bindingResult) {
+                         BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
+        Project projectToUpdate = projectAccess.ownedProject(id, projectAccess.currentUser());
 
         projectValidator.validate(project, bindingResult);
-
         if (bindingResult.hasErrors()) {
+            project.setId(id);
             return "projects/edit";
         }
 
-        Project projectToUpdate = projectRepository.getReferenceById(id);
-        System.out.println(project.getName());
         projectToUpdate.setName(project.getName());
         projectToUpdate.setDescription(project.getDescription());
         projectRepository.save(projectToUpdate);
-        model.put("project", projectToUpdate);
-        model.put("notice", "Project updated!");
-        return "projects/show";
+        redirectAttributes.addFlashAttribute("notice", "Project updated!");
+        return "redirect:/project/" + id;
     }
 
+    // Only these fields may come from forms; anything else (owner, members, status, id) is ignored
+    @InitBinder("project")
+    public void projectFields(WebDataBinder binder) {
+        binder.setAllowedFields("name", "description");
+    }
+
+    @InitBinder("puf")
+    public void memberFields(WebDataBinder binder) {
+        binder.setAllowedFields("action", "email", "userId");
+    }
 }

@@ -8,12 +8,15 @@ import com.chaihq.webapp.repositories.ActiveStorageFileRepository;
 import com.chaihq.webapp.repositories.NotificationRepository;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.ProjectAccess;
+import com.chaihq.webapp.services.ProjectNotifications;
 import com.chaihq.webapp.storage.StorageFileNotFoundException;
 import com.chaihq.webapp.storage.StorageService;
 import com.chaihq.webapp.utilities.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +27,14 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -57,19 +62,21 @@ public class FilesController {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    @GetMapping("/project/{id}/files")
-    public String show(@PathVariable Long id, Model model, HttpSession httpSession) {
-        User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        Project project = projectRepository.getReferenceById(id); // TODO make show this belongs to the user
+    @Autowired
+    private ProjectAccess projectAccess;
 
-        List<ActiveStorageFile> activeStorageFiles = activeStorageFileRepository.findAllByProjectIdOrderByCreatedAtDesc(id);
+    @Autowired
+    private ProjectNotifications notifications;
+
+    @GetMapping("/project/{id}/files")
+    public String show(@PathVariable Long id, Model model) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(id, currentUser);
 
         model.addAttribute("project", project);
-        model.addAttribute("activeStorageFiles", activeStorageFiles);
+        model.addAttribute("activeStorageFiles", activeStorageFileRepository.findAllByProjectIdOrderByCreatedAtDesc(project.getId()));
 
-        List<Notification> notifications = notificationRepository.findAllByTypeAndForUser(Constants.NOTIFICATION_TYPE_FILE, currentUser);
-        for (Notification notification: notifications
-        ) {
+        for (Notification notification : notificationRepository.findAllByTypeAndForUser(Constants.NOTIFICATION_TYPE_FILE, currentUser)) {
             notification.setRead(true);
             notification.setReadAt(Calendar.getInstance());
             notificationRepository.save(notification);
@@ -78,125 +85,64 @@ public class FilesController {
         return "files/index";
     }
 
-    /* @GetMapping("/project/{project_id}/files/{filename:.+}")
-    @ResponseBody
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename, @PathVariable Long project_id) {
-
-        // TODO: Make sure the file belongs to this project and the user, filenames to be stored with some project references in the name
-
-        Resource file = storageService.loadAsResource(filename);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
-    } */
-
     @GetMapping("/project/{projectId}/file/{id}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable Long id, @PathVariable Long projectId) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(projectId, currentUser);
+        ActiveStorageFile file = activeStorageFileRepository.findById(id).orElse(null);
+        if (file == null || file.getProjectId() == null || file.getProjectId() != project.getId()) {
+            throw projectAccess.denied(currentUser, "file", id);
+        }
 
-        System.out.println("serveFile: ");
-
-        // TODO: Make sure the file belongs to this project and the user, filenames to be stored with some project references in the name
-
-        System.out.println("Downloading file... " + id + "in project id " + projectId);
-        ActiveStorageFile activeStorageFile = activeStorageFileRepository.getReferenceById(id);
-
-        /* return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + activeStorageFile.getFileName() + "\"")
-                .body(new ByteArrayResource(activeStorageFile.getFileData())); */
-
+        // Always a download, never rendered: the stored content type came from the uploader
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(activeStorageFile.getFileType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + activeStorageFile.getFileName() + "\"")
-                .body(new ByteArrayResource(activeStorageFile.getFileData()));
-
-        /* Resource file = storageService.loadAsResource(filename);
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + file.getFilename() + "\"").body(file); */
-
-        // return "file/"
-
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(file.getFileName(), StandardCharsets.UTF_8).build().toString())
+                .header("X-Content-Type-Options", "nosniff")
+                .body(new ByteArrayResource(file.getFileData()));
     }
-
 
     @GetMapping("/project/{project_id}/file/new")
     public String neew(@ModelAttribute("activeStorageFile") ActiveStorageFile activeStorageFile,
-                       @ModelAttribute("project")Project project, HttpSession httpSession,
-                       @PathVariable Long project_id, Map<String, Object> model) {
-        User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
-        System.out.println(project.getName());
-        model.put("project", project);
-
-
-        System.out.println("neew");
+                       @PathVariable Long project_id, Model model) {
+        model.addAttribute("project", projectAccess.project(project_id, projectAccess.currentUser()));
         return "files/new";
     }
 
-
     @PostMapping("/project/{project_id}/file/new")
-    public String save(@ModelAttribute("activeStorageFile") ActiveStorageFile activeStorageFile,
-                       // @RequestParam("file") MultipartFile file,
-                       // @ModelAttribute("project")Project project,
-                       HttpSession httpSession, @PathVariable Long project_id,
-                       Map<String, Object> model, RedirectAttributes redirectAttributes,
-                       BindingResult bindingResult) throws Exception {
+    public String save(@ModelAttribute("activeStorageFile") ActiveStorageFile activeStorageFile, BindingResult bindingResult,
+                       @PathVariable Long project_id, Model model, RedirectAttributes redirectAttributes) throws Exception {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        model.addAttribute(Constants.PROJECT, project);
 
-        // storageService.store(activeStorageFile.getMultipartFile());
-        Project project = projectRepository.getReferenceById(project_id); // TODO make show this belongs to the user
-
-        model.put(Constants.PROJECT, project);
-
-        String fileName = StringUtils.cleanPath(activeStorageFile.getMultipartFile().getOriginalFilename());
-
-        if(fileName == null || "".equals(fileName)) {
+        MultipartFile upload = activeStorageFile.getMultipartFile();
+        String fileName = upload == null || upload.getOriginalFilename() == null ? "" : StringUtils.cleanPath(upload.getOriginalFilename());
+        if (fileName.isBlank()) {
             bindingResult.addError(new FieldError("activeStorageFile", "multipartFile", "Field not provided"));
             return "files/new";
         }
-
-
-        User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-
-        redirectAttributes.addFlashAttribute("notice", "File uploaded!");
 
         activeStorageFile.setCreatedAt(Calendar.getInstance());
         activeStorageFile.setProjectId(project.getId());
         activeStorageFile.setUserId(currentUser.getId());
         activeStorageFile.setFileName(fileName);
-        activeStorageFile.setFileType(activeStorageFile.getMultipartFile().getContentType());
-        activeStorageFile.setFileData(activeStorageFile.getMultipartFile().getBytes());
-        activeStorageFile.setFileSize(activeStorageFile.getMultipartFile().getSize());
-
+        activeStorageFile.setFileType(upload.getContentType());
+        activeStorageFile.setFileData(upload.getBytes());
+        activeStorageFile.setFileSize(upload.getSize());
         activeStorageFileRepository.save(activeStorageFile);
 
-        if(currentUser.getId() != project.getUser().getId()) {
-            Notification notification = new Notification();
-            notification.setType(Constants.NOTIFICATION_TYPE_FILE);
-            notification.setObjectId(activeStorageFile.getId());
-            notification.setMessage(Constants.NOTIFICATION_MESSAGE_NEW_FILE);
-            notification.setCreatedAt(Calendar.getInstance());
-            notification.setFromUser(currentUser);
-            notification.setForUser(project.getUser());
-            notificationRepository.save(notification);
-        }
+        notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_FILE, activeStorageFile.getId(), Constants.NOTIFICATION_MESSAGE_NEW_FILE);
 
+        redirectAttributes.addFlashAttribute("notice", "File uploaded!");
+        return "redirect:/project/" + project.getId() + "/files";
+    }
 
-        for(int i=0; i<project.getUsers().size(); i++) {
-            User forUser = project.getUsers().get(i);
-            if(forUser.getId() != currentUser.getId()) {
-                Notification notification = new Notification();
-                notification.setType(Constants.NOTIFICATION_TYPE_FILE);
-                notification.setObjectId(activeStorageFile.getId());
-                notification.setMessage(Constants.NOTIFICATION_MESSAGE_NEW_FILE);
-                notification.setCreatedAt(Calendar.getInstance());
-                notification.setFromUser(currentUser);
-                notification.setForUser(forUser);
-                notificationRepository.save(notification);
-            }
-        }
-
-
-        // return "redirect:/projects/" + id + "/files";
-        return "redirect:/project/" + project_id + "/files";
+    @InitBinder("activeStorageFile")
+    public void fileFields(WebDataBinder binder) {
+        binder.setAllowedFields("name", "description", "multipartFile");
     }
 
     @ExceptionHandler(StorageFileNotFoundException.class)
@@ -204,14 +150,6 @@ public class FilesController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/cloudfront")
-    public ResponseEntity<String> cloudfrontSave(HttpSession httpSession) throws Exception {
-
-
-        return ResponseEntity.ok()
-                .header("Custom-Header", "foo")
-                .body("Custom header set");
-    }
 
 
 }

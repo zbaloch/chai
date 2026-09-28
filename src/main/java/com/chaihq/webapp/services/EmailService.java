@@ -1,5 +1,7 @@
 package com.chaihq.webapp.services;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -30,32 +32,34 @@ public class EmailService {
 
     private static Logger log = LoggerFactory.getLogger(EmailService.class);
 
+    // The token is passed separately: only its hash is stored on the user
     @Async
-    public void sendEmail(User user) {
+    public void sendEmail(User user, String token) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(host);
         mailSender.setPort(587);
-        
         mailSender.setUsername(username);
         mailSender.setPassword(password);
-        
+
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
 
-        SimpleMailMessage message = new SimpleMailMessage(); 
+        String link = url + "/verify-token-and-login?email=" + URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8)
+                + "&token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
-        
-        message.setTo(user.getEmail()); 
-        message.setSubject("Chai login magic link"); 
-        message.setText("Please use this link to login: \n\n" + url + "/verify-token-and-login?email=" + user.getEmail()+"&token=" + user.getToken());
-        log.info("Please use this link to login: \n\n" + url + "/verify-token-and-login?email=" + user.getEmail()+"&token=" + user.getToken());
-        mailSender.send(message);
-
-        // return true;
-
-
+        message.setTo(user.getEmail());
+        message.setSubject("Chai login magic link");
+        message.setText("Please use this link to login: \n\n" + link);
+        // Only at DEBUG: anyone who can read the log could use the link to sign in
+        log.debug("Login link for user {}: {}", user.getId(), link);
+        try {
+            mailSender.send(message);
+        } catch (RuntimeException e) {
+            log.error("Could not send login email to user {}: {}", user.getId(), e.getMessage());
+        }
     }
 }

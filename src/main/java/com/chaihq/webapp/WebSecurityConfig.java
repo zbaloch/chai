@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 import com.chaihq.webapp.services.CustomUserDetailsService;
 import com.chaihq.webapp.repositories.UserRepository;
@@ -76,7 +77,14 @@ public class WebSecurityConfig {
                 .tokenValiditySeconds(rememberMeTokenValiditySeconds)
             )
             .cors(cors -> cors.disable())
-            .csrf(csrf -> csrf.disable());
+            // Forms get the token from Thymeleaf; scripts read it from the csrf-token meta tag.
+            // SockJS fallback transports can't send it; chat is protected by its origin check instead.
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/ws/**"))
+            .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"))
+                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+            );
 
         return http.build();
     }

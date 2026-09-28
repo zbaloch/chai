@@ -57,7 +57,7 @@
                     Notes <span class="font-normal text-gray-500">(optional)</span>
                 </label>
                 <div class="mt-2">
-                    <lexxy-editor data-direct-upload-url="/attachments/direct_uploads" data-blob-url-template="/attachments/:signed_id/:filename" name="notes" th:value="*{notes}" class="lexxy-content editor-notes"></lexxy-editor>
+                    <lexxy-editor th:data-direct-upload-url="@{/project/{id}/attachments/direct_uploads(id=${project.id})}" data-blob-url-template="/attachments/:signed_id/:filename" name="notes" th:value="*{notes}" class="lexxy-content editor-notes"></lexxy-editor>
                 </div>
             </div>
 

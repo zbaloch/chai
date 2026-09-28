@@ -7,6 +7,7 @@ import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.TimesheetRepository;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.ProjectAccess;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.validator.ProjectValidator;
 import com.chaihq.webapp.validator.TimesheetValidator;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -42,6 +44,9 @@ public class TimesheetsController {
 
     @Autowired
     private TimesheetValidator timesheetValidator;
+
+    @Autowired
+    private ProjectAccess projectAccess;
 
     @Autowired
     private TimesheetRepository timeLogRepository;
@@ -95,23 +100,16 @@ public class TimesheetsController {
     }
 
     @PostMapping("/timesheet/new")
-    public String save(@ModelAttribute("timesheet")Timesheet timesheet, final RedirectAttributes redirectAttributes,
-                       HttpSession httpSession,
-                       BindingResult bindingResult,
-                       Map<String, Object> model) {
+    public String save(@ModelAttribute("timesheet")Timesheet timesheet, BindingResult bindingResult,
+                       final RedirectAttributes redirectAttributes, Map<String, Object> model) {
+        User currentUser = projectAccess.currentUser();
         timesheetValidator.validate(timesheet, bindingResult);
         if (bindingResult.hasErrors()) {
-            User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-            List<Project> projects = projectRepository.findByUserAndProjectTypeEquals(currentUser,
-                    Constants.PROJECT_TYPE_PROJECT);
-            model.put("projects", projects);
+            model.put("projects", projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_PROJECT));
             return "timesheets/new";
         }
-        Project project = projectRepository.getReferenceById(timesheet.getProjectId());
-        User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        System.out.println("user: " + user.getId());
-        timesheet.setProject(project);
-        timesheet.setUser(user);
+        timesheet.setProject(projectAccess.project(timesheet.getProjectId(), currentUser));
+        timesheet.setUser(currentUser);
         timesheet.setCreatedAt(Calendar.getInstance());
         timesheetRepository.save(timesheet);
         redirectAttributes.addFlashAttribute("notice", "Timesheet entry created!");
@@ -120,80 +118,62 @@ public class TimesheetsController {
 
     @GetMapping("/timesheet/{id}")
     public String show(@PathVariable Long id, Map<String, Object> model) {
-        Project project = projectRepository.getReferenceById(id);
-        System.out.println(project.getName());
-        model.put("project", project);
+        model.put("project", projectAccess.project(id, projectAccess.currentUser()));
         return "timesheets/show";
     }
 
-    @GetMapping("/timesheet/{id}/delete")
-    public String delete(@PathVariable Long id, final RedirectAttributes redirectAttributes,
-                         HttpSession httpSession) {
-        // TODO: Make sure this belongs to the current loggedin user
-        Timesheet timesheetToDelete = timesheetRepository.getReferenceById(id);
-        User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        if(timesheetToDelete.getUser().getId() == currentUser.getId()) {
-            timesheetRepository.delete(timesheetToDelete);
-            redirectAttributes.addFlashAttribute("destruction_notice", "Timesheet entry deleted!");
-        } else {
-            redirectAttributes.addFlashAttribute("destruction_notice", "This is not your timesheet!");
-        }
+    @PostMapping("/timesheet/{id}/delete")
+    public String delete(@PathVariable Long id, final RedirectAttributes redirectAttributes) {
+        timesheetRepository.delete(ownTimesheet(id));
+        redirectAttributes.addFlashAttribute("destruction_notice", "Timesheet entry deleted!");
         return "redirect:/projects";
     }
 
-
-
     @GetMapping("/timesheet/{id}/edit")
-    public String edit(@PathVariable Long id, Map<String, Object> model, HttpSession httpSession,
-                       final RedirectAttributes redirectAttributes) {
-
-        Timesheet timesheet = timesheetRepository.getReferenceById(id);
-        User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-
-        if(timesheet.getUser().getId() == currentUser.getId()) {
-            List<Project> projects = projectRepository.findByUserAndProjectTypeEquals(currentUser,
-                    Constants.PROJECT_TYPE_PROJECT);
-            model.put("projects", projects);
-            model.put("timesheet", timesheet);
-            return "timesheets/edit";
-        } else {
-            redirectAttributes.addFlashAttribute("destruction_notice", "This timesheet does not belong to you!");
-            return "redirect:/projects";
-        }
+    public String edit(@PathVariable Long id, Map<String, Object> model) {
+        Timesheet timesheet = ownTimesheet(id);
+        model.put("projects", projectRepository.findByUserAndProjectTypeEquals(timesheet.getUser(), Constants.PROJECT_TYPE_PROJECT));
+        model.put("timesheet", timesheet);
+        return "timesheets/edit";
     }
 
     @PostMapping("/timesheet/{id}/edit")
-    public String update(@PathVariable Long id, @ModelAttribute("timesheet")Timesheet timesheet,
-                         Map<String, Object> model, HttpSession httpSession, BindingResult bindingResult,
-                         final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable Long id, @ModelAttribute("timesheet")Timesheet timesheet, BindingResult bindingResult,
+                         Map<String, Object> model, final RedirectAttributes redirectAttributes) {
+        Timesheet timesheetToUpdate = ownTimesheet(id);
+        User currentUser = timesheetToUpdate.getUser();
 
         timesheetValidator.validate(timesheet, bindingResult);
-
         if (bindingResult.hasErrors()) {
             model.put("timesheet", timesheet);
-            User currentUser = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-            List<Project> projects = projectRepository.findByUserAndProjectTypeEquals(currentUser,
-                    Constants.PROJECT_TYPE_PROJECT);
-            model.put("projects", projects);
+            model.put("projects", projectRepository.findByUserAndProjectTypeEquals(currentUser, Constants.PROJECT_TYPE_PROJECT));
             return "timesheets/edit";
         }
 
-        Timesheet timesheetToUpdate = timesheetRepository.getReferenceById(id);
-
-        Project project = projectRepository.getReferenceById(timesheet.getProjectId());
-        User user = (User) httpSession.getAttribute(Constants.CURRENT_USER);
-        System.out.println("user: " + user.getId());
-        timesheetToUpdate.setProject(project);
+        timesheetToUpdate.setProject(projectAccess.project(timesheet.getProjectId(), currentUser));
         timesheetToUpdate.setTask(timesheet.getTask());
         timesheetToUpdate.setNotes(timesheet.getNotes());
         timesheetToUpdate.setManHours(timesheet.getManHours());
         timesheetToUpdate.setTimeLogDate(timesheet.getTimeLogDate());
-        // timesheet.setUser(user);
         timesheetToUpdate.setUpdatedAt(Calendar.getInstance());
         timesheetRepository.save(timesheetToUpdate);
         redirectAttributes.addFlashAttribute("notice", "Timesheet entry updated!");
         return "redirect:/projects";
+    }
 
+    // People can only see and change their own time entries
+    private Timesheet ownTimesheet(Long id) {
+        User currentUser = projectAccess.currentUser();
+        Timesheet timesheet = timesheetRepository.findById(id).orElse(null);
+        if (timesheet == null || timesheet.getUser() == null || timesheet.getUser().getId() != currentUser.getId()) {
+            throw projectAccess.denied(currentUser, "timesheet", id);
+        }
+        return timesheet;
+    }
+
+    @InitBinder("timesheet")
+    public void timesheetFields(WebDataBinder binder) {
+        binder.setAllowedFields("projectId", "task", "notes", "manHours", "timeLogDate");
     }
 
 }

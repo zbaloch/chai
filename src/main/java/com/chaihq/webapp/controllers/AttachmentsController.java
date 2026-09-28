@@ -1,11 +1,10 @@
 package com.chaihq.webapp.controllers;
 
-import com.chaihq.webapp.models.EditorAttachment;
-import com.chaihq.webapp.models.User;
-import com.chaihq.webapp.repositories.EditorAttachmentRepository;
-import com.chaihq.webapp.utilities.Constants;
+import com.chaihq.webapp.models.*;
+import com.chaihq.webapp.repositories.*;
+import com.chaihq.webapp.services.ProjectAccess;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
@@ -43,17 +42,30 @@ public class AttachmentsController {
             "image/png", "image/jpeg", "image/gif", "image/webp", "image/avif");
 
     private final EditorAttachmentRepository attachmentRepository;
+    private final ProjectRepository projectRepository;
+    private final MessageRepository messageRepository;
+    private final CommentRepository commentRepository;
+    private final TodoRepository todoRepository;
+    private final ProjectAccess projectAccess;
 
-    public AttachmentsController(EditorAttachmentRepository attachmentRepository) {
+    public AttachmentsController(EditorAttachmentRepository attachmentRepository, ProjectRepository projectRepository,
+                                 MessageRepository messageRepository, CommentRepository commentRepository,
+                                 TodoRepository todoRepository, ProjectAccess projectAccess) {
         this.attachmentRepository = attachmentRepository;
+        this.projectRepository = projectRepository;
+        this.messageRepository = messageRepository;
+        this.commentRepository = commentRepository;
+        this.todoRepository = todoRepository;
+        this.projectAccess = projectAccess;
     }
 
-    @PostMapping(path = "/attachments/direct_uploads", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createDirectUpload(@RequestBody Map<String, Map<String, Object>> body,
-                                                HttpSession session, HttpServletRequest request) {
-        User currentUser = (User) session.getAttribute(Constants.CURRENT_USER);
+    @PostMapping(path = "/project/{projectId}/attachments/direct_uploads", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createDirectUpload(@PathVariable Long projectId, @RequestBody Map<String, Map<String, Object>> body,
+                                                HttpServletRequest request) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(projectId, currentUser);
         Map<String, Object> blob = body.get("blob");
-        if (currentUser == null || blob == null) {
+        if (blob == null) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -74,6 +86,7 @@ public class AttachmentsController {
         attachment.setByteSize(byteSize);
         attachment.setChecksum((String) blob.get("checksum"));
         attachment.setUserId(currentUser.getId());
+        attachment.setProjectId(project.getId());
         attachment.setCreatedAt(Calendar.getInstance());
         attachmentRepository.save(attachment);
 
@@ -87,15 +100,15 @@ public class AttachmentsController {
                 "previewable", false,
                 "direct_upload", Map.of(
                         "url", uploadUrl,
-                        "headers", Map.of("Content-Type", contentType))));
+                        "headers", uploadHeaders(contentType, request))));
     }
 
     @PutMapping("/attachments/{token}/upload")
-    public ResponseEntity<?> upload(@PathVariable String token, HttpSession session, HttpServletRequest request) throws IOException {
-        User currentUser = (User) session.getAttribute(Constants.CURRENT_USER);
+    public ResponseEntity<?> upload(@PathVariable String token, HttpServletRequest request) throws IOException {
+        User currentUser = projectAccess.currentUser();
         EditorAttachment attachment = attachmentRepository.findByToken(token).orElse(null);
-        if (attachment == null || currentUser == null || attachment.getUserId() != currentUser.getId()) {
-            return ResponseEntity.notFound().build();
+        if (attachment == null || attachment.getUserId() == null || attachment.getUserId() != currentUser.getId()) {
+            throw projectAccess.denied(currentUser, "attachment upload", token);
         }
         if (attachment.getData() != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -116,9 +129,10 @@ public class AttachmentsController {
 
     @GetMapping("/attachments/{token}/{fileName}")
     public ResponseEntity<byte[]> show(@PathVariable String token) {
+        User currentUser = projectAccess.currentUser();
         EditorAttachment attachment = attachmentRepository.findByToken(token).orElse(null);
-        if (attachment == null || attachment.getData() == null) {
-            return ResponseEntity.notFound().build();
+        if (attachment == null || attachment.getData() == null || !canView(attachment, currentUser)) {
+            throw projectAccess.denied(currentUser, "attachment", token);
         }
 
         boolean inline = INLINE_TYPES.contains(attachment.getContentType());
@@ -134,6 +148,47 @@ public class AttachmentsController {
                 .header("X-Content-Type-Options", "nosniff")
                 .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePrivate().immutable())
                 .body(attachment.getData());
+    }
+
+    private boolean canView(EditorAttachment attachment, User user) {
+        if (attachment.getProjectId() == null) {
+            attachment.setProjectId(findProjectReferencing(attachment.getToken()));
+            if (attachment.getProjectId() != null) {
+                attachmentRepository.save(attachment);
+            }
+        }
+        if (attachment.getProjectId() == null) {
+            // Not used in any post yet: only the person who uploaded it
+            return attachment.getUserId() != null && attachment.getUserId() == user.getId();
+        }
+        Project project = projectRepository.findById(attachment.getProjectId()).orElse(null);
+        return projectAccess.isMember(project, user);
+    }
+
+    // Uploads from before attachments recorded their project: find the post that uses it
+    private Long findProjectReferencing(String token) {
+        // Tokens are hex, so they can't contain LIKE wildcards
+        String pattern = "%" + token.replaceAll("[^0-9a-f]", "") + "%";
+        for (Message message : messageRepository.findByContentLike(pattern)) {
+            return message.getProjectId();
+        }
+        for (Comment comment : commentRepository.findByTextLike(pattern)) {
+            return comment.getProjectId();
+        }
+        for (Todo todo : todoRepository.findByNotesLike(pattern)) {
+            return todo.getProject() == null ? null : todo.getProject().getId();
+        }
+        return null;
+    }
+
+    private static Map<String, String> uploadHeaders(String contentType, HttpServletRequest request) {
+        Map<String, String> headers = new java.util.HashMap<>();
+        headers.put("Content-Type", contentType);
+        CsrfToken csrf = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        if (csrf != null) {
+            headers.put(csrf.getHeaderName(), csrf.getToken());
+        }
+        return headers;
     }
 
     // Returns null if the stream holds more than the expected number of bytes

@@ -5,6 +5,7 @@ import com.chaihq.webapp.repositories.ActiveStorageFileRepository;
 import com.chaihq.webapp.repositories.ChatRepository;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.UserRepository;
+import com.chaihq.webapp.services.ProjectAccess;
 import com.chaihq.webapp.storage.StorageFileNotFoundException;
 import com.chaihq.webapp.storage.StorageService;
 import com.chaihq.webapp.utilities.Constants;
@@ -28,6 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
+import java.security.Principal;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -58,75 +60,61 @@ public class ChatController {
     @Autowired
     private ChatRepository chatRepository;
 
+    @Autowired
+    private ProjectAccess projectAccess;
+
     @GetMapping("/project/{id}/chat")
     public String show(@PathVariable Long id, Model model) {
-        Project project = projectRepository.getReferenceById(id); // TODO make show this belongs to the user
-        List<Chat> chatMessages = chatRepository.findByProjectId(project.getId());
-
+        Project project = projectAccess.project(id, projectAccess.currentUser());
         model.addAttribute("project", project);
-        model.addAttribute("chatMessages", chatMessages);
-
+        model.addAttribute("chatMessages", chatRepository.findByProjectId(project.getId()));
         return "chat/index";
     }
 
-
-    /*
+    // The sender is the signed-in user of this WebSocket session, never an id from the payload,
+    // and messages only go to that project's own topic.
     @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/public")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
-        System.out.println("message: " + chatMessage.getContent() + " from " + chatMessage.getSenderUsername());
-        return chatMessage;
-    }
+    public void sendMessage(@Payload ChatMessage chatMessage, Principal principal) {
+        User user = principal == null ? null : userRepository.findByEmail(principal.getName());
+        Project project = projectFromPayload(chatMessage);
+        if (user == null || project == null || !projectAccess.isMember(project.getId(), user.getEmail())
+                || chatMessage.getContent() == null || chatMessage.getContent().isBlank()) {
+            throw projectAccess.denied(user, "chat for project", chatMessage.getProjectId());
+        }
 
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public ChatMessage addUser(@Payload ChatMessage chatMessage,
-                               SimpMessageHeaderAccessor headerAccessor) {
-        // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSenderUsername());
-        return chatMessage;
-    }
-    */
-
-    @MessageMapping("/chat.sendMessage")
-    // @SendTo("/topic/public")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
-
-        System.out.println(chatMessage);
-        System.out.println("message: " + chatMessage.getContent() + " from " + chatMessage.getSenderUsername());
-        System.out.println("Save in the database.... "); // TODO: Need to load the messages too.
         Chat chat = new Chat();
         chat.setMessage(chatMessage.getContent());
-        chat.setProjectId(Long.parseLong(chatMessage.getProjectId()));
-        User user = userRepository.getReferenceById(Long.parseLong(chatMessage.getSenderId()));
-        chat.setCreatedAt(Calendar.getInstance());
+        chat.setProjectId(project.getId());
         chat.setUser(user);
-
+        chat.setCreatedAt(Calendar.getInstance());
         chatRepository.save(chat);
 
-        this.template.convertAndSend("/topic", chatMessage);
-        return chatMessage;
+        chatMessage.setSenderId(String.valueOf(user.getId()));
+        chatMessage.setSenderUsername(user.getEmail());
+        chatMessage.setSenderFirstName(user.getFirstName());
+        chatMessage.setSenderLastName(user.getLastName());
+        this.template.convertAndSend("/topic/project/" + project.getId(), chatMessage);
     }
-
-    @MessageMapping("/chat.addUser")
-    // @SendTo("/topic/public")
-    public ChatMessage addUser(@Payload ChatMessage chatMessage,
-                               SimpMessageHeaderAccessor headerAccessor) {
-        // Add username in web socket session
-        //headerAccessor.getSessionAttributes().put("username", chatMessage.getSenderUsername());
-        this.template.convertAndSend("/topic", chatMessage);
-        return chatMessage;
-    }
-
 
     @RequestMapping(method = RequestMethod.DELETE, value="/project/{project_id}/chat/{id}",  produces = "application/json")
     @ResponseBody
-    public Chat deleteChatMessage(@PathVariable("project_id") long projectId, @PathVariable("id") long chatMessageId) {
-        System.out.println("deleteChatMessage... ");
-        Chat chat = chatRepository.getReferenceById(chatMessageId);
+    public Map<String, Object> deleteChatMessage(@PathVariable("project_id") long projectId, @PathVariable("id") long chatMessageId) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(projectId, currentUser);
+        Chat chat = chatRepository.findById(chatMessageId).orElse(null);
+        if (chat == null || chat.getProjectId() != project.getId()) {
+            throw projectAccess.denied(currentUser, "chat message", chatMessageId);
+        }
+        projectAccess.requireAuthorOrOwner(project, chat.getUser(), currentUser, "chat message", chatMessageId);
         chatRepository.delete(chat);
-        return chat;
+        return Map.of("id", chat.getId());
     }
 
-
+    private Project projectFromPayload(ChatMessage chatMessage) {
+        try {
+            return projectRepository.findById(Long.parseLong(chatMessage.getProjectId())).orElse(null);
+        } catch (NumberFormatException | NullPointerException e) {
+            return null;
+        }
+    }
 }
