@@ -8,19 +8,17 @@ If you are a company that has no such requirements then you should use always us
 
 ## Features:
 Chai has following features as of today (12 May 2026):
-- Company HQ, Teams and Projects
+- Projects
 - Messages
 - To-dos
 - User management (Register, Login, Add/Remove from projects/teams)
-
+- Email integration (specially for Reset password)
+- Notifications
 
 The below is the backlog of features planned:
 
-- Email integration (specially for Reset password)
-- Notifications
-- Automated check-ins
+- Project chat
 - Direct chat (Pings)
-- Other database support
 - Documentation, contribution setup etc
 - APIs
 - Mobile apps (Native or Hybrid)
@@ -28,6 +26,8 @@ The below is the backlog of features planned:
 - Chat (May never have as we believe chat is distracting)
 - Search across todos, messages, comments, people, chat and even notifications.
 - All messages, all todos in one place
+- Automated check-ins
+- Other databases support (postgresql, oracle, sql server)
 
 ## Getting Help & Contributing Back
 If interested n in getting any help or contributing back, please write to me on zaheer at hey.com.
