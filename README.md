@@ -30,9 +30,7 @@ The below is the backlog of features planned:
 - Other databases support (postgresql, oracle, sql server)
 
 ## License
-Free to use, modify and self-host — just not to sell as a competing hosted service. Each release becomes MIT after two years. [FSL-1.1-MIT](LICENSE).
-
-Questions? Email zaheer at hey.com.
+Free to use, modify and self-host — just not to sell as a competing hosted service. Each release becomes MIT after two years. [FSL-1.1-MIT](LICENSE) · [Details](LICENSING.md)
 
 ## Getting Help & Contributing Back
 If interested n in getting any help or contributing back, please write to me on zaheer at hey.com.
