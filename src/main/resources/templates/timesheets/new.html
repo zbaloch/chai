@@ -6,7 +6,7 @@
 
 <nav th:replace="~{fragments/nav :: nav}"></nav>
 
-<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+<main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
     <nav th:replace="~{fragments/ui :: breadcrumbs(null, null, null)}"></nav>
     <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Log time</h1>
@@ -71,7 +71,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
-            <a th:href="@{/projects}" class="text-sm/6 font-semibold text-gray-900">Cancel</a>
+            <a th:href="@{/{accountId}/projects(accountId=${session.currentAccount.id})}" class="text-sm/6 font-semibold text-gray-900">Cancel</a>
             <button type="submit"
                     class="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
                 Save entry

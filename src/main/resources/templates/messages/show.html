@@ -6,9 +6,9 @@
 
 <div th:replace="~{fragments/nav :: nav}"></div>
 
-<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+<main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
-    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, 'Messages', @{/project/{id}/messages(id=${project.id})})}"></nav>
+    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, 'Messages', @{/{accountId}/project/{id}/messages(accountId=${project.account.id}, id=${project.id})})}"></nav>
 
     <!-- Message -->
     <article class="mt-4 rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
@@ -16,7 +16,7 @@
             <div class="flex items-start justify-between gap-x-4">
                 <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900" th:text="${message.title}">Title</h1>
                 <a th:if="${message.user.id == currentUser.id}"
-                   th:href="@{/project/{projectId}/message/{messageId}/edit(projectId=${project.id},messageId=${message.id})}"
+                   th:href="@{/{accountId}/project/{projectId}/message/{messageId}/edit(accountId=${project.account.id}, projectId=${project.id},messageId=${message.id})}"
                    class="shrink-0 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50">
                     Edit
                 </a>
@@ -57,7 +57,7 @@
                             </span>
                         </p>
                         <button th:if="${currentUser.id == comment.user.id}" type="button"
-                                th:data-delete-url="@{/project/{p}/message/{m}/comment/{c}/delete(p=${project.id},m=${message.id},c=${comment.id})}"
+                                th:data-delete-url="@{/{accountId}/project/{p}/message/{m}/comment/{c}/delete(accountId=${project.account.id}, p=${project.id},m=${message.id},c=${comment.id})}"
                                 th:data-comment-id="${comment.id}"
                                 onclick="deleteComment(this)"
                                 class="-m-1.5 shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600">
@@ -79,9 +79,9 @@
         <!-- New comment -->
         <div id="comment_form" class="mt-8 flex gap-x-4">
             <img th:replace="~{fragments/ui :: avatar(${currentUser}, 'size-10')}">
-            <form th:action="@{/project/{projectId}/message/{messageId}/comment(projectId=${project.id},messageId=${message.id})}"
+            <form th:action="@{/{accountId}/project/{projectId}/message/{messageId}/comment(accountId=${project.account.id}, projectId=${project.id},messageId=${message.id})}"
                   th:object="${comment}" method="post" class="min-w-0 flex-auto">
-                <lexxy-editor th:data-direct-upload-url="@{/project/{id}/attachments/direct_uploads(id=${project.id})}" data-blob-url-template="/attachments/:signed_id/:filename" name="text" th:value="*{text}" class="lexxy-content editor-comment" placeholder="Add a comment…"></lexxy-editor>
+                <lexxy-editor th:data-direct-upload-url="@{/{accountId}/project/{id}/attachments/direct_uploads(accountId=${project.account.id}, id=${project.id})}" data-blob-url-template="/attachments/:signed_id/:filename" name="text" th:value="*{text}" class="lexxy-content editor-comment" placeholder="Add a comment…"></lexxy-editor>
                 <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></p>
                 <div class="mt-3 flex justify-end">
                     <button type="submit"

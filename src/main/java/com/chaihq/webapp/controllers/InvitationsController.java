@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.Invitation;
 import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.InvitationRepository;
@@ -88,7 +89,7 @@ public class InvitationsController {
         log.info("User {} joined account {} from an invitation", user.getId(), invitation.getAccount().getId());
 
         redirectAttributes.addFlashAttribute("notice", "Welcome to " + invitation.getAccount().getName() + "!");
-        return "redirect:/projects";
+        return "redirect:" + Paths.home(invitation.getAccount());
     }
 
     // Unused, unexpired invitations only

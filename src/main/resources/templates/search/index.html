@@ -6,16 +6,16 @@
 
 <nav th:replace="~{fragments/nav :: nav}"></nav>
 
-<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+<main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
     <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Search</h1>
 
-    <form th:action="@{/search}" method="get" class="mt-6 flex flex-col gap-3 sm:flex-row">
+    <form th:action="@{/{accountId}/search(accountId=${session.currentAccount.id})}" method="get" class="mt-6 flex flex-col gap-3 sm:flex-row">
         <input th:if="${type != null}" type="hidden" name="type" th:value="${type}"/>
         <div class="grid min-w-0 flex-1 grid-cols-1">
             <label for="search-q" class="sr-only">Search</label>
             <input id="search-q" type="search" name="q" th:value="${q}" autofocus autocomplete="off"
-                   th:placeholder="'Search messages, to-dos and comments in ' + ${account.name}"
+                   th:placeholder="'Search projects, messages, to-dos and comments in ' + ${account.name}"
                    class="col-start-1 row-start-1 block w-full rounded-md bg-white py-2 pr-3 pl-10 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6"/>
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 ml-3 size-5 self-center text-gray-400">
                 <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
@@ -40,7 +40,7 @@
         <!-- Type filters -->
         <nav class="mt-6 flex flex-wrap gap-2" aria-label="Filter results">
             <a th:each="f : ${filters}"
-               th:href="@{/search(q=${q}, type=${f.type}, project=${projectId})}"
+               th:href="@{/{accountId}/search(accountId=${session.currentAccount.id}, q=${q}, type=${f.type}, project=${projectId})}"
                th:classappend="${type == f.type} ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-700 inset-ring inset-ring-gray-300 hover:bg-gray-50'"
                class="inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-sm font-medium">
                 <span th:text="${f.label}">All</span>
@@ -56,8 +56,10 @@
                 <div class="min-w-0 flex-auto">
                     <p class="flex flex-wrap items-center gap-x-1.5 text-xs/5 text-gray-500">
                         <span class="font-medium text-gray-700" th:text="${hit.label}">Message</span>
-                        <span aria-hidden="true">·</span>
-                        <span th:text="${hit.project.name}">Project</span>
+                        <th:block th:if="${hit.type != 'projects'}">
+                            <span aria-hidden="true">·</span>
+                            <span th:text="${hit.project.name}">Project</span>
+                        </th:block>
                         <th:block th:if="${hit.date != null}">
                             <span aria-hidden="true">·</span>
                             <time th:text="${#dates.format(hit.date.time, 'MMM d, yyyy')}"></time>
@@ -84,7 +86,7 @@
     </th:block>
 
     <p th:if="${#strings.isEmpty(q)}" class="mt-6 text-sm text-gray-500">
-        Find messages, to-dos and comments across the projects you're on.
+        Find projects, messages, to-dos and comments across the projects you're on.
         Press <kbd class="rounded-sm bg-white px-1.5 py-0.5 font-sans text-xs text-gray-700 inset-ring inset-ring-gray-300">Shift + J</kbd>
         anywhere to search.
     </p>

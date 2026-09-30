@@ -9,6 +9,10 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.UserRepository;
 import com.chaihq.webapp.services.Accounts;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.HandlerMapping;
+import java.util.Map;
 import com.chaihq.webapp.utilities.Constants;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,10 +70,33 @@ public class CurrentUserSessionInterceptor implements HandlerInterceptor {
             e.printStackTrace();
         }
 
+        // Pages under /{accountId}/... work in that account: it must be one of yours, and it becomes
+        // the account you're working in (so the nav, and "/" next time, follow the page you're on)
+        Object accountId = accountIdFromUrl(request);
+        if (accountId != null) {
+            HttpSession session = request.getSession();
+            User user = session.getAttribute(Constants.CURRENT_USER) instanceof User u ? u : null;
+            long id;
+            try {
+                id = Long.parseLong(accountId.toString());
+            } catch (NumberFormatException e) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND); // too many digits to be an account
+            }
+            if (user == null || !accounts.switchTo(session, user, id)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+        }
+
         return true;
     }
 
     private static String initial(String name) {
         return name == null || name.isEmpty() ? "" : name.substring(0, 1);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object accountIdFromUrl(HttpServletRequest request) {
+        Object variables = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        return variables instanceof Map<?, ?> map ? ((Map<String, String>) map).get("accountId") : null;
     }
 }

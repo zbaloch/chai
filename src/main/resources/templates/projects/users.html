@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/head :: head}"></head>
 <body class="min-h-screen bg-canvas font-sans antialiased">
 <nav th:replace="~{fragments/nav :: nav}"></nav>
-<main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+<main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
     <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
     <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">People on this project</h1>
     <p class="mt-1 text-sm text-gray-500">
@@ -26,7 +26,7 @@
                     <p class="truncate text-xs/5 text-gray-500" th:text="${user.email}"></p>
                 </div>
             </div>
-            <form th:if="${canManage}" th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="shrink-0">
+            <form th:if="${canManage}" th:action="@{/{accountId}/project/{id}/users(accountId=${project.account.id}, id=${project.id})}" method="post" class="shrink-0">
                 <input type="hidden" name="action" value="remove"/>
                 <input type="hidden" name="userId" th:value="${user.id}"/>
                 <button type="submit"
@@ -42,7 +42,7 @@
             <h2 class="text-base font-semibold text-gray-900">
                 Add people from <span th:text="${project.account.name}"></span>
             </h2>
-            <a th:if="${canManage}" th:href="@{/account/people}" class="text-sm font-semibold text-sky-600 hover:text-sky-500">
+            <a th:if="${canManage}" th:href="@{/{accountId}/people(accountId=${session.currentAccount.id})}" class="text-sm font-semibold text-sky-600 hover:text-sky-500">
                 Invite someone new
             </a>
         </div>
@@ -57,7 +57,7 @@
                         <p class="truncate text-xs/5 text-gray-500" th:text="${user.email}"></p>
                     </div>
                 </div>
-                <form th:action="@{/project/{id}/users(id=${project.id})}" method="post" class="shrink-0">
+                <form th:action="@{/{accountId}/project/{id}/users(accountId=${project.account.id}, id=${project.id})}" method="post" class="shrink-0">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="userId" th:value="${user.id}"/>
                     <button type="submit"
@@ -71,7 +71,7 @@
         <p th:if="${#lists.isEmpty(others)}" class="mt-4 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
             Everyone in <span th:text="${project.account.name}"></span> is on this project.
             <th:block th:if="${canManage}">
-                <a th:href="@{/account/people}" class="font-semibold text-sky-600 hover:text-sky-500">Invite someone new</a> to add more people.
+                <a th:href="@{/{accountId}/people(accountId=${session.currentAccount.id})}" class="font-semibold text-sky-600 hover:text-sky-500">Invite someone new</a> to add more people.
             </th:block>
         </p>
     </section>

@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import com.chaihq.webapp.interceptors.CurrentUserSessionInterceptor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -81,13 +84,21 @@ public class ProjectAccess {
         return isMember(project, user) && accounts.isAdmin(project.getAccount(), user);
     }
 
-    /** A project the user can work in. */
+    /** A project the user can work in. Under /{accountId}/... it must also be in that account. */
     public Project project(Long projectId, User user) {
         Project project = projectId == null ? null : projectRepository.findById(projectId).orElse(null);
-        if (!isMember(project, user)) {
+        if (!isMember(project, user) || !inUrlAccount(project)) {
             throw denied(user, "project", projectId);
         }
         return project;
+    }
+
+    private static boolean inUrlAccount(Project project) {
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
+            return true; // not a web request
+        }
+        Object accountId = CurrentUserSessionInterceptor.accountIdFromUrl(attributes.getRequest());
+        return accountId == null || accountId.toString().equals(String.valueOf(project.getAccount().getId()));
     }
 
     /** A project the user can manage (delete) — an owner or admin of its account. */

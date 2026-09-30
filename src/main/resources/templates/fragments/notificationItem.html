@@ -24,32 +24,32 @@
 
         <p class="truncate text-sm/6 font-medium text-gray-900" th:switch="${n.message}">
             <a th:case="'new_message'"
-               th:href="@{/project/{p}/message/{m}(p=${n.messageObject.projectId},m=${n.messageObject.id})}">
+               th:href="@{/{a}/project/{p}/message/{m}(a=${n.messageObject.project.account.id},p=${n.messageObject.projectId},m=${n.messageObject.id})}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.messageObject.title}"></span>
             </a>
             <a th:case="'new_todo'"
-               th:href="@{/project/{p}/todo/{t}(p=${n.todo.project.id},t=${n.todo.id})}">
+               th:href="@{/{a}/project/{p}/todo/{t}(a=${n.todo.project.account.id},p=${n.todo.project.id},t=${n.todo.id})}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.todo.description}"></span>
             </a>
             <a th:case="'completed_todo'"
-               th:href="@{/project/{p}/todo/{t}(p=${n.todo.project.id},t=${n.todo.id})}">
+               th:href="@{/{a}/project/{p}/todo/{t}(a=${n.todo.project.account.id},p=${n.todo.project.id},t=${n.todo.id})}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.todo.description}"></span>
             </a>
             <a th:case="'new_message_comment'"
-               th:href="@{/project/{p}/message/{m}(p=${n.comment.projectId},m=${n.comment.message.id})} + '#comment_' + ${n.comment.id}">
+               th:href="@{/{a}/project/{p}/message/{m}(a=${n.comment.project.account.id},p=${n.comment.projectId},m=${n.comment.message.id})} + '#comment_' + ${n.comment.id}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.comment.message.title}"></span>
             </a>
             <a th:case="'new_todo_comment'"
-               th:href="@{/project/{p}/todo/{t}(p=${n.comment.projectId},t=${n.comment.todo.id})} + '#comment_' + ${n.comment.id}">
+               th:href="@{/{a}/project/{p}/todo/{t}(a=${n.comment.project.account.id},p=${n.comment.projectId},t=${n.comment.todo.id})} + '#comment_' + ${n.comment.id}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.comment.todo.description}"></span>
             </a>
             <a th:case="'new_file'"
-               th:href="@{/project/{p}/files(p=${n.activeStorageFile.projectId})}">
+               th:href="@{/{a}/project/{p}/files(a=${n.activeStorageFile.project.account.id},p=${n.activeStorageFile.projectId})}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.activeStorageFile.fileName}"></span>
             </a>

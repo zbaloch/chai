@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.*;
 import com.chaihq.webapp.services.ProjectAccess;
@@ -59,7 +60,7 @@ public class AttachmentsController {
         this.projectAccess = projectAccess;
     }
 
-    @PostMapping(path = "/project/{projectId}/attachments/direct_uploads", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = Paths.ACCOUNT + "/project/{projectId}/attachments/direct_uploads", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createDirectUpload(@PathVariable Long projectId, @RequestBody Map<String, Map<String, Object>> body,
                                                 HttpServletRequest request) {
         User currentUser = projectAccess.currentUser();

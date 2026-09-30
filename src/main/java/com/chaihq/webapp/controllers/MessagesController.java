@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.*;
 import com.chaihq.webapp.services.ProjectAccess;
@@ -34,6 +35,7 @@ import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 
 @Controller
+@RequestMapping(Paths.ACCOUNT)
 public class MessagesController {
 
     private final StorageService storageService;
@@ -115,7 +117,7 @@ public class MessagesController {
         notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_MESSAGE, message.getId(), Constants.NOTIFICATION_MESSAGE_NEW_MESSAGE);
 
         redirectAttributes.addFlashAttribute("notice", "Your message created!");
-        return "redirect:/project/" + project.getId() + "/message/" + message.getId();
+        return "redirect:" + Paths.project(project) + "/message/" + message.getId();
     }
 
     @GetMapping("/project/{project_id}/message/{message_id}")
@@ -173,7 +175,7 @@ public class MessagesController {
         messageRepository.save(messageToUpdate);
 
         redirectAttributes.addFlashAttribute("notice", "Your message was updated!");
-        return "redirect:/project/" + project.getId() + "/message/" + messageToUpdate.getId();
+        return "redirect:" + Paths.project(project) + "/message/" + messageToUpdate.getId();
     }
 
     @PostMapping("/project/{project_id}/message/{message_id}/delete")
@@ -189,7 +191,7 @@ public class MessagesController {
         notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(message.getId()));
 
         redirectAttributes.addFlashAttribute("notice", "Your message was deleted!");
-        return "redirect:/project/" + project.getId() + "/messages";
+        return "redirect:" + Paths.project(project) + "/messages";
     }
 
     @PostMapping("/project/{project_id}/message/{message_id}/comment")
@@ -219,7 +221,7 @@ public class MessagesController {
         notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_MESSAGE_COMMENT, comment.getId(), Constants.NOTIFICATION_MESSAGE_NEW_MESSAGE_COMMENT);
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been added!");
-        return "redirect:/project/" + project.getId() + "/message/" + message.getId() + "#comment_" + comment.getId();
+        return "redirect:" + Paths.project(project) + "/message/" + message.getId() + "#comment_" + comment.getId();
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value="/project/{project_id}/message/{message_id}/comment/{comment_id}/delete",

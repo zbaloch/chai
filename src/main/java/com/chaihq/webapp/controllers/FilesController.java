@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.ActiveStorageFile;
 import com.chaihq.webapp.models.Notification;
 import com.chaihq.webapp.models.Project;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping(Paths.ACCOUNT)
 public class FilesController {
 
     private final StorageService storageService;
@@ -137,7 +139,7 @@ public class FilesController {
         notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_FILE, activeStorageFile.getId(), Constants.NOTIFICATION_MESSAGE_NEW_FILE);
 
         redirectAttributes.addFlashAttribute("notice", "File uploaded!");
-        return "redirect:/project/" + project.getId() + "/files";
+        return "redirect:" + Paths.project(project) + "/files";
     }
 
     @InitBinder("activeStorageFile")

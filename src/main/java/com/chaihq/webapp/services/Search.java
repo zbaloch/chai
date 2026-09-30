@@ -5,20 +5,22 @@ import com.chaihq.webapp.repositories.CommentRepository;
 import com.chaihq.webapp.repositories.MessageRepository;
 import com.chaihq.webapp.repositories.TodoRepository;
 import com.chaihq.webapp.utilities.Constants;
+import com.chaihq.webapp.utilities.Paths;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 /**
- * Searches messages, to-dos and comments in the projects someone can see in their current account.
+ * Searches projects (name and description), messages, to-dos and comments in the projects someone
+ * can see in their current account.
  * Rich text is matched as plain text (so tag names never match), every word typed must appear,
  * and results come back newest first with a highlighted snippet.
  */
 @Service
 public class Search {
 
-    public static final String MESSAGES = "messages", TODOS = "todos", COMMENTS = "comments";
+    public static final String PROJECTS = "projects", MESSAGES = "messages", TODOS = "todos", COMMENTS = "comments";
     private static final int MAX_TERMS = 6, SNIPPET_BEFORE = 60, SNIPPET_LENGTH = 180, MAX_RESULTS = 100;
 
     /** A piece of snippet text; matches are shown highlighted. Rendered with th:text, never as HTML. */
@@ -55,7 +57,7 @@ public class Search {
     /** @param projects the projects the person can see; the only ones searched */
     public Results search(String query, List<Project> projects, String type) {
         List<String> terms = terms(query);
-        Map<String, Integer> counts = new LinkedHashMap<>(Map.of(MESSAGES, 0, TODOS, 0, COMMENTS, 0));
+        Map<String, Integer> counts = new LinkedHashMap<>(Map.of(PROJECTS, 0, MESSAGES, 0, TODOS, 0, COMMENTS, 0));
         if (terms.isEmpty() || projects.isEmpty()) {
             return new Results(List.of(), counts);
         }
@@ -68,11 +70,19 @@ public class Search {
         String pattern = "%" + longest.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
 
         List<Hit> hits = new ArrayList<>();
+        // Projects are already loaded (they're the ones this person can see), so match them here
+        for (Project project : projects) {
+            String description = project.getDescription() == null ? "" : project.getDescription();
+            if (matchesAll(project.getName() + " " + description, terms)) {
+                hits.add(new Hit(PROJECTS, "Project", project.getName(), Paths.project(project),
+                        project, project.getUser(), project.getCreatedAt(), snippet(description, terms)));
+            }
+        }
         for (Message message : messageRepository.search(projectIds, pattern)) {
             String text = plain(message.getContent());
             if (matchesAll(message.getTitle() + " " + text, terms)) {
                 hits.add(new Hit(MESSAGES, "Message", message.getTitle(),
-                        "/project/" + message.getProjectId() + "/message/" + message.getId(),
+                        Paths.project(byId.get(message.getProjectId())) + "/message/" + message.getId(),
                         byId.get(message.getProjectId()), message.getUser(), message.getCreatedAt(), snippet(text, terms)));
             }
         }
@@ -80,7 +90,7 @@ public class Search {
             String text = plain(todo.getNotes());
             if (todo.getProject() != null && matchesAll(todo.getDescription() + " " + text, terms)) {
                 hits.add(new Hit(TODOS, todo.isDone() ? "Completed to-do" : "To-do", todo.getDescription(),
-                        "/project/" + todo.getProject().getId() + "/todo/" + todo.getId(),
+                        Paths.project(byId.get(todo.getProject().getId())) + "/todo/" + todo.getId(),
                         byId.get(todo.getProject().getId()), todo.getCreatedBy(), todo.getCreatedAt(), snippet(text, terms)));
             }
         }
@@ -92,10 +102,10 @@ public class Search {
             String parent, url;
             if (comment.getMessage() != null && !Constants.DELETED.equals(comment.getMessage().getStatus())) {
                 parent = comment.getMessage().getTitle();
-                url = "/project/" + comment.getProjectId() + "/message/" + comment.getMessage().getId();
+                url = Paths.project(byId.get(comment.getProjectId())) + "/message/" + comment.getMessage().getId();
             } else if (comment.getTodo() != null) {
                 parent = comment.getTodo().getDescription();
-                url = "/project/" + comment.getProjectId() + "/todo/" + comment.getTodo().getId();
+                url = Paths.project(byId.get(comment.getProjectId())) + "/todo/" + comment.getTodo().getId();
             } else {
                 continue; // on a deleted message
             }
@@ -106,7 +116,9 @@ public class Search {
         hits.forEach(hit -> counts.merge(hit.type(), 1, Integer::sum));
         List<Hit> shown = hits.stream()
                 .filter(hit -> type == null || type.isBlank() || hit.type().equals(type))
-                .sorted(Comparator.comparing((Hit hit) -> hit.date() == null ? 0L : hit.date().getTimeInMillis()).reversed())
+                // Projects first (they're where you're usually heading), then newest first
+                .sorted(Comparator.comparing((Hit hit) -> !hit.type().equals(PROJECTS))
+                        .thenComparing(Comparator.comparing((Hit hit) -> hit.date() == null ? 0L : hit.date().getTimeInMillis()).reversed()))
                 .limit(MAX_RESULTS)
                 .toList();
         return new Results(shown, counts);

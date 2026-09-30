@@ -7,18 +7,18 @@
 
         <!-- Logged-in user navigation -->
         <nav class="border-b border-gray-900/5 bg-white/80 backdrop-blur-sm">
-            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
                     <div class="flex items-center gap-x-8">
-                        <a th:href="@{/projects}" class="flex items-center">
+                        <a th:href="${session.currentAccount != null} ? @{/{accountId}/projects(accountId=${session.currentAccount.id})} : @{/accounts}" class="flex items-center">
                             <span class="text-base font-semibold tracking-tight text-gray-900" th:text="#{company.name}">Chai</span>
                         </a>
                         <div class="flex gap-x-1">
-                            <a th:href="@{/projects}" data-nav="projects"
+                            <a th:href="${session.currentAccount != null} ? @{/{accountId}/projects(accountId=${session.currentAccount.id})} : @{/accounts}" data-nav="projects"
                                class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
                                 Projects
                             </a>
-                            <a th:if="${session.currentAccount != null}" th:href="@{/account/people}" data-nav="people"
+                            <a th:if="${session.currentAccount != null}" th:href="@{/{accountId}/people(accountId=${session.currentAccount.id})}" data-nav="people"
                                class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
                                 People
                             </a>
@@ -26,7 +26,7 @@
                     </div>
 
                     <div class="flex items-center gap-x-4">
-                        <a th:href="@{/search}" id="nav-search" data-nav="search" title="Search (Shift + J)"
+                        <a th:href="${session.currentAccount != null} ? @{/{accountId}/search(accountId=${session.currentAccount.id})} : @{/accounts}" id="nav-search" data-nav="search" title="Search (Shift + J)"
                            class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 data-active:text-gray-900">
                             <span class="absolute -inset-1.5"></span>
                             <span class="sr-only">Search</span>
@@ -59,9 +59,9 @@
                                 </div>
                                 <div th:if="${session.currentAccount != null}" class="py-1">
                                     <p class="truncate px-4 pt-2 pb-1 text-xs font-medium text-gray-500" th:text="${session.currentAccount.name}">Account</p>
-                                    <a th:href="@{/account/people}"
+                                    <a th:href="@{/{accountId}/people(accountId=${session.currentAccount.id})}"
                                        class="block px-4 py-2 text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">People</a>
-                                    <a th:if="${session.currentAccountRole == 'owner' or session.currentAccountRole == 'admin'}" th:href="@{/account/edit}"
+                                    <a th:if="${session.currentAccountRole == 'owner' or session.currentAccountRole == 'admin'}" th:href="@{/{accountId}/settings(accountId=${session.currentAccount.id})}"
                                        class="block px-4 py-2 text-sm text-gray-700 focus:bg-gray-100 focus:text-gray-900 focus:outline-hidden">Account settings</a>
                                 </div>
                                 <div class="py-1">
@@ -86,8 +86,8 @@
             (function () {
                 // Highlight the current section. Thymeleaf 3.1 can't read the request URI, so do it client-side.
                 var section = /\/hey\/?$/.test(location.pathname) ? 'hey'
-                    : /^\/search/.test(location.pathname) ? 'search'
-                    : /^\/account\/people/.test(location.pathname) ? 'people' : 'projects';
+                    : /^\/\d+\/search/.test(location.pathname) ? 'search'
+                    : /^\/\d+\/people/.test(location.pathname) ? 'people' : 'projects';
                 document.querySelectorAll('[data-nav]').forEach(function (a) {
                     if (a.dataset.nav === section) a.setAttribute('data-active', '');
                     else a.removeAttribute('data-active');
@@ -107,8 +107,8 @@
                         var box = document.getElementById('search-q');
                         e.preventDefault();
                         if (box) { box.focus(); box.select(); }
-                        else if (window.Turbolinks) Turbolinks.visit('/search');
-                        else location.href = '/search';
+                        else if (window.Turbolinks) Turbolinks.visit(document.getElementById('nav-search').href);
+                        else location.href = document.getElementById('nav-search').href;
                     });
                 }
 
@@ -125,7 +125,7 @@
     <div sec:authorize="isAnonymous()">
         <!-- Guest user navigation -->
         <nav class="border-b border-gray-900/5 bg-white/80 backdrop-blur-sm">
-            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center">
                     <a th:href="@{/projects}" class="flex items-center">
                         <span class="text-base font-semibold tracking-tight text-gray-900" th:text="#{company.name}">Chai</span>

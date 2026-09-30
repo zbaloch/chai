@@ -7,7 +7,7 @@
 
     <div th:replace="~{fragments/nav :: nav}"></div>
 
-    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8" th:with="today=${#dates.createToday()}">
+    <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8" th:with="today=${#dates.createToday()}">
 
         <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
         <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">To-dos</h1>
@@ -15,7 +15,7 @@
 
         <!-- Pending -->
         <div class="mt-8 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
-            <ul id="pending-todos-list" th:data-project-id="${project.id}" role="list" class="divide-y divide-gray-100">
+            <ul id="pending-todos-list" th:data-project-id="${project.id}" th:data-reorder-url="@{/{accountId}/project/{id}/todos/reorder(accountId=${project.account.id}, id=${project.id})}" role="list" class="divide-y divide-gray-100">
                 <th:block th:each="todo : ${pendingTodos}">
                     <li th:data-id="${todo.id}" draggable="true"
                         class="todo-item group relative flex cursor-grab items-center gap-x-3 py-3 pr-4 pl-2 hover:bg-gray-50 sm:pr-6">
@@ -28,7 +28,7 @@
                         <span class="size-4 shrink-0 rounded-full border-2 border-gray-300" aria-hidden="true"></span>
 
                         <div class="min-w-0 flex-auto">
-                            <a th:href="@{/project/{projectId}/todo/{todoId}(projectId=${project.id}, todoId=${todo.id})}"
+                            <a th:href="@{/{accountId}/project/{projectId}/todo/{todoId}(accountId=${project.account.id}, projectId=${project.id}, todoId=${todo.id})}"
                                draggable="false" class="text-sm/6 font-medium text-gray-900">
                                 <span class="absolute inset-0" aria-hidden="true"></span>
                                 <span th:text="${todo.description}">To-do</span>
@@ -69,7 +69,7 @@
                 Nothing left to do. Nice work!
             </p>
 
-            <a th:href="@{/project/{id}/todo/new(id=${project.id})}"
+            <a th:href="@{/{accountId}/project/{id}/todo/new(accountId=${project.account.id}, id=${project.id})}"
                class="flex items-center gap-x-2 border-t border-gray-100 px-4 py-3 text-sm font-medium text-sky-600 hover:bg-gray-50 hover:text-sky-500 sm:px-6">
                 <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
                     <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
@@ -91,7 +91,7 @@
                         </svg>
                     </span>
                     <div class="min-w-0 flex-auto">
-                        <a th:href="@{/project/{projectId}/todo/{todoId}(projectId=${project.id}, todoId=${todo.id})}"
+                        <a th:href="@{/{accountId}/project/{projectId}/todo/{todoId}(accountId=${project.account.id}, projectId=${project.id}, todoId=${todo.id})}"
                            class="text-sm/6 text-gray-500 line-through decoration-gray-300">
                             <span class="absolute inset-0" aria-hidden="true"></span>
                             <span th:text="${todo.description}">To-do</span>
@@ -148,7 +148,7 @@
                 }
 
                 try {
-                    const response = await fetch(`/project/${projectId}/todos/reorder`, {
+                    const response = await fetch(list.dataset.reorderUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

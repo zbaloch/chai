@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.*;
 import com.chaihq.webapp.services.ProjectAccess;
@@ -32,6 +33,7 @@ import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 
 @Controller
+@RequestMapping(Paths.ACCOUNT)
 public class TodosController {
 
     private static final Logger logger = LoggerFactory.getLogger(TodosController.class);
@@ -148,7 +150,7 @@ public class TodosController {
         notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_TODO, todo.getId(), Constants.NOTIFICATION_MESSAGE_NEW_TODO);
 
         redirectAttributes.addFlashAttribute("notice", "Your todo was created!");
-        return "redirect:/project/" + project.getId() + "/todos";
+        return "redirect:" + Paths.project(project) + "/todos";
     }
 
     @GetMapping("/project/{project_id}/todo/{todo_id}")
@@ -219,7 +221,7 @@ public class TodosController {
         todoRepository.save(todoToUpdate);
 
         redirectAttributes.addFlashAttribute("notice", "Your todo was updated!");
-        return "redirect:/project/" + project.getId() + "/todo/" + todoToUpdate.getId();
+        return "redirect:" + Paths.project(project) + "/todo/" + todoToUpdate.getId();
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/delete")
@@ -233,7 +235,7 @@ public class TodosController {
         notificationRepository.deleteInBatch(notificationRepository.findAllByObjectId(todo.getId()));
 
         redirectAttributes.addFlashAttribute("notice", "Your todo was deleted!");
-        return "redirect:/project/" + project.getId() + "/todos";
+        return "redirect:" + Paths.project(project) + "/todos";
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/complete")
@@ -246,7 +248,7 @@ public class TodosController {
         todo.setDone(true);
         todoRepository.save(todo);
         redirectAttributes.addFlashAttribute("notice", "Good job! You completed a to-do!");
-        return "redirect:/project/" + project.getId() + "/todos";
+        return "redirect:" + Paths.project(project) + "/todos";
     }
 
     @PostMapping("/project/{project_id}/todo/{todo_id}/comment")
@@ -276,7 +278,7 @@ public class TodosController {
         notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_TODO_COMMENT, comment.getId(), Constants.NOTIFICATION_MESSAGE_NEW_TODO_COMMENT);
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been added!");
-        return "redirect:/project/" + project.getId() + "/todo/" + todo.getId() + "#comment_" + comment.getId();
+        return "redirect:" + Paths.project(project) + "/todo/" + todo.getId() + "#comment_" + comment.getId();
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value="/project/{project_id}/todo/{todo_id}/comment/{comment_id}/delete",
@@ -295,9 +297,10 @@ public class TodosController {
                                         @PathVariable("todo_id") long todoId,
                                         @PathVariable("comment_id") long commentId,
                                         RedirectAttributes redirectAttributes) {
-        deleteWithNotifications(deletableComment(projectId, todoId, commentId));
+        Comment comment = deletableComment(projectId, todoId, commentId);
+        deleteWithNotifications(comment);
         redirectAttributes.addFlashAttribute("notice", "Your comment has been deleted!");
-        return "redirect:/project/" + projectId + "/todo/" + todoId + "#comment_form";
+        return "redirect:" + Paths.project(comment.getTodo().getProject()) + "/todo/" + todoId + "#comment_form";
     }
 
     private Comment deletableComment(long projectId, long todoId, long commentId) {

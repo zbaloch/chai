@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.AccountMemberRepository;
 import com.chaihq.webapp.repositories.AccountRepository;
@@ -66,7 +67,7 @@ public class AccountsController {
         if (!accounts.switchTo(session, currentUser, id)) {
             throw projectAccess.denied(currentUser, "account", id);
         }
-        return "redirect:/projects";
+        return "redirect:" + Paths.account(id) + "/projects";
     }
 
     @GetMapping("/accounts/new")
@@ -85,10 +86,10 @@ public class AccountsController {
         Account account = accounts.create(name, currentUser);
         accounts.switchTo(session, currentUser, account.getId());
         redirectAttributes.addFlashAttribute("notice", name.trim() + " is ready. Start a project or invite your team.");
-        return "redirect:/projects";
+        return "redirect:" + Paths.home(account);
     }
 
-    @GetMapping("/account/people")
+    @GetMapping(Paths.ACCOUNT + "/people")
     public String people(Model model, HttpSession session) {
         User currentUser = projectAccess.currentUser();
         Account account = requireCurrent(session, currentUser);
@@ -96,7 +97,7 @@ public class AccountsController {
         return "account/people";
     }
 
-    @PostMapping("/account/invitations")
+    @PostMapping(Paths.ACCOUNT + "/invitations")
     public String invite(@RequestParam(value = "email", required = false) String emailParam,
                          @RequestParam(value = "role", required = false) String role,
                          Model model, HttpSession session) {
@@ -135,7 +136,7 @@ public class AccountsController {
         return "account/people";
     }
 
-    @PostMapping("/account/invitations/{id}/cancel")
+    @PostMapping(Paths.ACCOUNT + "/invitations/{id}/cancel")
     public String cancelInvitation(@PathVariable long id, HttpSession session, RedirectAttributes redirectAttributes) {
         User currentUser = projectAccess.currentUser();
         Account account = requireAdmin(session, currentUser);
@@ -145,10 +146,10 @@ public class AccountsController {
         }
         invitationRepository.delete(invitation);
         redirectAttributes.addFlashAttribute("notice", "Invitation to " + invitation.getEmail() + " cancelled.");
-        return "redirect:/account/people";
+        return "redirect:" + Paths.account(account) + "/people";
     }
 
-    @PostMapping("/account/people/{memberId}/role")
+    @PostMapping(Paths.ACCOUNT + "/people/{memberId}/role")
     public String changeRole(@PathVariable long memberId, @RequestParam("role") String role,
                              HttpSession session, RedirectAttributes redirectAttributes) {
         User currentUser = projectAccess.currentUser();
@@ -167,11 +168,11 @@ public class AccountsController {
             memberRepository.save(membership);
             redirectAttributes.addFlashAttribute("notice", membership.getUser().getFirstName() + " is now " + roleName(role) + ".");
         }
-        return "redirect:/account/people";
+        return "redirect:" + Paths.account(account) + "/people";
     }
 
     // Admins remove people; anyone can leave. Leaving or removal also takes them off the account's projects.
-    @PostMapping("/account/people/{memberId}/remove")
+    @PostMapping(Paths.ACCOUNT + "/people/{memberId}/remove")
     public String remove(@PathVariable long memberId, HttpSession session, RedirectAttributes redirectAttributes) {
         User currentUser = projectAccess.currentUser();
         Account account = requireCurrent(session, currentUser);
@@ -183,11 +184,11 @@ public class AccountsController {
         }
         if (Constants.ROLE_OWNER.equals(membership.getRole()) && !leaving && !accounts.isOwner(account, currentUser)) {
             redirectAttributes.addFlashAttribute("destruction_notice", "Only owners can remove an owner.");
-            return "redirect:/account/people";
+            return "redirect:" + Paths.account(account) + "/people";
         }
         if (isLastOwner(account, membership)) {
             redirectAttributes.addFlashAttribute("destruction_notice", "An account needs at least one owner. Make someone else an owner first.");
-            return "redirect:/account/people";
+            return "redirect:" + Paths.account(account) + "/people";
         }
 
         User person = membership.getUser();
@@ -203,16 +204,16 @@ public class AccountsController {
             return "redirect:/accounts";
         }
         redirectAttributes.addFlashAttribute("notice", person.getFirstName() + " was removed from " + account.getName() + ".");
-        return "redirect:/account/people";
+        return "redirect:" + Paths.account(account) + "/people";
     }
 
-    @GetMapping("/account/edit")
+    @GetMapping(Paths.ACCOUNT + "/settings")
     public String edit(Model model, HttpSession session) {
         model.addAttribute("account", requireAdmin(session, projectAccess.currentUser()));
         return "account/edit";
     }
 
-    @PostMapping("/account/edit")
+    @PostMapping(Paths.ACCOUNT + "/settings")
     public String update(@RequestParam(value = "name", required = false) String name, Model model,
                          HttpSession session, RedirectAttributes redirectAttributes) {
         User currentUser = projectAccess.currentUser();
@@ -226,7 +227,7 @@ public class AccountsController {
         accountRepository.save(account);
         accounts.switchTo(session, currentUser, account.getId());
         redirectAttributes.addFlashAttribute("notice", "Account renamed to " + account.getName() + ".");
-        return "redirect:/account/people";
+        return "redirect:" + Paths.account(account) + "/people";
     }
 
     private void showPeople(Account account, User currentUser, Model model) {

@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.TimesheetRepository;
@@ -23,6 +24,7 @@ import java.util.Calendar;
 import java.util.List;
 
 @Controller
+@RequestMapping(Paths.ACCOUNT)
 public class ProjectsController {
 
     @Autowired
@@ -44,7 +46,7 @@ public class ProjectsController {
     private TimesheetRepository timesheetRepository;
 
     // Home: the projects in the account you're working in
-    @RequestMapping(value = {"/", "/projects"}, method = RequestMethod.GET)
+    @GetMapping("/projects")
     public String index(Model model, HttpSession session) {
         User currentUser = projectAccess.currentUser();
         Account account = accounts.current(session, currentUser);
@@ -96,15 +98,13 @@ public class ProjectsController {
         project.setCreatedAt(Calendar.getInstance());
         projectRepository.save(project);
         redirectAttributes.addFlashAttribute("notice", "Project saved!");
-        return "redirect:/project/" + project.getId();
+        return "redirect:" + Paths.project(project);
     }
 
     @GetMapping("/project/{id}")
     public String show(@PathVariable Long id, Model model, HttpSession session) {
         User currentUser = projectAccess.currentUser();
         Project project = projectAccess.project(id, currentUser);
-        // Opening a project from another account (e.g. a notification link) switches to that account
-        accounts.switchTo(session, currentUser, project.getAccount().getId());
 
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("project", project);
@@ -118,7 +118,7 @@ public class ProjectsController {
         projectToDelete.setStatus(Constants.DELETED);
         projectRepository.save(projectToDelete);
         redirectAttributes.addFlashAttribute("destruction_notice", "Project deleted!");
-        return "redirect:/projects";
+        return "redirect:" + Paths.home(projectToDelete.getAccount());
     }
 
     // Anyone on a project can add people from its account; only account owners and admins can remove them
@@ -195,7 +195,7 @@ public class ProjectsController {
         projectToUpdate.setDescription(project.getDescription());
         projectRepository.save(projectToUpdate);
         redirectAttributes.addFlashAttribute("notice", "Project updated!");
-        return "redirect:/project/" + id;
+        return "redirect:" + Paths.project(projectToUpdate);
     }
 
     // Only these fields may come from forms; anything else (account, members, status, id) is ignored

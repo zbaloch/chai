@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.Account;
 import com.chaihq.webapp.models.Project;
 import com.chaihq.webapp.models.User;
@@ -10,17 +11,19 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Set;
 
 @Controller
+@RequestMapping(Paths.ACCOUNT)
 public class SearchController {
 
     public record Filter(String type, String label, int count) {}
 
-    private static final Set<String> TYPES = Set.of(Search.MESSAGES, Search.TODOS, Search.COMMENTS);
+    private static final Set<String> TYPES = Set.of(Search.PROJECTS, Search.MESSAGES, Search.TODOS, Search.COMMENTS);
 
     private final Search search;
     private final Accounts accounts;
@@ -60,6 +63,7 @@ public class SearchController {
         int total = results.counts().values().stream().mapToInt(Integer::intValue).sum();
         model.addAttribute("filters", List.of(
                 new Filter(null, "All", total),
+                new Filter(Search.PROJECTS, "Projects", results.counts().get(Search.PROJECTS)),
                 new Filter(Search.MESSAGES, "Messages", results.counts().get(Search.MESSAGES)),
                 new Filter(Search.TODOS, "To-dos", results.counts().get(Search.TODOS)),
                 new Filter(Search.COMMENTS, "Comments", results.counts().get(Search.COMMENTS))));

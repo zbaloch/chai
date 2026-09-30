@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.ActiveStorageFileRepository;
 import com.chaihq.webapp.repositories.ChatRepository;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping(Paths.ACCOUNT)
 public class ChatController {
 
     private final SimpMessagingTemplate template;

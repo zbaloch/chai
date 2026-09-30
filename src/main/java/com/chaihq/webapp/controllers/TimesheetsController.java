@@ -1,5 +1,6 @@
 package com.chaihq.webapp.controllers;
 
+import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.Project;
 import com.chaihq.webapp.models.ProjectUserForm;
 import com.chaihq.webapp.models.Timesheet;
@@ -88,7 +89,7 @@ public class TimesheetsController {
     // Old duplicate of the project page
     @GetMapping("/timesheet/{id}")
     public String show(@PathVariable Long id) {
-        return "redirect:/project/" + projectAccess.project(id, projectAccess.currentUser()).getId();
+        return "redirect:" + Paths.project(projectAccess.project(id, projectAccess.currentUser()));
     }
 
     @PostMapping("/timesheet/{id}/delete")
