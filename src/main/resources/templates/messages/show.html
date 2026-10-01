@@ -45,7 +45,7 @@
         </h2>
 
         <ul role="list" class="mt-6 space-y-6">
-            <li th:each="comment : ${message.comments}" th:id="'comment_' + ${comment.id}" class="flex gap-x-4">
+            <li th:each="comment : ${message.comments}" th:id="'comment_' + ${comment.id}" data-comment class="flex gap-x-4">
                 <img th:replace="~{fragments/ui :: avatar(${comment.user}, 'size-10')}">
                 <div class="min-w-0 flex-auto rounded-xl bg-white p-4 shadow-xs ring-1 ring-gray-900/5">
                     <div class="flex items-start justify-between gap-x-4">
@@ -54,9 +54,12 @@
                             <span class="ml-1 text-gray-500">
                                 <span th:text="${#dates.format(comment.createdAt.time, 'MMM d, yyyy')}"></span>
                                 at <span th:text="${#dates.format(comment.createdAt.time, 'h:mm a')}"></span>
+                                <th:block th:if="${comment.editedAt != null}"> · Edited</th:block>
                             </span>
                         </p>
-                        <button th:if="${currentUser.id == comment.user.id}" type="button"
+                        <div th:if="${currentUser.id == comment.user.id}" class="flex shrink-0 items-center gap-x-3">
+                        <button th:replace="~{fragments/comments :: editButton}"></button>
+                        <button type="button"
                                 th:data-delete-url="@{/{accountId}/project/{p}/message/{m}/comment/{c}/delete(accountId=${project.account.id}, p=${project.id},m=${message.id},c=${comment.id})}"
                                 th:data-comment-id="${comment.id}"
                                 onclick="deleteComment(this)"
@@ -70,8 +73,12 @@
                                 <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                             </svg>
                         </button>
+                        </div>
                     </div>
-                    <div class="lexxy-content mt-1 text-sm/6 text-gray-700" th:with="html=${@richText.render(comment.text)}" th:utext="${html}"></div>
+                    <div data-comment-body class="lexxy-content mt-1 text-sm/6 text-gray-700" th:with="html=${@richText.render(comment.text, comment.mentions)}" th:utext="${html}"></div>
+                    <th:block th:if="${currentUser.id == comment.user.id}">
+                        <template th:replace="~{fragments/comments :: editForm(${comment}, @{/{a}/project/{p}/message/{m}/comment/{c}/edit(a=${project.account.id}, p=${project.id}, m=${message.id}, c=${comment.id})}, ${project})}"></template>
+                    </th:block>
                 </div>
             </li>
         </ul>
@@ -81,7 +88,7 @@
             <img th:replace="~{fragments/ui :: avatar(${currentUser}, 'size-10')}">
             <form th:action="@{/{accountId}/project/{projectId}/message/{messageId}/comment(accountId=${project.account.id}, projectId=${project.id},messageId=${message.id})}"
                   th:object="${comment}" method="post" class="min-w-0 flex-auto">
-                <lexxy-editor th:data-direct-upload-url="@{/{accountId}/project/{id}/attachments/direct_uploads(accountId=${project.account.id}, id=${project.id})}" data-blob-url-template="/attachments/:signed_id/:filename" name="text" th:value="*{text}" class="lexxy-content editor-comment" placeholder="Add a comment…"></lexxy-editor>
+                <lexxy-editor th:data-direct-upload-url="@{/{accountId}/project/{id}/attachments/direct_uploads(accountId=${project.account.id}, id=${project.id})}" data-blob-url-template="/attachments/:signed_id/:filename" name="text" th:value="*{text}" class="lexxy-content editor-comment" placeholder="Add a comment… Use @ to mention someone"><lexxy-prompt th:replace="~{fragments/comments :: mentionPrompt(${project})}"></lexxy-prompt></lexxy-editor>
                 <p class="mt-2 text-sm text-red-600" th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></p>
                 <div class="mt-3 flex justify-end">
                     <button type="submit"

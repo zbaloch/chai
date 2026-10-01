@@ -11,7 +11,7 @@
 
     <nav th:replace="~{fragments/ui :: breadcrumbs(null, null, null)}"></nav>
     <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Notifications</h1>
-    <p class="mt-1 text-sm text-gray-500">Here’s every notification you’ve ever received.</p>
+    <p class="mt-1 text-sm text-gray-500" th:text="${session.currentAccount != null} ? 'Everything you’ve been notified about in ' + ${session.currentAccount.name} + '.' : 'Everything you’ve been notified about.'">Everything you’ve been notified about.</p>
 
     <section th:if="${unreadCount > 0}" class="mt-8">
         <h2 class="flex items-center gap-x-2 text-sm font-semibold text-gray-900">

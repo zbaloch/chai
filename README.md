@@ -14,20 +14,20 @@ Chai has following features as of today (12 May 2026):
 - User management (Register, Login, Add/Remove from projects/teams)
 - Email integration (specially for Reset password)
 - Notifications
+- Chats: a chat in every project, and direct chats between people (one-on-one or small groups), with @mentions, editing, search and a quiet dot when there's something new
+- Comments on messages and to-dos can @mention people and be edited
+- Search across todos, messages, comments, and chat
 
 The below is the backlog of features planned:
 
-- Project chat
-- Direct chat (Pings)
 - Documentation, contribution setup etc
 - APIs
 - Mobile apps (Native or Hybrid)
 - Docs & Files
-- Chat (May never have as we believe chat is distracting)
-- Search across todos, messages, comments, people, chat and even notifications.
 - All messages, all todos in one place
 - Automated check-ins
 - Other databases support (postgresql, oracle, sql server)
+- Much more...
 
 ## License
 Free to use, modify and self-host — just not to sell as a competing hosted service. Each release becomes MIT after two years. [FSL-1.1-MIT](LICENSE) · [Details](LICENSING.md)

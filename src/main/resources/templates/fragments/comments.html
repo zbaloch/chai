@@ -1,0 +1,54 @@
+<!--/* Shared pieces of comments on messages and to-dos. */-->
+<th:block xmlns:th="http://www.thymeleaf.org">
+
+<!--/*
+    @mentions in a comment editor: typing @ suggests the project's people (Lexxy's prompt).
+    The mention goes in as plain "@Full Name" text; the server works out who it means.
+    Put it inside a <lexxy-editor>. The people load from `src`: Lexxy reads a prompt's items
+    when it connects, before inline children would have been parsed.
+*/-->
+<lexxy-prompt th:fragment="mentionPrompt(project)" trigger="@" name="mention" insert-editable-text
+              th:attr="src=@{/{a}/project/{p}/mentionable(a=${project.account.id}, p=${project.id})}"></lexxy-prompt>
+
+<!--/* The people a mention prompt offers, fetched by the prompt above */-->
+<th:block th:fragment="mentionItems">
+    <th:block th:each="person : ${people}">
+        <lexxy-prompt-item th:attr="search=${person.firstName + ' ' + person.lastName}">
+            <template type="menu"><span class="flex items-center gap-x-2"><img th:replace="~{fragments/ui :: avatar(${person}, 'size-5')}"><span th:text="${person.firstName + ' ' + person.lastName}">Name</span></span></template>
+            <template type="editor" th:text="'@' + ${person.firstName + ' ' + person.lastName}">@Name</template>
+        </lexxy-prompt-item>
+    </th:block>
+</th:block>
+
+<!--/*
+    Editing a comment in place. Cloned under the comment when its author clicks Edit;
+    `action` is where the edited text is posted.
+*/-->
+<template th:fragment="editForm(comment, action, project)" data-comment-edit-template>
+    <form th:action="${action}" method="post" class="mt-2" data-turbolinks="false">
+        <lexxy-editor th:data-direct-upload-url="@{/{accountId}/project/{id}/attachments/direct_uploads(accountId=${project.account.id}, id=${project.id})}"
+                      data-blob-url-template="/attachments/:signed_id/:filename" name="text" th:value="${comment.text}"
+                      class="lexxy-content editor-comment">
+            <lexxy-prompt th:replace="~{fragments/comments :: mentionPrompt(${project})}"></lexxy-prompt>
+        </lexxy-editor>
+        <div class="mt-3 flex items-center justify-end gap-x-4">
+            <button type="button" data-comment-edit-cancel class="text-sm font-semibold text-gray-700 hover:text-gray-900">Cancel</button>
+            <button type="submit"
+                    class="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
+                Save changes
+            </button>
+        </div>
+    </form>
+</template>
+
+<!--/* The author's Edit button, next to Delete */-->
+<button th:fragment="editButton" type="button" data-comment-edit
+        class="-m-1.5 shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+    <span class="sr-only">Edit comment</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+</button>
+
+</th:block>

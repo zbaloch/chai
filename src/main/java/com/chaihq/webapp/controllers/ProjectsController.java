@@ -6,6 +6,7 @@ import com.chaihq.webapp.repositories.ProjectRepository;
 import com.chaihq.webapp.repositories.TimesheetRepository;
 import com.chaihq.webapp.repositories.UserRepository;
 import com.chaihq.webapp.services.Accounts;
+import com.chaihq.webapp.services.Chats;
 import com.chaihq.webapp.services.ProjectAccess;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.utilities.Util;
@@ -45,6 +46,9 @@ public class ProjectsController {
     @Autowired
     private TimesheetRepository timesheetRepository;
 
+    @Autowired
+    private Chats chats;
+
     // Home: the projects in the account you're working in
     @GetMapping("/projects")
     public String index(Model model, HttpSession session) {
@@ -56,6 +60,7 @@ public class ProjectsController {
 
         model.addAttribute("account", account);
         model.addAttribute("projects", accounts.visibleProjects(account, currentUser));
+        model.addAttribute("unreadChatProjectIds", chats.unread(account, currentUser).projectIds());
 
         // The current user's time log, shown on the home page
         List<Timesheet> timesheets = timesheetRepository.findAllByUserOrderByTimeLogDateDesc(currentUser);
@@ -109,7 +114,19 @@ public class ProjectsController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("project", project);
         model.addAttribute("canManage", projectAccess.canManage(project, currentUser));
+        model.addAttribute("chatUnread", chats.unread(project.getAccount(), currentUser).projectIds().contains(project.getId()));
         return "projects/show";
+    }
+
+    // The people an @mention in this project's comments can name (everyone on it but you)
+    @GetMapping("/project/{id}/mentionable")
+    public String mentionable(@PathVariable Long id, Model model) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(id, currentUser);
+        model.addAttribute("people", project.getUsers().stream()
+                .filter(user -> user.getId() != currentUser.getId() && projectAccess.isMember(project, user))
+                .toList());
+        return "fragments/comments :: mentionItems";
     }
 
     @PostMapping("/project/{id}/delete")

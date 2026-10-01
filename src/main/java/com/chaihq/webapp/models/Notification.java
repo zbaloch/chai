@@ -54,6 +54,16 @@ public class Notification {
     @Transient
     private ActiveStorageFile activeStorageFile;
 
+    // For an @mention in a chat: where it was, a link to it, and what was said
+    @Transient
+    private String chatTitle;
+
+    @Transient
+    private String chatUrl;
+
+    @Transient
+    private String chatText;
+
 
     @ManyToOne
     @JoinColumn(name = "from_user", referencedColumnName = "id")
@@ -163,5 +173,29 @@ public class Notification {
 
     public void setActiveStorageFile(ActiveStorageFile activeStorageFile) {
         this.activeStorageFile = activeStorageFile;
+    }
+
+    public String getChatTitle() {
+        return chatTitle;
+    }
+
+    public void setChatTitle(String chatTitle) {
+        this.chatTitle = chatTitle;
+    }
+
+    public String getChatUrl() {
+        return chatUrl;
+    }
+
+    public void setChatUrl(String chatUrl) {
+        this.chatUrl = chatUrl;
+    }
+
+    public String getChatText() {
+        return chatText;
+    }
+
+    public void setChatText(String chatText) {
+        this.chatText = chatText;
     }
 }

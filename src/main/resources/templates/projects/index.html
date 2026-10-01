@@ -28,7 +28,9 @@
             th:unless="${#lists.isEmpty(projects)}">
             <li th:each="project : ${projects}" 
                 class="group relative flex flex-col rounded-xl bg-white p-6 shadow-xs ring-1 ring-gray-900/5 transition hover:shadow-md hover:ring-gray-900/10">
-                <h3 class="text-base font-semibold text-gray-900">
+                <span th:attr="data-chat-dot-project=${project.id}" th:hidden="${unreadChatProjectIds == null or !unreadChatProjectIds.contains(project.id)}"
+                      class="absolute top-7 right-6 block size-2 rounded-full bg-red-500" title="New in chat"><span class="sr-only">New in chat</span></span>
+                <h3 class="pr-4 text-base font-semibold text-gray-900">
                     <a th:href="@{/{accountId}/project/{id}(accountId=${project.account.id}, id=${project.id})}" class="focus:outline-none">
                         <span class="absolute inset-0" aria-hidden="true"></span>
                         <span th:text="${project.name}">Project</span>

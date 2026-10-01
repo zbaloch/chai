@@ -23,12 +23,15 @@ public class Constants {
     public static final String NOTIFICATION_TYPE_MESSAGE_COMMENT = "message_comment";
     public static final String NOTIFICATION_TYPE_TODO_COMMENT = "todo_comment";
     public static final String NOTIFICATION_TYPE_FILE = "file";
+    public static final String NOTIFICATION_TYPE_CHAT_MENTION = "chat_mention";
 
     public static final String NOTIFICATION_MESSAGE_NEW_TODO = "new_todo";
     public static final String NOTIFICATION_MESSAGE_NEW_MESSAGE = "new_message";
     public static final String NOTIFICATION_MESSAGE_NEW_MESSAGE_COMMENT = "new_message_comment";
     public static final String NOTIFICATION_MESSAGE_NEW_TODO_COMMENT = "new_todo_comment";
     public static final String NOTIFICATION_MESSAGE_NEW_FILE = "new_file";
+    public static final String NOTIFICATION_MESSAGE_MENTION_MESSAGE_COMMENT = "mention_message_comment";
+    public static final String NOTIFICATION_MESSAGE_MENTION_TODO_COMMENT = "mention_todo_comment";
 
     public static final String DELETED = "deleted";
 

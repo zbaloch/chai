@@ -9,23 +9,25 @@
         <nav class="border-b border-gray-900/5 bg-white/80 backdrop-blur-sm">
             <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
-                    <div class="flex items-center gap-x-8">
+                    <div class="flex items-center gap-x-3 sm:gap-x-8">
                         <a th:href="${session.currentAccount != null} ? @{/{accountId}/projects(accountId=${session.currentAccount.id})} : @{/accounts}" class="flex items-center">
                             <span class="text-base font-semibold tracking-tight text-gray-900" th:text="#{company.name}">Chai</span>
                         </a>
-                        <div class="flex gap-x-1">
+                        <div class="flex gap-x-0.5 sm:gap-x-1">
                             <a th:href="${session.currentAccount != null} ? @{/{accountId}/projects(accountId=${session.currentAccount.id})} : @{/accounts}" data-nav="projects"
-                               class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
+                               class="rounded-md px-2 py-2 text-sm font-medium sm:px-3 text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
                                 Projects
                             </a>
-                            <a th:if="${session.currentAccount != null}" th:href="@{/{accountId}/people(accountId=${session.currentAccount.id})}" data-nav="people"
-                               class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
-                                People
+                            <a th:if="${session.currentAccount != null}" id="nav-chats" th:href="@{/{accountId}/chats(accountId=${session.currentAccount.id})}" data-nav="chats"
+                               th:data-unread-url="@{/{accountId}/chats/unread(accountId=${session.currentAccount.id})}" th:data-ws-url="@{/ws}"
+                               class="inline-flex items-center gap-x-1.5 rounded-md px-2 py-2 text-sm font-medium sm:px-3 text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
+                                Chats
+                                <span data-chat-dot hidden class="block size-1.5 rounded-full bg-red-500"><span class="sr-only">New</span></span>
                             </a>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-x-4">
+                    <div class="flex items-center gap-x-2 sm:gap-x-4">
                         <a th:href="${session.currentAccount != null} ? @{/{accountId}/search(accountId=${session.currentAccount.id})} : @{/accounts}" id="nav-search" data-nav="search" title="Search (Shift + J)"
                            class="relative rounded-full p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 data-active:text-gray-900">
                             <span class="absolute -inset-1.5"></span>
@@ -87,6 +89,7 @@
                 // Highlight the current section. Thymeleaf 3.1 can't read the request URI, so do it client-side.
                 var section = /\/hey\/?$/.test(location.pathname) ? 'hey'
                     : /^\/\d+\/search/.test(location.pathname) ? 'search'
+                    : /^\/\d+\/chats/.test(location.pathname) ? 'chats'
                     : /^\/\d+\/people/.test(location.pathname) ? 'people' : 'projects';
                 document.querySelectorAll('[data-nav]').forEach(function (a) {
                     if (a.dataset.nav === section) a.setAttribute('data-active', '');

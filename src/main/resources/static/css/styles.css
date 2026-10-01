@@ -9,6 +9,20 @@ html {
 [v-cloak] {
     display: none;
 }
+
+/* Chat: a run of messages from one person within a few minutes shows their name and face once */
+.chat-message[data-continued="true"] {
+    padding-top: 0.125rem;
+}
+
+.chat-message[data-continued="true"] .chat-head {
+    display: none;
+}
+
+.chat-message[data-continued="true"] .chat-avatar {
+    visibility: hidden;
+    height: 0;
+}
 /* Start: Lexxy editor — matches Tailwind Plus form inputs (gray-300 outline, sky-600 focus) */
 :root {
     --lexxy-font-base: InterVariable, Inter, ui-sans-serif, system-ui, sans-serif;
@@ -53,3 +67,12 @@ lexxy-editor:focus-within {
     --lexxy-editor-rows: 6rem;
 }
 /* End: Lexxy editor */
+
+/* An @mention in a comment, like the ones in chat */
+.lexxy-content .mention {
+    border-radius: 0.125rem;
+    background-color: #f0f9ff;
+    padding-inline: 0.125rem;
+    font-weight: 500;
+    color: #0369a1;
+}

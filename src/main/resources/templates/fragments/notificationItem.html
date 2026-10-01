@@ -18,6 +18,9 @@
                 <span th:case="'new_message_comment'">commented on a message</span>
                 <span th:case="'new_todo_comment'">commented on a to-do</span>
                 <span th:case="'new_file'">uploaded a file</span>
+                <span th:case="'chat_mention'">mentioned you</span>
+                <span th:case="'mention_message_comment'">mentioned you in a comment</span>
+                <span th:case="'mention_todo_comment'">mentioned you in a comment</span>
                 <span th:case="*">sent you a notification</span>
             </th:block>
         </p>
@@ -43,6 +46,16 @@
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.comment.message.title}"></span>
             </a>
+            <a th:case="'mention_message_comment'"
+               th:href="@{/{a}/project/{p}/message/{m}(a=${n.comment.project.account.id},p=${n.comment.projectId},m=${n.comment.message.id})} + '#comment_' + ${n.comment.id}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.comment.message.title}"></span>
+            </a>
+            <a th:case="'mention_todo_comment'"
+               th:href="@{/{a}/project/{p}/todo/{t}(a=${n.comment.project.account.id},p=${n.comment.projectId},t=${n.comment.todo.id})} + '#comment_' + ${n.comment.id}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.comment.todo.description}"></span>
+            </a>
             <a th:case="'new_todo_comment'"
                th:href="@{/{a}/project/{p}/todo/{t}(a=${n.comment.project.account.id},p=${n.comment.projectId},t=${n.comment.todo.id})} + '#comment_' + ${n.comment.id}">
                 <span class="absolute inset-0" aria-hidden="true"></span>
@@ -53,7 +66,14 @@
                 <span class="absolute inset-0" aria-hidden="true"></span>
                 <span th:text="${n.activeStorageFile.fileName}"></span>
             </a>
+            <a th:case="'chat_mention'" th:href="@{${n.chatUrl}}">
+                <span class="absolute inset-0" aria-hidden="true"></span>
+                <span th:text="${n.chatTitle}"></span>
+            </a>
         </p>
+
+        <p th:if="${n.chatText != null}"
+           class="mt-0.5 line-clamp-1 text-sm text-gray-500" th:text="'“' + ${n.chatText} + '”'"></p>
 
         <p th:if="${n.comment != null and n.comment.textToDisplay != null}"
            class="mt-0.5 line-clamp-1 text-sm text-gray-500" th:text="'“' + ${n.comment.textToDisplay} + '”'"></p>
@@ -67,7 +87,7 @@
         </p>
     </div>
 
-    <span th:if="${!n.read}" class="size-2.5 shrink-0 rounded-full bg-sky-600">
+    <span th:if="${!n.read}" class="size-2.5 shrink-0 rounded-full bg-red-500">
         <span class="sr-only">Unread</span>
     </span>
 </li>

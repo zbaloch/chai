@@ -47,6 +47,13 @@ public class Comment {
 
     private String status;
 
+    // Ids of the people @mentioned, comma-separated
+    @Column(length = 2000)
+    private String mentions;
+
+    @Column(name = "edited_at")
+    private Calendar editedAt;
+
     public long getId() {
         return id;
     }
@@ -133,5 +140,21 @@ public class Comment {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getMentions() {
+        return mentions;
+    }
+
+    public void setMentions(String mentions) {
+        this.mentions = mentions;
+    }
+
+    public Calendar getEditedAt() {
+        return editedAt;
+    }
+
+    public void setEditedAt(Calendar editedAt) {
+        this.editedAt = editedAt;
     }
 }

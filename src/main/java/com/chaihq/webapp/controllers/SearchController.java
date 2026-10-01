@@ -23,7 +23,7 @@ public class SearchController {
 
     public record Filter(String type, String label, int count) {}
 
-    private static final Set<String> TYPES = Set.of(Search.PROJECTS, Search.MESSAGES, Search.TODOS, Search.COMMENTS);
+    private static final Set<String> TYPES = Set.of(Search.PROJECTS, Search.MESSAGES, Search.TODOS, Search.COMMENTS, Search.CHATS);
 
     private final Search search;
     private final Accounts accounts;
@@ -58,7 +58,8 @@ public class SearchController {
         model.addAttribute("projectId", searched.size() == 1 && projectId != null ? projectId : null);
         model.addAttribute("projects", projects);
         model.addAttribute("account", account);
-        Search.Results results = search.search(query, searched, filter);
+        // Direct chats aren't in any project, so they're searched only across all projects
+        Search.Results results = search.search(query, searched, filter, currentUser, projectId == null ? account : null);
         model.addAttribute("results", results);
         int total = results.counts().values().stream().mapToInt(Integer::intValue).sum();
         model.addAttribute("filters", List.of(
@@ -66,7 +67,8 @@ public class SearchController {
                 new Filter(Search.PROJECTS, "Projects", results.counts().get(Search.PROJECTS)),
                 new Filter(Search.MESSAGES, "Messages", results.counts().get(Search.MESSAGES)),
                 new Filter(Search.TODOS, "To-dos", results.counts().get(Search.TODOS)),
-                new Filter(Search.COMMENTS, "Comments", results.counts().get(Search.COMMENTS))));
+                new Filter(Search.COMMENTS, "Comments", results.counts().get(Search.COMMENTS)),
+                new Filter(Search.CHATS, "Chats", results.counts().get(Search.CHATS))));
         return "search/index";
     }
 }

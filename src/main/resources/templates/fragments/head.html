@@ -25,6 +25,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turbolinks/5.2.0/turbolinks.js" integrity="sha384-e0qFAVkArN1dyymxMH35JdOyqaonxrxODNFAvMxThOhlG4XGCjfW92Y8GQmud8hK" crossorigin="anonymous"></script>
     <script th:src="@{/js/lexxy.js}"></script>
+    <!-- Chat: in the head so Turbolinks loads them once and one live connection lasts across pages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js" integrity="sha384-5vNsW/p+NeH4EkqKkbai+ZOHJCF/869tsxMVm1U3TGyDj2LUo8wnAFYDfcuMILr0" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha384-clKAk7WaYNQiu/pGVWisoFQcSK2VL7YweoI1gim9/HFbMsRvD2ZtLWNoZoL4df65" crossorigin="anonymous"></script>
+    <script th:src="@{/js/chats.js}"></script>
+    <script th:src="@{/js/comments.js}"></script>
     <script>
         // Syntax-highlight code blocks in rendered rich text
         document.addEventListener("turbolinks:load", function () { Lexxy.highlightCode() })

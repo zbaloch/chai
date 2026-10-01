@@ -1,8 +1,9 @@
 package com.chaihq.webapp.config;
 
-import com.chaihq.webapp.services.ProjectAccess;
+import com.chaihq.webapp.services.Chats;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -22,16 +23,20 @@ import java.util.regex.Pattern;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private static final Pattern PROJECT_TOPIC = Pattern.compile("^/topic/project/(\\d+)$");
+    private static final Pattern CHAT_TOPIC = Pattern.compile("^/topic/chat/(\\d+)$");
 
-    private final ProjectAccess projectAccess;
+    // Each person's own feed of "something new in a chat", which lights the dots
+    private static final String SIGNALS = "/user/queue/chats";
+
+    private final Chats chats;
 
     // Only pages served from this site may open a chat connection
     @Value("${host.url:http://localhost:8080}")
     private String hostUrl;
 
-    public WebSocketConfig(ProjectAccess projectAccess) {
-        this.projectAccess = projectAccess;
+    // Lazy: Chats sends through the broker this class configures
+    public WebSocketConfig(@Lazy Chats chats) {
+        this.chats = chats;
     }
 
     @Override
@@ -42,7 +47,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/topic");
+        registry.setUserDestinationPrefix("/user");
+        registry.enableSimpleBroker("/topic", "/queue");
     }
 
     @Override
@@ -55,15 +61,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     return message;
                 }
                 Principal principal = accessor.getUser();
+                String destination = String.valueOf(accessor.getDestination());
                 if (accessor.getCommand() == StompCommand.CONNECT && principal == null) {
                     throw new MessagingException("Sign in to use chat");
                 }
-                // A project's chat topic can only be followed by that project's people
+                // Browsers only talk to the app, never straight to a topic (that would skip every check)
+                if (accessor.getCommand() == StompCommand.SEND && !destination.startsWith("/app/")) {
+                    throw new MessagingException("Not allowed to send to " + destination);
+                }
+                // A chat can only be followed by the people in it; everyone can follow their own signals
                 if (accessor.getCommand() == StompCommand.SUBSCRIBE) {
-                    Matcher matcher = PROJECT_TOPIC.matcher(String.valueOf(accessor.getDestination()));
-                    Long projectId = matcher.matches() ? Long.valueOf(matcher.group(1)) : null;
-                    if (principal == null || !projectAccess.isMember(projectId, principal.getName())) {
-                        throw new MessagingException("Not allowed to subscribe to " + accessor.getDestination());
+                    if (principal != null && SIGNALS.equals(destination)) {
+                        return message;
+                    }
+                    Matcher matcher = CHAT_TOPIC.matcher(destination);
+                    Long roomId = matcher.matches() ? Long.valueOf(matcher.group(1)) : null;
+                    if (principal == null || roomId == null || !chats.canAccess(roomId, principal.getName())) {
+                        throw new MessagingException("Not allowed to subscribe to " + destination);
                     }
                 }
                 return message;

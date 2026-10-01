@@ -1,11 +1,18 @@
 package com.chaihq.webapp.services;
 
+import com.chaihq.webapp.models.User;
+import com.chaihq.webapp.repositories.UserRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -18,6 +25,68 @@ import java.util.regex.Pattern;
  */
 @Component("richText")
 public class RichTextRenderer {
+
+    private final UserRepository userRepository;
+
+    public RichTextRenderer(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    /** Like render(html), with the people it @mentions (ids, comma-separated) highlighted. */
+    public String render(String html, String mentionIds) {
+        String rendered = render(html);
+        List<Long> ids = Chats.ids(mentionIds);
+        Pattern mentions = rendered == null || ids.isEmpty() ? null : Chats.mentionPattern(userRepository.findAllById(ids));
+        if (mentions == null) {
+            return rendered;
+        }
+        Document document = Jsoup.parseBodyFragment(rendered);
+        document.outputSettings().prettyPrint(false);
+        List<TextNode> texts = new ArrayList<>();
+        collectText(document.body(), texts);
+        for (TextNode text : texts) {
+            highlight(text, mentions);
+        }
+        return document.body().html();
+    }
+
+    // Text outside links and code, where a mention can be marked
+    private static void collectText(Element element, List<TextNode> texts) {
+        if (element.nameIs("a") || element.nameIs("pre") || element.nameIs("code")) {
+            return;
+        }
+        for (Node child : element.childNodes()) {
+            if (child instanceof TextNode text) {
+                texts.add(text);
+            } else if (child instanceof Element childElement) {
+                collectText(childElement, texts);
+            }
+        }
+    }
+
+    private static void highlight(TextNode text, Pattern mentions) {
+        String whole = text.getWholeText();
+        Matcher matcher = mentions.matcher(whole);
+        List<Node> parts = new ArrayList<>();
+        int at = 0;
+        while (matcher.find()) {
+            if (matcher.start() > at) {
+                parts.add(new TextNode(whole.substring(at, matcher.start())));
+            }
+            parts.add(new Element("span").addClass("mention").text(matcher.group()));
+            at = matcher.end();
+        }
+        if (parts.isEmpty()) {
+            return;
+        }
+        if (at < whole.length()) {
+            parts.add(new TextNode(whole.substring(at)));
+        }
+        for (Node part : parts) {
+            text.before(part);
+        }
+        text.remove();
+    }
 
     // The editor's colour highlights, e.g. style="color: var(--highlight-3)"
     private static final Pattern HIGHLIGHT_STYLE =

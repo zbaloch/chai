@@ -67,6 +67,10 @@
                 </div>
             </div>
             <div class="flex shrink-0 items-center gap-x-3">
+                <form th:unless="${self}" th:action="@{/{accountId}/chats(accountId=${session.currentAccount.id})}" method="post">
+                    <input type="hidden" name="people" th:value="${person.user.id}"/>
+                    <button type="submit" class="rounded-md px-2 py-1 text-sm font-semibold text-sky-600 hover:bg-sky-50 hover:text-sky-500">Chat</button>
+                </form>
                 <span th:if="${person.role == 'owner'}" class="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 inset-ring inset-ring-sky-700/10">Owner</span>
                 <span th:if="${person.role == 'admin'}" class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 inset-ring inset-ring-gray-500/10">Admin</span>
 

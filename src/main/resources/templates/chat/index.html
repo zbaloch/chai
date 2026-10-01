@@ -6,64 +6,133 @@
 
 <div th:replace="~{fragments/nav :: nav}"></div>
 
+<!--/* One chat: a project's (project set) or a direct chat between people (project null). */-->
 <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
-    <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
-    <h1 class="mt-2 text-2xl/8 font-bold tracking-tight text-gray-900 sm:text-3xl/9">Chat</h1>
+    <th:block th:if="${project != null}">
+        <nav th:replace="~{fragments/ui :: breadcrumbs(${project}, null, null)}"></nav>
+    </th:block>
+    <th:block th:if="${project == null}">
+        <nav th:replace="~{fragments/ui :: breadcrumbs(null, 'Chats', @{/{a}/chats(a=${room.account.id})})}"></nav>
+    </th:block>
 
-    <div class="mt-8 flex flex-col overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5" style="height: calc(100vh - 260px);">
-        <!-- Chat messages -->
-        <ul role="list" id="chat-window" class="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-6">
-            <li th:each="chatMessage : ${chatMessages}" th:id="'chat_message_' + ${chatMessage.id}" class="group flex gap-x-3">
-                <img th:replace="~{fragments/ui :: avatar(${chatMessage.user}, 'size-9')}">
-                <div class="min-w-0 flex-auto">
-                    <div class="flex items-baseline justify-between gap-x-4">
-                        <p class="text-sm/6">
-                            <span class="font-semibold text-gray-900" th:text="${chatMessage.user.firstName + ' ' + chatMessage.user.lastName}">User Name</span>
-                            <span class="ml-1 text-xs text-gray-500">
-                                <span th:text="${#dates.format(chatMessage.createdAt.time, 'MMM d, yyyy')}">Date</span>
-                                at <span th:text="${#dates.format(chatMessage.createdAt.time, 'h:mm a')}">Time</span>
-                            </span>
-                        </p>
-                        <a th:if="${chatMessage.user.id == session.currentUser.id}"
-                           th:onclick="|deleteChatMessage(${project.id}, ${chatMessage.id})|"
-                           class="cursor-pointer rounded-md p-1 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600">
-                            <span class="sr-only">Delete message</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4">
-                                <path d="M10 11v6" />
-                                <path d="M14 11v6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                                <path d="M3 6h18" />
-                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                        </a>
-                    </div>
-                    <p class="text-sm/6 text-gray-700" th:text="${chatMessage.message}">Message Content</p>
-                </div>
+    <div class="mt-2 flex items-start justify-between gap-x-4">
+        <div class="min-w-0">
+            <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900 sm:truncate sm:text-3xl/9"
+                th:text="${project != null} ? 'Chat' : ${title}">Chat</h1>
+            <p th:if="${muted}" class="mt-1 text-sm text-gray-500">Muted. You’ll still hear about @mentions.</p>
+        </div>
+        <div class="flex shrink-0 items-center gap-x-4">
+            <div class="hidden -space-x-2 overflow-hidden sm:flex">
+                <th:block th:each="person, it : ${people}" th:if="${it.index < 8}">
+                    <img th:replace="~{fragments/ui :: avatar(${person}, 'size-8 ring-2 ring-canvas')}">
+                </th:block>
+            </div>
+            <form th:action="@{/{a}/chats/{r}/mute(a=${room.account.id}, r=${room.id})}" method="post">
+                <input type="hidden" name="muted" th:value="${!muted}"/>
+                <button type="submit"
+                        class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50"
+                        th:text="${muted} ? 'Unmute' : 'Mute'">Mute</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-6 flex flex-col overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5" style="height: calc(100vh - 240px); min-height: 22rem;">
+        <ul role="list" id="chat-window" class="flex-1 overflow-y-auto px-4 pt-2 pb-4 sm:px-6">
+            <li th:if="${#lists.isEmpty(chatMessages)}" id="chat-empty" class="py-16 text-center text-sm text-gray-500"
+                th:text="${project != null} ? 'Nothing here yet. Say hello to everyone on ' + ${project.name} + '.' : 'This is the start of your chat with ' + ${title} + '.'">
+                Nothing here yet.
             </li>
+
+            <th:block th:replace="~{chat/messages :: list}"></th:block>
         </ul>
 
         <!-- Composer -->
-        <div class="border-t border-gray-900/5 p-4">
-            <label for="chatMessageInput" class="sr-only">Message</label>
-            <input id="chatMessageInput" type="text" placeholder="Type your message…" value="" autocomplete="off"
-                   class="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6"/>
+        <div class="relative border-t border-gray-900/5 p-3 sm:p-4">
+            <ul id="chat-mentions" role="listbox" hidden
+                class="absolute bottom-full left-3 z-10 mb-1 max-h-60 w-72 max-w-[calc(100%-1.5rem)] overflow-auto rounded-md bg-white py-1 shadow-lg outline-1 outline-black/5 sm:left-4"></ul>
+            <form id="chat-composer" class="flex items-end gap-x-3">
+                <label for="chat-input" class="sr-only">Message</label>
+                <textarea id="chat-input" rows="1" autocomplete="off" placeholder="Type a message… Use @ to mention someone"
+                          class="block max-h-40 w-full resize-none rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6"></textarea>
+                <button type="submit"
+                        class="shrink-0 rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
+                    Send
+                </button>
+            </form>
         </div>
     </div>
 
 </main>
 
+<!--/* What the page script needs to run this chat */-->
+<div id="chat-room" hidden
+     th:attr="data-room-id=${room.id}, data-me=${session.currentUser.id}, data-can-moderate=${canModerate},
+              data-read-url=@{/{a}/chats/{r}/read(a=${room.account.id}, r=${room.id})},
+              data-delete-url=@{/{a}/chats/{r}/messages/(a=${room.account.id}, r=${room.id})},
+              data-people=${mentionable}"></div>
+
+<!--/* Messages that arrive live are built from these, like the ones above */-->
+<template id="chat-message-template">
+    <li class="chat-message group relative -mx-2 flex gap-x-3 rounded-lg px-2 pt-3 pb-0.5" data-continued="false">
+        <img class="chat-avatar size-9 shrink-0 rounded-full bg-gray-100 outline -outline-offset-1 outline-black/5" src="" alt="">
+        <div class="min-w-0 flex-auto pr-14">
+            <p class="chat-head text-sm/6">
+                <span class="font-semibold text-gray-900" data-name></span>
+                <time class="ml-1 text-xs text-gray-500" data-time></time>
+            </p>
+            <div class="text-sm/6 break-words text-gray-700"><span data-body></span> <span data-edited hidden class="text-xs text-gray-400">(edited)</span></div>
+        </div>
+        <div class="absolute top-2 right-2 flex gap-x-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+            <button type="button" data-edit class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+                <span class="sr-only">Edit message</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+            </button>
+            <button type="button" data-delete class="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600">
+                <span class="sr-only">Delete message</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4">
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+            </button>
+        </div>
+    </li>
+</template>
+<!--/* Editing a message in place */-->
+<template id="chat-edit-template">
+    <form data-edit-form class="mt-1">
+        <label class="sr-only">Edit message</label>
+        <textarea rows="1" class="block max-h-40 w-full resize-none rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:text-sm/6"></textarea>
+        <div class="mt-2 flex items-center gap-x-3">
+            <button type="submit" class="rounded-md bg-sky-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-xs hover:bg-sky-500">Save</button>
+            <button type="button" data-edit-cancel class="text-sm font-semibold text-gray-700 hover:text-gray-900">Cancel</button>
+            <span class="text-xs text-gray-400">Enter to save · Esc to cancel</span>
+        </div>
+    </form>
+</template>
+<template id="chat-day-template">
+    <li data-day-separator data-day class="flex items-center gap-x-3 pt-5 pb-1">
+        <span class="h-px flex-auto bg-gray-100"></span>
+        <span class="text-xs font-medium text-gray-500" data-label></span>
+        <span class="h-px flex-auto bg-gray-100"></span>
+    </li>
+</template>
+<template id="chat-new-line-template">
+    <li data-new-line class="flex items-center gap-x-3 pt-4 pb-1">
+        <span class="h-px flex-auto bg-red-500/40"></span>
+        <span class="text-xs font-semibold text-red-600">New</span>
+        <span class="h-px flex-auto bg-red-500/40"></span>
+    </li>
+</template>
+
 <div th:replace="~{fragments/notifications :: notifications}"></div>
 <div th:replace="~{fragments/footer :: footer}"></div>
-
-<input type="hidden" id="user.username" th:value="${session.currentUser.email}"/>
-<input type="hidden" id="user.id" th:value="${session.currentUser.id}"/>
-<input type="hidden" id="user.firstName" th:value="${session.currentUser.firstName}"/>
-<input type="hidden" id="user.lastName" th:value="${session.currentUser.lastName}"/>
-<input type="hidden" id="user.initials" th:value="${'' + session.currentUser.firstName.charAt(0) + session.currentUser.lastName.charAt(0)}"/>
-<input type="hidden" id="project.id" th:value="${project.id}"/>
-<input type="hidden" id="isChatPage" value="true"/>
-<input type="hidden" id="chat.contextUrl" th:value="@{/}"/>
 
 </body>
 </html>

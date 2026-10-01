@@ -1,5 +1,8 @@
 package com.chaihq.webapp.controllers;
 
+import java.util.Set;
+import java.util.HashSet;
+import com.chaihq.webapp.services.Chats;
 import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.*;
@@ -216,12 +219,46 @@ public class MessagesController {
         comment.setCreatedAt(Calendar.getInstance());
         comment.setCommentType(Constants.MESSAGE);
         comment.setMessage(message);
+        Set<Long> mentioned = ProjectNotifications.mentionedIn(comment.getText(), project);
+        comment.setMentions(Chats.csv(mentioned));
         commentRepository.save(comment);
 
-        notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_MESSAGE_COMMENT, comment.getId(), Constants.NOTIFICATION_MESSAGE_NEW_MESSAGE_COMMENT);
+        notifications.notifyProject(project, currentUser, Constants.NOTIFICATION_TYPE_MESSAGE_COMMENT, comment.getId(),
+                Constants.NOTIFICATION_MESSAGE_NEW_MESSAGE_COMMENT, mentioned, Constants.NOTIFICATION_MESSAGE_MENTION_MESSAGE_COMMENT);
 
         redirectAttributes.addFlashAttribute("notice", "Your comment has been added!");
         return "redirect:" + Paths.project(project) + "/message/" + message.getId() + "#comment_" + comment.getId();
+    }
+
+    // Only the author can change what they wrote. Anyone newly @mentioned hears about it.
+    @PostMapping("/project/{project_id}/message/{message_id}/comment/{comment_id}/edit")
+    public String editComment(@PathVariable long project_id, @PathVariable long message_id, @PathVariable long comment_id,
+                              @RequestParam(value = "text", required = false) String text, RedirectAttributes redirectAttributes) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(project_id, currentUser);
+        Message message = projectAccess.message(project, message_id, currentUser);
+        Comment comment = projectAccess.comment(project, comment_id, currentUser);
+        if (comment.getMessage() == null || comment.getMessage().getId() != message.getId()
+                || comment.getUser() == null || comment.getUser().getId() != currentUser.getId()) {
+            throw projectAccess.denied(currentUser, "comment", comment_id);
+        }
+        String back = "redirect:" + Paths.project(project) + "/message/" + message.getId() + "#comment_" + comment.getId();
+        if (text == null || (Jsoup.parse(text).text().isBlank() && !text.contains("<action-text-attachment"))) {
+            redirectAttributes.addFlashAttribute("destruction_notice", "A comment can’t be empty.");
+            return back;
+        }
+
+        Set<Long> before = new HashSet<>(Chats.ids(comment.getMentions()));
+        Set<Long> after = ProjectNotifications.mentionedIn(text, project);
+        comment.setText(text);
+        comment.setMentions(Chats.csv(after));
+        comment.setEditedAt(Calendar.getInstance());
+        commentRepository.save(comment);
+        notifications.notifyNewlyMentioned(project, currentUser, Constants.NOTIFICATION_TYPE_MESSAGE_COMMENT, comment.getId(),
+                Constants.NOTIFICATION_MESSAGE_MENTION_MESSAGE_COMMENT, before, after);
+
+        redirectAttributes.addFlashAttribute("notice", "Your comment has been updated!");
+        return back;
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value="/project/{project_id}/message/{message_id}/comment/{comment_id}/delete",
