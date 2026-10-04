@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+
+<body class="min-h-screen bg-canvas font-sans antialiased">
+
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+
+<!--/* Open to-dos across your projects, grouped by project with starred ones first. */-->
+<main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8" th:with="today=${#dates.createToday()}">
+
+    <div class="min-w-0">
+        <p class="truncate text-sm font-medium text-gray-500" th:text="${account.name}">Company</p>
+        <h1 class="text-2xl/8 font-bold tracking-tight text-gray-900">Tasks</h1>
+    </div>
+
+    <!-- Filters: the selects reload the page (so a filtered view can be bookmarked); the text box filters as you type -->
+    <form th:if="${anyTasks}" method="get" th:action="@{/{a}/tasks(a=${account.id})}"
+          class="mt-6 flex flex-wrap items-center gap-2">
+        <div class="grid">
+            <select name="project" aria-label="Project" onchange="this.form.submit()"
+                    class="col-start-1 row-start-1 appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-sm/6 text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600">
+                <option value="">All projects</option>
+                <option th:each="p : ${projects}" th:value="${p.id}" th:text="${p.name}"
+                        th:selected="${projectFilter != null and projectFilter == p.id}">Project</option>
+            </select>
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-4 self-center justify-self-end text-gray-500">
+                <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <div class="grid">
+            <select name="assignee" aria-label="Assigned to" onchange="this.form.submit()"
+                    class="col-start-1 row-start-1 appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-sm/6 text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600">
+                <option value="">Anyone</option>
+                <option value="me" th:selected="${assigneeFilter == 'me'}">Me</option>
+                <option value="none" th:selected="${assigneeFilter == 'none'}">Unassigned</option>
+                <option th:each="person : ${people}" th:value="${person.id}" th:text="${person.firstName + ' ' + person.lastName}"
+                        th:selected="${assigneeFilter == '' + person.id}">Person</option>
+            </select>
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-4 self-center justify-self-end text-gray-500">
+                <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <div class="grid">
+            <select name="due" aria-label="Due" onchange="this.form.submit()"
+                    class="col-start-1 row-start-1 appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-sm/6 text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600">
+                <option value="">Any due date</option>
+                <option value="has" th:selected="${dueFilter == 'has'}">Has a due date</option>
+                <option value="none" th:selected="${dueFilter == 'none'}">No due date</option>
+                <option value="overdue" th:selected="${dueFilter == 'overdue'}">Overdue</option>
+            </select>
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-4 self-center justify-self-end text-gray-500">
+                <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <input id="task-filter" type="search" placeholder="Filter…" aria-label="Filter tasks" autocomplete="off"
+               class="w-full rounded-md bg-white px-3 py-1.5 text-sm/6 text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-sky-600 sm:w-48">
+
+        <a th:if="${filtered}" th:href="@{/{a}/tasks(a=${account.id})}" class="px-1 text-sm font-medium text-sky-600 hover:text-sky-500">Clear</a>
+        <noscript><button type="submit" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300">Filter</button></noscript>
+    </form>
+
+    <section th:each="group : ${groups}" data-task-group class="mt-8">
+        <h2 class="flex items-center gap-x-1.5 text-sm font-semibold text-gray-900">
+            <svg th:if="${group.starred}" viewBox="0 0 20 20" fill="currentColor" class="size-4 text-amber-400">
+                <title>Starred</title>
+                <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+            </svg>
+            <a th:href="@{/{a}/project/{p}/todos(a=${group.project.account.id}, p=${group.project.id})}" class="hover:underline"
+               th:text="${group.project.name}">Project</a>
+        </h2>
+
+        <ul role="list" class="mt-3 divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-xs ring-1 ring-gray-900/5">
+            <li th:each="todo : ${group.todos}" data-task
+                th:attr="data-text=${#strings.toLowerCase(todo.description + ' ' + (todo.assignedTo != null ? todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName : ''))}"
+                class="relative flex items-center gap-x-3 px-4 py-3 hover:bg-gray-50 sm:px-6">
+                <span class="size-4 shrink-0 rounded-full border-2 border-gray-300" aria-hidden="true"></span>
+
+                <div class="min-w-0 flex-auto">
+                    <a th:href="@{/{a}/project/{p}/todo/{t}(a=${group.project.account.id}, p=${group.project.id}, t=${todo.id})}"
+                       class="text-sm/6 font-medium text-gray-900">
+                        <span class="absolute inset-0" aria-hidden="true"></span>
+                        <span th:text="${todo.description}">To-do</span>
+                    </a>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-x-4 text-xs/5 text-gray-500">
+                    <span th:if="${todo.dueDate != null}"
+                          class="inline-flex items-center rounded-md px-1.5 py-0.5 font-medium"
+                          th:classappend="${todo.dueDate.timeInMillis < today.time} ? 'bg-red-50 text-red-700' : 'text-gray-500'"
+                          th:text="${#dates.format(todo.dueDate.time, 'EEE, MMM d')}"></span>
+
+                    <span th:if="${todo.assignedTo != null}" class="inline-flex items-center gap-x-1.5">
+                        <img th:replace="~{fragments/ui :: avatar(${todo.assignedTo}, 'size-5')}">
+                        <span class="hidden sm:inline"
+                              th:text="${todo.assignedTo.firstName + ' ' + todo.assignedTo.lastName.charAt(0) + '.'}"></span>
+                    </span>
+                    <span th:if="${todo.assignedTo == null}" class="italic">Unassigned</span>
+                </div>
+            </li>
+        </ul>
+    </section>
+
+    <p id="task-filter-empty" hidden class="mt-8 text-center text-sm text-gray-500">No tasks match that.</p>
+
+    <!-- Nothing matches the filters -->
+    <p th:if="${anyTasks and #lists.isEmpty(groups)}" class="mt-8 text-center text-sm text-gray-500">
+        No tasks match these filters.
+        <a th:href="@{/{a}/tasks(a=${account.id})}" class="font-medium text-sky-600 hover:text-sky-500">Clear filters</a>
+    </p>
+
+    <!-- Empty state -->
+    <div th:unless="${anyTasks}" class="mt-6 rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
+        <span class="block text-sm font-semibold text-gray-900">Nothing to do</span>
+        <span class="mt-1 block text-sm text-gray-500">Open to-dos from all your projects will show up here.</span>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/notifications :: notifications}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    (function () {
+        var input = document.getElementById('task-filter');
+        if (!input) {
+            return;
+        }
+        var empty = document.getElementById('task-filter-empty');
+        var groups = document.querySelectorAll('[data-task-group]');
+
+        input.addEventListener('input', function () {
+            var words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+            var anyShown = false;
+            groups.forEach(function (group) {
+                var groupShown = false;
+                group.querySelectorAll('[data-task]').forEach(function (task) {
+                    var text = task.dataset.text;
+                    var shown = words.every(function (word) { return text.indexOf(word) !== -1; });
+                    task.hidden = !shown;
+                    groupShown = groupShown || shown;
+                });
+                group.hidden = !groupShown;
+                anyShown = anyShown || groupShown;
+            });
+            empty.hidden = anyShown || groups.length === 0;
+        });
+    })();
+</script>
+
+</body>
+</html>

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface TodoRepository extends JpaRepository<Todo, Long> {
@@ -13,6 +14,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     public List<Todo> findAllByProjectAndAndDoneOrderByDueDateAsc(Project project, boolean done);
     public List<Todo> findAllByProjectAndDoneOrderByPositionAscDueDateAsc(Project project, boolean done);
     public Long countByProjectAndDone(Project project, boolean done);
+    public List<Todo> findAllByProjectInAndDoneFalseOrderByPositionAscDueDateAsc(Collection<Project> projects);
     @Query(value = "SELECT * FROM todos WHERE notes LIKE :pattern", nativeQuery = true)
     List<Todo> findByNotesLike(@Param("pattern") String pattern);
 

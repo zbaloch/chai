@@ -9,6 +9,7 @@ import com.chaihq.webapp.repositories.UserRepository;
 import com.chaihq.webapp.services.Accounts;
 import com.chaihq.webapp.services.Chats;
 import com.chaihq.webapp.services.ProjectAccess;
+import com.chaihq.webapp.services.ProjectStars;
 import com.chaihq.webapp.utilities.Constants;
 import com.chaihq.webapp.utilities.Util;
 import com.chaihq.webapp.validator.ProjectValidator;
@@ -23,10 +24,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping(Paths.ACCOUNT)
@@ -56,6 +55,9 @@ public class ProjectsController {
     @Autowired
     private ProjectStarRepository projectStarRepository;
 
+    @Autowired
+    private ProjectStars projectStars;
+
     // Home: the projects in the account you're working in
     @GetMapping("/projects")
     public String index(Model model, HttpSession session) {
@@ -67,11 +69,8 @@ public class ProjectsController {
 
         model.addAttribute("account", account);
         // Starred projects first, each group still by name
-        Set<Long> starredProjectIds = projectStarRepository.findByUser(currentUser).stream()
-                .map(star -> star.getProject().getId()).collect(Collectors.toSet());
-        model.addAttribute("projects", accounts.visibleProjects(account, currentUser).stream()
-                .sorted(Comparator.comparing(project -> !starredProjectIds.contains(project.getId())))
-                .toList());
+        Set<Long> starredProjectIds = projectStars.projectIds(currentUser);
+        model.addAttribute("projects", projectStars.starredFirst(accounts.visibleProjects(account, currentUser), starredProjectIds));
         model.addAttribute("starredProjectIds", starredProjectIds);
         model.addAttribute("unreadChatProjectIds", chats.unread(account, currentUser).projectIds());
 

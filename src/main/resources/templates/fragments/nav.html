@@ -24,6 +24,10 @@
                                 Chats
                                 <span data-chat-dot hidden class="block size-1.5 rounded-full bg-red-500"><span class="sr-only">New</span></span>
                             </a>
+                            <a th:if="${session.currentAccount != null}" th:href="@{/{accountId}/tasks(accountId=${session.currentAccount.id})}" data-nav="tasks"
+                               class="rounded-md px-2 py-2 text-sm font-medium sm:px-3 text-gray-500 hover:bg-gray-900/5 hover:text-gray-900 data-active:bg-gray-900/5 data-active:text-gray-900">
+                                Tasks
+                            </a>
                         </div>
                     </div>
 
@@ -90,6 +94,7 @@
                 var section = /\/hey\/?$/.test(location.pathname) ? 'hey'
                     : /^\/\d+\/search/.test(location.pathname) ? 'search'
                     : /^\/\d+\/chats/.test(location.pathname) ? 'chats'
+                    : /^\/\d+\/tasks/.test(location.pathname) ? 'tasks'
                     : /^\/\d+\/people/.test(location.pathname) ? 'people' : 'projects';
                 document.querySelectorAll('[data-nav]').forEach(function (a) {
                     if (a.dataset.nav === section) a.setAttribute('data-active', '');
