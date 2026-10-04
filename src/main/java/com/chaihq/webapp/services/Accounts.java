@@ -7,16 +7,19 @@ import com.chaihq.webapp.models.User;
 import com.chaihq.webapp.repositories.AccountMemberRepository;
 import com.chaihq.webapp.repositories.AccountRepository;
 import com.chaihq.webapp.repositories.ProjectRepository;
+import com.chaihq.webapp.repositories.UserRepository;
 import com.chaihq.webapp.utilities.Constants;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Accounts (companies) and people's roles in them. Someone can belong to several accounts;
- * the one they're working in is kept in their session, like switching accounts in Basecamp.
+ * the one they're working in is kept in their session, like switching accounts in Basecamp,
+ * and remembered on the user so a new session opens in the same one.
  */
 @Service
 public class Accounts {
@@ -26,12 +29,14 @@ public class Accounts {
     private final AccountRepository accountRepository;
     private final AccountMemberRepository memberRepository;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
     public Accounts(AccountRepository accountRepository, AccountMemberRepository memberRepository,
-                    ProjectRepository projectRepository) {
+                    ProjectRepository projectRepository, UserRepository userRepository) {
         this.accountRepository = accountRepository;
         this.memberRepository = memberRepository;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
     }
 
     public AccountMember membership(Account account, User user) {
@@ -65,34 +70,48 @@ public class Accounts {
     }
 
     /**
-     * The account this person is working in. Falls back to their first account if the one in
-     * the session is gone (or they were removed from it); null if they belong to none.
+     * The account this person is working in: the one in the session, else the one they last
+     * worked in (a new session), else their first account if that's gone (or they were removed
+     * from it); null if they belong to none.
      */
     public Account current(HttpSession session, User user) {
-        Object id = session.getAttribute(CURRENT_ACCOUNT_ID);
         AccountMember membership = null;
-        if (id instanceof Long accountId) {
-            membership = accountRepository.findById(accountId).map(account -> membership(account, user)).orElse(null);
+        if (session.getAttribute(CURRENT_ACCOUNT_ID) instanceof Long accountId) {
+            membership = membership(accountId, user);
+        }
+        if (membership == null && user != null && user.getLastAccountId() != null) {
+            membership = membership(user.getLastAccountId(), user);
         }
         if (membership == null) {
             List<AccountMember> all = memberships(user);
             membership = all.isEmpty() ? null : all.get(0);
         }
-        remember(session, membership);
+        remember(session, user, membership);
         return membership == null ? null : membership.getAccount();
     }
 
     /** Switch to another of this person's accounts. Returns false if they don't belong to it. */
     public boolean switchTo(HttpSession session, User user, long accountId) {
-        AccountMember membership = accountRepository.findById(accountId).map(account -> membership(account, user)).orElse(null);
+        AccountMember membership = membership(accountId, user);
         if (membership == null) {
             return false;
         }
-        remember(session, membership);
+        remember(session, user, membership);
         return true;
     }
 
-    private void remember(HttpSession session, AccountMember membership) {
+    private AccountMember membership(long accountId, User user) {
+        return accountRepository.findById(accountId).map(account -> membership(account, user)).orElse(null);
+    }
+
+    private void remember(HttpSession session, User user, AccountMember membership) {
+        Long accountId = membership == null ? null : membership.getAccount().getId();
+        // Runs on every request, so only write when it changes
+        if (user != null && !Objects.equals(user.getLastAccountId(), accountId)) {
+            userRepository.updateLastAccountId(user.getId(), accountId);
+            user.setLastAccountId(accountId);
+        }
+
         if (membership == null) {
             session.removeAttribute(CURRENT_ACCOUNT_ID);
             session.removeAttribute(Constants.CURRENT_ACCOUNT);

@@ -3,6 +3,7 @@ package com.chaihq.webapp.controllers;
 import com.chaihq.webapp.utilities.Paths;
 import com.chaihq.webapp.models.*;
 import com.chaihq.webapp.repositories.ProjectRepository;
+import com.chaihq.webapp.repositories.ProjectStarRepository;
 import com.chaihq.webapp.repositories.TimesheetRepository;
 import com.chaihq.webapp.repositories.UserRepository;
 import com.chaihq.webapp.services.Accounts;
@@ -22,7 +23,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping(Paths.ACCOUNT)
@@ -49,6 +53,9 @@ public class ProjectsController {
     @Autowired
     private Chats chats;
 
+    @Autowired
+    private ProjectStarRepository projectStarRepository;
+
     // Home: the projects in the account you're working in
     @GetMapping("/projects")
     public String index(Model model, HttpSession session) {
@@ -59,7 +66,13 @@ public class ProjectsController {
         }
 
         model.addAttribute("account", account);
-        model.addAttribute("projects", accounts.visibleProjects(account, currentUser));
+        // Starred projects first, each group still by name
+        Set<Long> starredProjectIds = projectStarRepository.findByUser(currentUser).stream()
+                .map(star -> star.getProject().getId()).collect(Collectors.toSet());
+        model.addAttribute("projects", accounts.visibleProjects(account, currentUser).stream()
+                .sorted(Comparator.comparing(project -> !starredProjectIds.contains(project.getId())))
+                .toList());
+        model.addAttribute("starredProjectIds", starredProjectIds);
         model.addAttribute("unreadChatProjectIds", chats.unread(account, currentUser).projectIds());
 
         // The current user's time log, shown on the home page
@@ -127,6 +140,25 @@ public class ProjectsController {
                 .filter(user -> user.getId() != currentUser.getId() && projectAccess.isMember(project, user))
                 .toList());
         return "fragments/comments :: mentionItems";
+    }
+
+    // Stars are personal: they only reorder your own home page
+    @PostMapping("/project/{id}/star")
+    public String star(@PathVariable Long id, @RequestParam(value = "starred", defaultValue = "true") boolean starred) {
+        User currentUser = projectAccess.currentUser();
+        Project project = projectAccess.project(id, currentUser);
+        if (starred) {
+            if (projectStarRepository.findFirstByProjectAndUser(project, currentUser).isEmpty()) {
+                ProjectStar star = new ProjectStar();
+                star.setProject(project);
+                star.setUser(currentUser);
+                star.setCreatedAt(Calendar.getInstance());
+                projectStarRepository.save(star);
+            }
+        } else {
+            projectStarRepository.deleteByProjectAndUser(project, currentUser);
+        }
+        return "redirect:" + Paths.home(project.getAccount());
     }
 
     @PostMapping("/project/{id}/delete")

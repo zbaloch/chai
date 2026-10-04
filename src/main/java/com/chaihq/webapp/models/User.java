@@ -54,6 +54,11 @@ public class User {
     @Column(name = "remember_secret", length = 64)
     private String rememberSecret;
 
+    // The account they last worked in, so a new session (browser reopened, another device)
+    // opens there rather than in their first account by name
+    @Column(name = "last_account_id")
+    private Long lastAccountId;
+
     // Stored as a (LONG)BLOB but bound/extracted as a materialized byte[]
     // (getBytes/setBytes) rather than the streaming java.sql.Blob API, which the
     // SQLite JDBC driver does not implement.

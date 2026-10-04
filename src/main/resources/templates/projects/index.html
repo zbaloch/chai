@@ -28,9 +28,24 @@
             th:unless="${#lists.isEmpty(projects)}">
             <li th:each="project : ${projects}" 
                 class="group relative flex flex-col rounded-xl bg-white p-6 shadow-xs ring-1 ring-gray-900/5 transition hover:shadow-md hover:ring-gray-900/10">
-                <span th:attr="data-chat-dot-project=${project.id}" th:hidden="${unreadChatProjectIds == null or !unreadChatProjectIds.contains(project.id)}"
-                      class="absolute top-7 right-6 block size-2 rounded-full bg-red-500" title="New in chat"><span class="sr-only">New in chat</span></span>
-                <h3 class="pr-4 text-base font-semibold text-gray-900">
+                <div class="absolute top-5 right-4 z-10 flex items-center gap-x-2"
+                     th:with="starred=${starredProjectIds.contains(project.id)}">
+                    <span th:attr="data-chat-dot-project=${project.id}" th:hidden="${unreadChatProjectIds == null or !unreadChatProjectIds.contains(project.id)}"
+                          class="block size-2 rounded-full bg-red-500" title="New in chat"><span class="sr-only">New in chat</span></span>
+                    <form th:action="@{/{a}/project/{id}/star(a=${project.account.id}, id=${project.id})}" method="post">
+                        <input type="hidden" name="starred" th:value="${!starred}"/>
+                        <button type="submit" class="block rounded-md p-1"
+                                th:classappend="${starred} ? 'text-amber-400 hover:text-amber-500' : 'text-gray-200 hover:text-gray-300'"
+                                th:title="${starred} ? 'Unstar' : 'Star to keep at the top'"
+                                th:attr="aria-pressed=${starred}">
+                            <span class="sr-only" th:text="${starred} ? 'Unstar ' + ${project.name} : 'Star ' + ${project.name}">Star</span>
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-6">
+                                <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                <h3 class="pr-10 text-base font-semibold text-gray-900">
                     <a th:href="@{/{accountId}/project/{id}(accountId=${project.account.id}, id=${project.id})}" class="focus:outline-none">
                         <span class="absolute inset-0" aria-hidden="true"></span>
                         <span th:text="${project.name}">Project</span>

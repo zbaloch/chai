@@ -30,7 +30,9 @@ The below is the backlog of features planned:
 - Much more...
 
 ## License
-Free to use, modify and self-host — just not to sell as a competing hosted service. Each release becomes MIT after two years. [FSL-1.1-MIT](LICENSE) · [Details](LICENSING.md)
+Chai is [MIT licensed](LICENSE): free for anyone, including companies, to use, modify and self-host.
+
+Need an urgent fix or a feature for your team? Paid support is available — email zaheer at hey.com.
 
 ## Getting Help & Contributing Back
 If interested n in getting any help or contributing back, please write to me on zaheer at hey.com.
