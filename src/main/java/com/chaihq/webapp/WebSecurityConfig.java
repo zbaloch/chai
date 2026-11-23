@@ -63,6 +63,8 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 .requestMatchers("/registration", "/js/*", "/css/*", "/login-magic", "/login", "/verify-token-and-login", "/invitations/*").permitAll()
+                // The site root decides for itself: landing page or sign in when signed out (LegacyUrlsController)
+                .requestMatchers("/", "/png/*", "/site.webmanifest", "/apple-touch-icon.png").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

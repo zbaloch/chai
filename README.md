@@ -50,6 +50,9 @@ If interested n in getting any help or contributing back, please write to me on 
 * TailwindCSS and TailwindUI
 
 
+### Landing page
+The chaiprojects.com landing page is the Thymeleaf template `templates/home.html`, with its screenshots in `static/images/home/`. It is shown at `/` to signed-out visitors only when `chai_landing_page_enabled=true`; otherwise `/` goes to sign in.
+
 ### Database configuration to support large file uploads
 maxAllowedPacket=99999999 in the URL of the database
 max_allowed_packet=500M in the my.ini for your mysql server

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<!-- The site root for people who aren't signed in, on chaiprojects.com (chai.landing-page.enabled) -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chai: project management a bank can run on its own servers</title>
+    <meta name="description" content="Chai is a source-available, self-hosted alternative to Basecamp for banks and other companies that cannot put project data on someone else’s cloud. Free for internal use, with paid support when you want it.">
+    <link rel="canonical" href="https://www.chaiprojects.com/">
+    <link rel="icon" th:href="@{/favicon.ico}" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}">
+    <link rel="manifest" th:href="@{/site.webmanifest}">
+    <meta name="theme-color" content="#0B78D0">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Chai: project management a bank can run on its own servers">
+    <meta property="og:description" content="Chai is a source-available, self-hosted alternative to Basecamp for banks and other companies that cannot put project data on someone else’s cloud. Free for internal use, with paid support when you want it.">
+    <meta property="og:url" content="https://www.chaiprojects.com/">
+    <meta property="og:image" content="https://www.chaiprojects.com/png/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://www.chaiprojects.com/png/og-image.png">
+
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+    <!-- Same Tailwind as the rest of the app (fragments/head.html), without the app's own scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3/dist/index.global.min.js" integrity="sha384-aJ9rL4k6lF+91guGvUFVSkpIcge7Zd9EiI4TQDLoK9kFaFJgKHgjEXVvG/qA5COj" crossorigin="anonymous"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-paper: #faf8f4;
+            --color-sheet: #ffffff;
+            --color-ink: #1b2622;
+            --color-muted: #5c6a64;
+            --color-line: #dce2dc;
+            --color-brew: #a9652a;
+            --color-mark: #fbe9a9;
+
+            --font-display: InterVariable, Inter, ui-sans-serif, system-ui, sans-serif;
+            --font-sans: InterVariable, Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+            --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        @layer base {
+            html {
+                scroll-behavior: smooth;
+                scroll-padding-top: 5rem;
+            }
+
+            body {
+                background: var(--color-paper);
+                color: var(--color-ink);
+                font-family: var(--font-sans);
+                font-size: 1.0625rem;
+                line-height: 1.65;
+                -webkit-font-smoothing: antialiased;
+                text-rendering: optimizeLegibility;
+            }
+
+            h1, h2, h3 {
+                font-family: var(--font-display);
+                font-weight: 650;
+                letter-spacing: -0.02em;
+                line-height: 1.1;
+                text-wrap: balance;
+            }
+
+            p {
+                text-wrap: pretty;
+            }
+
+            a {
+                text-underline-offset: 0.2em;
+            }
+
+            :focus-visible {
+                outline: 2px solid var(--color-sky-600);
+                outline-offset: 3px;
+                border-radius: 4px;
+            }
+
+            ::selection {
+                background: var(--color-mark);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                html {
+                    scroll-behavior: auto;
+                }
+                *, *::before, *::after {
+                    transition-duration: 0.01ms !important;
+                    animation-duration: 0.01ms !important;
+                }
+            }
+        }
+
+        @layer components {
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                border-radius: 999px;
+                padding: 0.7rem 1.35rem;
+                font-weight: 600;
+                font-size: 1rem;
+                line-height: 1.3;
+                text-decoration: none;
+                transition: background-color 120ms ease, border-color 120ms ease;
+            }
+
+            .btn-primary {
+                background: var(--color-sky-600);
+                color: #fff;
+            }
+            .btn-primary:hover {
+                background: var(--color-sky-700);
+            }
+
+            .btn-quiet {
+                background: var(--color-sheet);
+                color: var(--color-ink);
+                border: 1px solid var(--color-line);
+            }
+            .btn-quiet:hover {
+                border-color: var(--color-ink);
+            }
+
+            /* The white "sheet" every screen in Chai sits on */
+            .sheet {
+                background: var(--color-sheet);
+                border: 1px solid var(--color-line);
+                border-radius: 0.875rem;
+                box-shadow: 0 1px 0 rgb(27 38 34 / 0.04), 0 12px 32px -16px rgb(27 38 34 / 0.18);
+            }
+
+            .wrap {
+                width: 100%;
+                max-width: 68rem;
+                margin-inline: auto;
+                padding-inline: 1.25rem;
+            }
+            @media (min-width: 640px) {
+                .wrap {
+                    padding-inline: 2rem;
+                }
+            }
+
+            .lede {
+                font-size: 1.1875rem;
+                line-height: 1.6;
+                color: var(--color-muted);
+                max-width: 38rem;
+            }
+
+            .mark {
+                background: linear-gradient(transparent 58%, var(--color-mark) 58%);
+            }
+        }
+    </style>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JPQZKTEMBM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-JPQZKTEMBM');
+    </script>
+</head>
+<body>
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-sheet focus:px-3 focus:py-2">
+    Skip to content
+</a>
+
+<header class="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur">
+    <div class="wrap flex h-16 items-center justify-between gap-6">
+        <a th:href="@{/}" class="text-ink no-underline" aria-label="Chai home">
+            <svg th:replace="~{fragments/home :: logo}"></svg>
+        </a>
+
+        <nav class="hidden items-center gap-7 text-[0.9375rem] md:flex" aria-label="Main">
+            <a href="#inside" class="text-muted no-underline hover:text-ink">What’s inside</a>
+            <a href="#self-hosting" class="text-muted no-underline hover:text-ink">Self-hosting</a>
+            <a href="#support" class="text-muted no-underline hover:text-ink">Support</a>
+            <a href="#questions" class="text-muted no-underline hover:text-ink">Questions</a>
+            <a href="https://github.com/zbaloch/chai" class="text-muted no-underline hover:text-ink">GitHub</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <a th:href="@{/login}" class="hidden text-[0.9375rem] text-muted no-underline hover:text-ink sm:inline">Sign in</a>
+            <a th:href="@{/registration}" class="btn btn-primary py-2 text-[0.9375rem]">Try Chai free</a>
+
+            <!-- Small-screen menu. Plain <details>, no JavaScript. -->
+            <details class="relative md:hidden">
+                <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full border border-line bg-sheet [&::-webkit-details-marker]:hidden">
+                    <span class="sr-only">Menu</span>
+                    <svg viewBox="0 0 20 20" class="h-5 w-5" aria-hidden="true">
+                        <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                    </svg>
+                </summary>
+                <div class="sheet absolute right-0 mt-2 w-56 p-2">
+                    <a href="#inside" class="block rounded-lg px-3 py-2 text-ink no-underline hover:bg-paper">What’s inside</a>
+                    <a href="#self-hosting" class="block rounded-lg px-3 py-2 text-ink no-underline hover:bg-paper">Self-hosting</a>
+                    <a href="#support" class="block rounded-lg px-3 py-2 text-ink no-underline hover:bg-paper">Support</a>
+                    <a href="#questions" class="block rounded-lg px-3 py-2 text-ink no-underline hover:bg-paper">Questions</a>
+                    <a href="https://github.com/zbaloch/chai" class="block rounded-lg px-3 py-2 text-ink no-underline hover:bg-paper">GitHub</a>
+                    <a th:href="@{/login}" class="block rounded-lg px-3 py-2 text-ink no-underline hover:bg-paper">Sign in</a>
+                </div>
+            </details>
+        </div>
+    </div>
+</header>
+
+<main id="main">
+
+    <!-- Hero -->
+    <section class="wrap pb-16 pt-14 sm:pt-20 lg:pb-24">
+        <div class="max-w-3xl">
+            <h1 class="text-[2.6rem] sm:text-6xl">Project management your bank can run on its own servers.</h1>
+            <p class="lede mt-6">
+                Chai is a source-available alternative to Basecamp. Messages, to-dos, chat and projects in one calm place,
+                installed inside your network, with your data in your database.
+            </p>
+
+            <div class="mt-8 flex flex-wrap gap-3">
+                <a th:href="@{/registration}" class="btn btn-primary">Try Chai free</a>
+                <a href="https://github.com/zbaloch/chai" class="btn btn-quiet">
+                    <svg viewBox="0 0 20 20" class="h-4 w-4" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m7 6-4 4 4 4M13 6l4 4-4 4"></path>
+                    </svg>
+                    View the source
+                </a>
+            </div>
+
+            <p class="mt-5 text-[0.9375rem] text-muted">
+                Free to self-host for internal use under FSL-1.1-MIT. No user limits. Paid support if you want someone to call.
+            </p>
+        </div>
+
+        <div class="mt-12 sm:mt-16">
+            <figure th:replace="~{fragments/home :: screenshot('/images/home/projects.png',
+                    'The Chai projects screen for Acme Bank, showing five projects including a core banking upgrade and Q4 regulatory returns, each with the people working on it.',
+                    2400, 1226, true)}"></figure>
+        </div>
+    </section>
+
+    <!-- Why Chai exists -->
+    <section class="border-y border-line bg-sheet">
+        <div class="wrap py-16 sm:py-24">
+            <div class="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
+                <div>
+                    <h2 class="text-3xl sm:text-4xl">Good project tools exist. Banks mostly can’t use them.</h2>
+                    <p class="mt-5 text-muted">
+                        The problem is rarely the software. It is where the software runs, and who else can reach what is stored in it.
+                    </p>
+                </div>
+
+                <dl class="divide-y divide-line">
+                    <div class="py-6 first:pt-0 last:pb-0">
+                        <dt class="font-display text-xl font-semibold tracking-tight">The data leaves the building</dt>
+                        <dd class="mt-2 max-w-xl text-muted">Project threads end up holding customer names, audit findings and system diagrams. Once that sits in a vendor’s cloud, it is an outsourcing arrangement, and your regulator has rules about those.</dd>
+                    </div>
+                    <div class="py-6 first:pt-0 last:pb-0">
+                        <dt class="font-display text-xl font-semibold tracking-tight">The approval takes longer than the project</dt>
+                        <dd class="mt-2 max-w-xl text-muted">Vendor risk assessment, data-residency questions, legal review, a cloud register entry. Most teams give up halfway and go back to email and a shared spreadsheet.</dd>
+                    </div>
+                    <div class="py-6 first:pt-0 last:pb-0">
+                        <dt class="font-display text-xl font-semibold tracking-tight">The tools you are allowed to use are heavy</dt>
+                        <dd class="mt-2 max-w-xl text-muted">What is already approved tends to be a ticketing system built for software teams. Operations, compliance and business teams open it once and never return.</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <p class="mt-14 max-w-3xl font-display text-2xl leading-snug tracking-tight sm:text-[1.75rem]">
+                Chai takes the simplest route around all three. It is a small, friendly project tool that you install
+                <span class="mark">on a server you already own</span>, behind the firewall you already run.
+            </p>
+        </div>
+    </section>
+
+    <!-- What ships today, each with a real screenshot from the demo -->
+    <section id="inside" class="wrap py-16 sm:py-24">
+        <div class="max-w-2xl">
+            <h2 class="text-3xl sm:text-4xl">What’s inside</h2>
+            <p class="lede mt-4">
+                Chai does a handful of things and tries to do them well. If you have used Basecamp, you will know your way around
+                in a minute.
+            </p>
+            <p class="mt-4 max-w-2xl text-muted">
+                Every screenshot on this page is the hosted demo, with a made-up bank’s projects in it. Search also finds
+                messages, to-dos, comments and chats across your workspace.
+            </p>
+        </div>
+
+        <div class="mt-14 space-y-16 sm:space-y-24">
+            <div class="grid items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+                <div>
+                    <h3 class="text-2xl">Every project gets the same three tools</h3>
+                    <p class="mt-3 text-muted">To-dos, a message board and a chat, with the people working on it shown at the top. Open any project and you know where to look.</p>
+                    <p class="mt-3 text-muted">Nobody has to design a workflow or configure a board before they can post their first update.</p>
+                </div>
+                <div>
+                    <figure th:replace="~{fragments/home :: screenshot('/images/home/project.png',
+                            'A Chai project page for a core banking upgrade, with its four people and links to To-dos, Messages and Chat.',
+                            1440, 1242, false)}"></figure>
+                </div>
+            </div>
+
+            <div class="grid items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+                <div class="lg:order-2">
+                    <h3 class="text-2xl">Messages instead of reply-all</h3>
+                    <p class="mt-3 text-muted">Every project has a message board. Someone posts an update or a question, the discussion stays underneath it, and the person who joins in month three can read how a decision was made.</p>
+                    <p class="mt-3 text-muted">It is the part of Chai that replaces the long email chain with fourteen people in copy.</p>
+                </div>
+                <div class="lg:order-1">
+                    <figure th:replace="~{fragments/home :: screenshot('/images/home/message.png',
+                            'A message titled “Cutover plan, version 3” with comments from branch operations, information security and the CIO underneath.',
+                            1440, 1520, false)}"></figure>
+                </div>
+            </div>
+
+            <div class="grid items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+                <div>
+                    <h3 class="text-2xl">To-dos with a name next to them</h3>
+                    <p class="mt-3 text-muted">Each to-do can be given to a person and a due date, so the weekly meeting stops being a round of “who had that one?”</p>
+                    <p class="mt-3 text-muted">There are no story points, swimlanes or sprint ceremonies. People tick things off, and everyone can see what is left.</p>
+                </div>
+                <div>
+                    <figure th:replace="~{fragments/home :: screenshot('/images/home/todos.png',
+                            'A to-do list for a core banking upgrade, each item with a due date and the person responsible, and two completed items below.',
+                            1440, 1400, false)}"></figure>
+                </div>
+            </div>
+
+            <div class="grid items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+                <div class="lg:order-2">
+                    <h3 class="text-2xl">A chat for every project, and for anyone else</h3>
+                    <p class="mt-3 text-muted">Each project has its own chat for quick questions. Direct and small group chats cover everything that does not belong to a project.</p>
+                    <p class="mt-3 text-muted">@mentions bring someone in, messages can be edited, and a quiet dot tells you when there is something new.</p>
+                </div>
+                <div class="lg:order-1">
+                    <figure th:replace="~{fragments/home :: screenshot('/images/home/chat.png',
+                            'A project chat where four colleagues discuss a vendor patch, teller screens and an access review.',
+                            1440, 1800, false)}"></figure>
+                </div>
+            </div>
+
+            <div class="grid items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+                <div>
+                    <h3 class="text-2xl">You decide who sees what</h3>
+                    <p class="mt-3 text-muted">People are invited by email, sign in with a link sent to their work address, and see only the projects they have been added to. Add someone when they join a project, remove them when they move on.</p>
+                    <p class="mt-3 text-muted">Because sign-in runs through your own mail server, there are no passwords for Chai to store.</p>
+                </div>
+                <div>
+                    <figure th:replace="~{fragments/home :: screenshot('/images/home/people.png',
+                            'The people page of a project, listing four members with Remove buttons and one more colleague who can be added.',
+                            1440, 1544, false)}"></figure>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap, stated honestly -->
+        <div class="mt-16 rounded-2xl border border-line p-6 sm:mt-24 sm:p-9">
+            <div class="grid gap-8 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
+                <div>
+                    <h3 class="text-2xl">Not there yet</h3>
+                    <p class="mt-3 text-muted">
+                        Chai is young, and it is better you hear that from this page than discover it after installing. These are on
+                        the list and not built.
+                    </p>
+                </div>
+                <div>
+                    <ul class="grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                        <li th:each="item : ${ {'Automated check-ins', 'Docs and files', 'More database options', 'An API', 'Mobile apps'} }"
+                            class="flex items-center gap-2.5">
+                            <span class="h-1.5 w-1.5 rounded-full bg-brew" aria-hidden="true"></span>
+                            <span th:text="${item}">Automated check-ins</span>
+                        </li>
+                    </ul>
+                    <p class="mt-5 text-muted">
+                        Chat, notifications and search are already part of Chai. This list is for work that has not shipped yet.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Self-hosting -->
+    <section id="self-hosting" class="bg-ink text-white">
+        <div class="wrap py-16 sm:py-24">
+            <div class="grid gap-12 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
+                <div class="min-w-0">
+                    <h2 class="text-3xl sm:text-4xl">Runs on things your infrastructure team already knows</h2>
+                    <p class="mt-5 max-w-xl text-lg text-white/75">
+                        No container platform to learn and no new cloud account to open. If your bank runs any Java application today,
+                        it can run Chai.
+                    </p>
+
+                    <dl class="mt-9 space-y-5">
+                        <div class="border-l-2 border-white/25 pl-4">
+                            <dt class="font-semibold">A Java runtime</dt>
+                            <dd class="text-white/70">Chai is a Spring Boot app packaged as an executable JAR with embedded Tomcat.</dd>
+                        </div>
+                        <div class="border-l-2 border-white/25 pl-4">
+                            <dt class="font-semibold">A database</dt>
+                            <dd class="text-white/70">MySQL for a real installation, or SQLite if you just want to look around.</dd>
+                        </div>
+                        <div class="border-l-2 border-white/25 pl-4">
+                            <dt class="font-semibold">A mail server</dt>
+                            <dd class="text-white/70">Any SMTP relay you already have. Chai uses it to send sign-in links.</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="min-w-0">
+                    <ol class="space-y-6">
+                        <li>
+                            <p class="font-display text-lg font-semibold">1. Get the code</p>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-black/35 p-4 font-mono text-sm leading-relaxed text-white/90"><code>git clone https://github.com/zbaloch/chai.git
+cd chai</code></pre>
+                        </li>
+                        <li>
+                            <p class="font-display text-lg font-semibold">2. Point it at your database and mail server</p>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-black/35 p-4 font-mono text-sm leading-relaxed text-white/90"><code>export chai_spring_port=8080
+export chai_spring_datasource_url=jdbc:sqlite:database.sqlite
+export chai_spring_mail_host=smtp.yourbank.internal
+export chai_spring_mail_port=25
+export chai_spring_host_url=https://chai.yourbank.internal</code></pre>
+                        </li>
+                        <li>
+                            <p class="font-display text-lg font-semibold">3. Build and run the executable JAR</p>
+                            <pre class="mt-2 overflow-x-auto rounded-lg bg-black/35 p-4 font-mono text-sm leading-relaxed text-white/90"><code>mvn package
+java -jar target/chaiweb-0.0.1-SNAPSHOT.jar</code></pre>
+                        </li>
+                    </ol>
+
+                    <p class="mt-6 text-white/70">
+                        The full list of settings is in
+                        <a href="https://github.com/zbaloch/chai" class="text-white underline">the README</a>. If you would rather not do this yourself,
+                        <a href="#support" class="text-white underline">that is what paid support is for</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Plans -->
+    <section id="support" class="wrap py-16 sm:py-24">
+        <div class="max-w-2xl">
+            <h2 class="text-3xl sm:text-4xl">Free to run. Paid if you want us on the hook.</h2>
+            <p class="lede mt-4">
+                There is one Chai. Nothing is held back for paying customers. What you pay for is people: someone to install it,
+                keep it current, and answer when it matters.
+            </p>
+        </div>
+
+        <div class="mt-12 grid gap-6 lg:grid-cols-2">
+            <div class="sheet flex flex-col p-7 sm:p-9">
+                <h3 class="text-2xl">Run it yourself</h3>
+                <p class="mt-2 text-muted">For teams with the engineers and the appetite to own it.</p>
+                <p class="mt-6 font-display text-4xl font-semibold tracking-tight">Free</p>
+                <p class="text-muted">and it stays free</p>
+
+                <ul class="mt-7 space-y-3">
+                    <li th:each="item : ${ {'The complete application and its source',
+                                            'Every feature, with no user or project limits',
+                                            'FSL-1.1-MIT licence for internal use and self-hosting',
+                                            'Help from the community through GitHub issues'} }"
+                        class="flex gap-3">
+                        <svg viewBox="0 0 20 20" class="mt-1 h-5 w-5 shrink-0 text-sky-600" aria-hidden="true">
+                            <path d="m4.5 10.5 3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span th:text="${item}">The complete application and its source</span>
+                    </li>
+                </ul>
+
+                <div class="mt-auto pt-8">
+                    <a href="https://github.com/zbaloch/chai" class="btn btn-quiet w-full sm:w-auto">Get the code on GitHub</a>
+                    <p class="mt-3 text-sm text-muted">
+                        The licence does not allow offering Chai as a competing hosted service. See the
+                        <a href="https://github.com/zbaloch/chai/blob/main/LICENSE" class="text-ink underline">licence terms</a>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="sheet flex flex-col border-sky-600 p-7 sm:p-9">
+                <h3 class="text-2xl">Run it with support</h3>
+                <p class="mt-2 text-muted">For banks that need a supplier behind anything in production.</p>
+                <p class="mt-6 font-display text-4xl font-semibold tracking-tight">Annual agreement</p>
+                <p class="text-muted">priced by the size of your installation</p>
+
+                <ul class="mt-7 space-y-3">
+                    <li th:each="item : ${ {'Installation on your servers, alongside your team',
+                                            'Upgrades planned and carried out with you',
+                                            'Bugs that affect you fixed ahead of the queue',
+                                            'A named person to contact, with agreed response times',
+                                            'Answers for your vendor and security questionnaires',
+                                            'A walkthrough session for the people who will use it'} }"
+                        class="flex gap-3">
+                        <svg viewBox="0 0 20 20" class="mt-1 h-5 w-5 shrink-0 text-sky-600" aria-hidden="true">
+                            <path d="m4.5 10.5 3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span th:text="${item}">Installation on your servers, alongside your team</span>
+                    </li>
+                </ul>
+
+                <div class="mt-auto pt-8">
+                    <a href="mailto:hello@chaiprojects.com?subject=Chai%20support%20for%20our%20team" class="btn btn-primary w-full sm:w-auto">Ask for a quote</a>
+                    <p class="mt-3 text-sm text-muted">
+                        Write to hello@chaiprojects.com. Tell us roughly how many people will use Chai and where it will run.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 overflow-x-auto">
+            <table class="w-full min-w-[36rem] border-collapse text-left">
+                <caption class="sr-only">Running Chai yourself compared with running it with support</caption>
+                <thead>
+                <tr class="border-b border-ink">
+                    <th scope="col" class="py-3 pr-4 font-normal text-muted">&nbsp;</th>
+                    <th scope="col" class="py-3 pr-4 font-display text-lg font-semibold">Yourself</th>
+                    <th scope="col" class="py-3 font-display text-lg font-semibold">With support</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">The software</th>
+                    <td class="py-3.5 pr-4 text-muted">Identical</td>
+                    <td class="py-3.5">Identical</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">Users and projects</th>
+                    <td class="py-3.5 pr-4 text-muted">Unlimited</td>
+                    <td class="py-3.5">Unlimited</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">Installation</th>
+                    <td class="py-3.5 pr-4 text-muted">You do it</td>
+                    <td class="py-3.5">We do it with your team</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">Upgrades</th>
+                    <td class="py-3.5 pr-4 text-muted">You pull and deploy</td>
+                    <td class="py-3.5">Planned and done together</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">When something breaks</th>
+                    <td class="py-3.5 pr-4 text-muted">Open a GitHub issue</td>
+                    <td class="py-3.5">Contact us directly</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">Response time</th>
+                    <td class="py-3.5 pr-4 text-muted">Best effort</td>
+                    <td class="py-3.5">Agreed in writing</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">Vendor paperwork</th>
+                    <td class="py-3.5 pr-4 text-muted">Not available</td>
+                    <td class="py-3.5">Included</td>
+                </tr>
+                <tr class="border-b border-line">
+                    <th scope="row" class="py-3.5 pr-4 font-medium">Cost</th>
+                    <td class="py-3.5 pr-4 text-muted">Free</td>
+                    <td class="py-3.5">Annual fee</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- The questions an information-security reviewer asks first -->
+    <section class="border-y border-line bg-sheet">
+        <div class="wrap py-16 sm:py-24">
+            <div class="max-w-2xl">
+                <h2 class="text-3xl sm:text-4xl">For the person who has to approve this</h2>
+                <p class="lede mt-4">
+                    Someone in information security or IT risk will be asked whether Chai is acceptable. These are the short
+                    answers. The long ones are in <a href="https://github.com/zbaloch/chai" class="text-ink underline">the source</a>.
+                </p>
+            </div>
+
+            <dl class="mt-12 grid gap-x-12 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="border-t-2 border-ink pt-4">
+                    <dt class="font-display text-lg font-semibold tracking-tight">Where is our data stored?</dt>
+                    <dd class="mt-2 text-muted">In the database you configure, on infrastructure you control. Chai has no storage of its own anywhere else.</dd>
+                </div>
+                <div class="border-t-2 border-ink pt-4">
+                    <dt class="font-display text-lg font-semibold tracking-tight">Who can read the code?</dt>
+                    <dd class="mt-2 text-muted">Anyone. The source is public on GitHub, so your team can review it before it goes near production. Chai is source-available under the FSL-1.1-MIT licence.</dd>
+                </div>
+                <div class="border-t-2 border-ink pt-4">
+                    <dt class="font-display text-lg font-semibold tracking-tight">How do people sign in?</dt>
+                    <dd class="mt-2 text-muted">With a one-time magic link sent to their email address through your own SMTP server. Chai does not use passwords.</dd>
+                </div>
+                <div class="border-t-2 border-ink pt-4">
+                    <dt class="font-display text-lg font-semibold tracking-tight">What does it depend on?</dt>
+                    <dd class="mt-2 text-muted">Java, Spring Boot with embedded Tomcat, and MySQL. These are common technologies that may already be on your approved list.</dd>
+                </div>
+                <div class="border-t-2 border-ink pt-4">
+                    <dt class="font-display text-lg font-semibold tracking-tight">What if the project is abandoned?</dt>
+                    <dd class="mt-2 text-muted">You still have the source, the licence to change it, and your data in a standard database. Nothing switches off.</dd>
+                </div>
+                <div class="border-t-2 border-ink pt-4">
+                    <dt class="font-display text-lg font-semibold tracking-tight">Can we change it?</dt>
+                    <dd class="mt-2 text-muted">You can modify Chai for permitted uses such as running it internally. The FSL-1.1-MIT licence does not allow offering it as a competing hosted service.</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <!-- A note from the maintainer, and the honest word about Basecamp -->
+    <section class="wrap py-16 sm:py-24">
+        <div class="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+            <div class="max-w-2xl">
+                <h2 class="text-3xl sm:text-4xl">Why I built this</h2>
+                <div class="mt-6 space-y-4 text-lg leading-relaxed">
+                    <p>
+                        I have spent two decades in banking technology, and for most of that time I have watched capable teams run
+                        serious projects out of email threads and a spreadsheet called “tracker final v7”.
+                    </p>
+                    <p>
+                        It was never because they wanted to. The tool they liked was hosted somewhere they were not allowed to put
+                        data, and the tools they were allowed to use felt like filling in a form.
+                    </p>
+                    <p>
+                        Chai is my attempt at the tool I wanted those teams to have: small enough to understand, pleasant enough that
+                        people use it without being told to, and installed where the bank’s data already lives.
+                    </p>
+                </div>
+                <p class="mt-6 font-display text-lg font-semibold">Zaheer, maintainer of Chai</p>
+            </div>
+
+            <aside class="self-start rounded-2xl bg-sky-100 p-7">
+                <h3 class="text-xl">If you can use Basecamp, use Basecamp</h3>
+                <p class="mt-3">
+                    Chai owes its shape to Basecamp, which is affordable and excellent. If your company has no rule against hosted
+                    software, that is the better choice and you should go and sign up.
+                </p>
+                <p class="mt-3">
+                    Chai is for everyone who loves that way of working and is not permitted to have it. It was written from scratch
+                    and uses none of Basecamp’s code or design assets. The two are not affiliated.
+                </p>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Questions -->
+    <section id="questions" class="border-t border-line bg-sheet">
+        <div class="wrap grid gap-10 py-16 sm:py-24 lg:grid-cols-[1fr_1.7fr] lg:gap-16">
+            <div>
+                <h2 class="text-3xl sm:text-4xl">Questions people ask</h2>
+                <p class="mt-4 text-muted">
+                    Something missing? Write to
+                    <a href="mailto:hello@chaiprojects.com" class="text-ink underline">hello@chaiprojects.com</a> and a person will
+                    answer.
+                </p>
+            </div>
+
+            <div class="divide-y divide-line border-y border-line">
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Is the free version limited in any way?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">No. There is one codebase and everybody gets all of it. Support customers do not receive extra features, a different build or a higher user limit.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Can we try it before installing anything?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">Yes. <a th:href="@{/registration}" class="text-ink underline">Create an account</a> and use it for as long as you like. It is the same application you would install.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Should we put real bank data in the hosted demo?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">Please don’t. The hosted version exists so you can see how Chai feels. Anything confidential belongs in your own installation, which is the whole reason Chai exists.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        What do we need to run it?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">A server with Java, a MySQL database, and access to an SMTP server for magic-link sign-in emails. Chai runs as an executable JAR with embedded Tomcat. SQLite works too if you only want a quick look.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        How is support priced?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">As an annual agreement, sized to your installation. Send a short note saying how many people will use Chai and where it will run, and you will get a written quote back.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Can we start free and add support later?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">Yes, and many teams should. Install it, run a pilot with one department, and get in touch when it is heading for production.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Does Chai have chat?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">Yes. Projects have their own chats, and people can have direct or small-group chats. Chats support @mentions, editing and search.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Are we allowed to modify it?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">
+                        The FSL-1.1-MIT licence allows use, modification and self-hosting for permitted purposes, including internal company use. It does not allow offering Chai as a competing hosted service. Each release becomes MIT-licensed after two years; releases made before September 30, 2026 remain under MIT.
+                        <a href="https://github.com/zbaloch/chai/blob/main/LICENSE" class="text-ink underline">Read the full licence terms.</a>
+                    </p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-lg font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                        Is Chai connected to Basecamp?
+                        <svg viewBox="0 0 20 20" class="h-5 w-5 shrink-0 text-muted transition-transform duration-150 group-open:rotate-45" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    </summary>
+                    <p class="max-w-2xl pb-5 text-muted">No. Chai is an independent project inspired by how Basecamp organises work. It shares no code or design assets with it.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+</main>
+
+<section class="wrap py-16 sm:py-24">
+    <div class="rounded-3xl bg-sky-600 px-6 py-12 text-white sm:px-14 sm:py-16">
+        <h2 class="max-w-2xl text-3xl sm:text-5xl">See if your team likes it before anyone has to approve anything.</h2>
+        <p class="mt-5 max-w-xl text-lg text-white/85">
+            The hosted demo takes an email address and about a minute. If it fits, the code is waiting on GitHub.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a th:href="@{/registration}" class="btn bg-white text-sky-700 hover:bg-paper">Try Chai free</a>
+            <a href="mailto:hello@chaiprojects.com?subject=Chai%20support%20for%20our%20team" class="btn border border-white/50 text-white hover:border-white">Talk to us about support</a>
+        </div>
+    </div>
+</section>
+
+<footer class="border-t border-line">
+    <div class="wrap flex flex-col gap-8 py-10 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <svg th:replace="~{fragments/home :: logo}"></svg>
+            <p class="mt-3 max-w-xs text-[0.9375rem] text-muted">
+                Source-available project management for banks and other careful companies.
+            </p>
+        </div>
+
+        <nav class="grid grid-cols-2 gap-x-12 gap-y-2 text-[0.9375rem]" aria-label="Footer">
+            <a th:href="@{/registration}" class="text-muted no-underline hover:text-ink">Try the demo</a>
+            <a href="https://github.com/zbaloch/chai" class="text-muted no-underline hover:text-ink">Source code</a>
+            <a th:href="@{/login}" class="text-muted no-underline hover:text-ink">Sign in</a>
+            <a href="https://github.com/zbaloch/chai/issues" class="text-muted no-underline hover:text-ink">Report a bug</a>
+            <a href="#support" class="text-muted no-underline hover:text-ink">Support</a>
+            <a href="https://github.com/zbaloch/chai/blob/main/LICENSE" class="text-muted no-underline hover:text-ink">FSL-1.1-MIT licence</a>
+        </nav>
+    </div>
+
+    <div class="wrap border-t border-line py-6 text-sm text-muted">
+        <p>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> Chai. Not affiliated with Basecamp or 37signals.</p>
+    </div>
+</footer>
+</body>
+</html>

@@ -7,6 +7,10 @@ import com.chaihq.webapp.services.ProjectAccess;
 import com.chaihq.webapp.utilities.Paths;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,14 +25,27 @@ public class LegacyUrlsController {
 
     private final Accounts accounts;
     private final ProjectAccess projectAccess;
+    private final boolean landingPage;
 
-    public LegacyUrlsController(Accounts accounts, ProjectAccess projectAccess) {
+    public LegacyUrlsController(Accounts accounts, ProjectAccess projectAccess,
+                                @Value("${chai.landing-page.enabled:false}") boolean landingPage) {
         this.accounts = accounts;
         this.projectAccess = projectAccess;
+        this.landingPage = landingPage;
+    }
+
+    // Signed out, the site root is the landing page (templates/home.html) where it's
+    // switched on, as on chaiprojects.com; self-hosted installs go straight to sign in
+    @GetMapping("/")
+    public String root(HttpSession session) {
+        if (!signedIn()) {
+            return landingPage ? "home" : "redirect:/login";
+        }
+        return home(session);
     }
 
     // The account you last worked in, or your accounts if you have none
-    @GetMapping({"/", "/projects"})
+    @GetMapping("/projects")
     public String home(HttpSession session) {
         Account account = accounts.current(session, projectAccess.currentUser());
         return account == null ? "redirect:/accounts" : "redirect:" + Paths.home(account);
@@ -58,6 +75,13 @@ public class LegacyUrlsController {
     private String inCurrentAccount(HttpSession session, String path, String query) {
         Account account = accounts.current(session, projectAccess.currentUser());
         return account == null ? "redirect:/accounts" : "redirect:" + Paths.account(account) + path + query;
+    }
+
+    // Signed in this session or by the remember-me cookie, which also runs on public pages
+    private static boolean signedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
     }
 
     private static String query(HttpServletRequest request) {
